@@ -1,0 +1,2 @@
+提供对外远程调用微服务的实现，应继承common-service
+sparrow.permission.url地址
