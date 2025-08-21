@@ -29,8 +29,9 @@ public class DeleteEventListener implements PreDeleteEventListener {
 			return false;
 		}
 
-
-		modelPermissionService.hasPermission(modelId, PermissionEnum.DELETER,CurrentUser.get(),CurrentUser.getUserInfo().getRoles());
+		if(CurrentUser.get()!=null) {
+			modelPermissionService.hasPermission(modelId, PermissionEnum.DELETER,CurrentUser.get(),CurrentUser.getUserInfo().getRoles());
+		}
 
 //		if (event.getEntity().getClass().isAnnotationPresent(ModelPermission.class)) {
 //			return !this.dataPermissionService.hasPermission(event.getEntityName(), PermissionEnum.DELETER,
