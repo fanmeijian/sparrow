@@ -1,30 +1,37 @@
 package cn.sparrowmini.common.service;
 
-import cn.sparrowmini.common.antlr.PredicateBuilder;
-import cn.sparrowmini.common.util.JpaUtils;
-import cn.sparrowmini.common.util.JsonUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.*;
-import jakarta.persistence.criteria.*;
-import lombok.RequiredArgsConstructor;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static cn.sparrowmini.common.util.JpaUtils.convertToPkValue;
-import static cn.sparrowmini.common.util.JpaUtils.findPrimaryKeyField;
+import cn.sparrowmini.common.antlr.PredicateBuilder;
+import cn.sparrowmini.common.repository.DynamicProjectionHelper;
+import cn.sparrowmini.common.util.JpaUtils;
+import cn.sparrowmini.common.util.JsonUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -160,5 +167,10 @@ public class CommonJpaServiceImpl implements CommonJpaService {
         }
         return entityManager.createQuery(query);
     }
+
+	@Override
+	public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass) {
+		return DynamicProjectionHelper.findAllProjection(entityManager, clazz, pageable, filter, projectionClass);
+	}
 
 }

@@ -1,14 +1,11 @@
 package cn.sparrowmini.common.service;
 
-import cn.sparrowmini.common.model.ApiResponse;
-import cn.sparrowmini.common.model.SparrowJpaFilter;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CommonJpaService {
 
@@ -19,6 +16,8 @@ public interface CommonJpaService {
     public <T, ID> T getEntity(Class<T> clazz, ID id);
 
     public <T> Page<T> getEntityList(Class<T> clazz, Pageable pageable, String filter);
+    
+    public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass);
 
     public <T, ID> List<ID> saveEntity(Class<T> clazz,List<T> entities);
 }

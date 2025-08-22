@@ -104,10 +104,13 @@ public class CommonJpaController {
 
     @GetMapping("/filter")
     @ResponseBody
-    public Page<?> getEntityList(String className, Pageable pageable, String filter) {
+    public Page<?> getEntityList(String className, Pageable pageable, String filter, String projectionClassName) {
         try {
             Class<?> clazz = Class.forName(className);
-            return commonJpaService.getEntityList(clazz, pageable, filter);
+            Class<?> projectionClass = projectionClassName==null? null: Class.forName(projectionClassName);
+            
+            return projectionClass==null? commonJpaService.getEntityList(clazz, pageable, filter)
+            		: commonJpaService.getEntityList(clazz, pageable, filter, projectionClass);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
