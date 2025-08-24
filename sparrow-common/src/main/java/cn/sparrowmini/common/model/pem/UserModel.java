@@ -19,6 +19,11 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Entity
 @Table(name = TablePrefix.NAME + "user_model")
+@NamedQueries({
+        @NamedQuery(name = "UserModel.existByPermission",query = "select count(um)>0 from UserModel um where um.id.modelId=:modelId and um.id.permission=:permission and um.id.permissionType=:permissionType"),
+        @NamedQuery(name = "UserModel.existById",query = "select count(um)>0 from UserModel um where um.id=:id"),
+
+})
 public class UserModel implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id

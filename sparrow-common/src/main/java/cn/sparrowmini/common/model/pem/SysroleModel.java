@@ -18,6 +18,11 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Entity
 @Table(name = TablePrefix.NAME + "sysrole_model")
+@NamedQueries({
+        @NamedQuery(name = "SysroleModel.existByPermission",query = "select count(um)>0 from SysroleModel um where um.id.modelId=:modelId and um.id.permission=:permission and um.id.permissionType=:permissionType"),
+        @NamedQuery(name = "SysroleModel.existById",query = "select count(um)>0 from SysroleModel um where um.id=:id"),
+        @NamedQuery(name = "SysroleModel.existInIds",query = "select count(um)>0 from SysroleModel um where um.id in (:ids)"),
+})
 public class SysroleModel implements Serializable {
 
     private static final long serialVersionUID = 1L;

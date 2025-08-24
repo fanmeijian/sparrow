@@ -4,31 +4,23 @@ import cn.sparrowmini.common.constant.PermissionEnum;
 import cn.sparrowmini.common.constant.PermissionTypeEnum;
 import cn.sparrowmini.common.exception.DenyPermissionException;
 import cn.sparrowmini.common.exception.NoPermissionException;
-import cn.sparrowmini.common.model.ModelAttributeId;
-import cn.sparrowmini.common.model.pem.SysroleModelAttribute;
-import cn.sparrowmini.common.repository.SysroleModelAttributeRepository;
-import cn.sparrowmini.common.repository.SysroleModelRepository;
-import cn.sparrowmini.common.repository.UserModelRepository;
+import cn.sparrowmini.common.model.pem.SysroleModel;
+import cn.sparrowmini.common.model.pem.UserModel;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import cn.sparrowmini.common.model.pem.UserModel;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Service
 public class ModelPermissionService {
-    @Autowired
-    private SysroleModelRepository sysroleModelRepository;
-    @Autowired
-    private SysroleModelAttributeRepository sysroleModelAttributeRepository;
-    @Autowired
-    private UserModelRepository userModelRepository;
-//
-//    @Autowired
-//    private ModelAttributeRuleRepository modelAttributeRuleRepository;
 
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     /**
      * 检查模型权限
@@ -40,169 +32,83 @@ public class ModelPermissionService {
      */
     public boolean hasPermission(String modelId, PermissionEnum permission, String username, Collection<String> roles) {
 
-        if (PermissionUserAndRole.isSuperSysAdmin(username,roles)) {
+        if (PermissionUserAndRole.isSuperSysAdmin(username, roles)) {
             return true;
         }
 
-        //个人名下的角色的授权
-        boolean isDeny = this.sysroleModelRepository.isPermission(modelId, PermissionTypeEnum.DENY, username)
-                || this.userModelRepository.existsById(new UserModel.UserModelId(modelId, username, PermissionTypeEnum.DENY, permission));
-        if (isDeny) {
-            throw new DenyPermissionException(
-                    String.join(" ", "拒绝权限", modelId, permission.name(), username));
-        }
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            // 用 em 查询权限，不影响原实体
+            boolean isUserDeny = em.createNamedQuery("UserModel.existByPermission", Boolean.class)
+                    .setParameter("modelId", modelId)
+                    .setParameter("permission", permission)
+                    .setParameter("permissionType", PermissionTypeEnum.DENY)
+                    .getSingleResult();
 
-        boolean isConfig = this.sysroleModelRepository.isConfig(modelId, PermissionTypeEnum.ALLOW)
-                || this.userModelRepository.isConfig(modelId, PermissionTypeEnum.ALLOW);
-
-        boolean isAllow = this.sysroleModelRepository.isPermission(modelId, PermissionTypeEnum.ALLOW, username)
-                || this.userModelRepository.existsById(new UserModel.UserModelId(modelId, username, PermissionTypeEnum.ALLOW, permission));
-        if (isConfig && !isAllow) {
-            throw new NoPermissionException(String.join(" ", "没有权限", modelId, permission.name(), username));
-        }
-
-        return true;
-    }
-
-    public boolean hasPermission(ModelAttributeId attributePK, PermissionEnum permission, String username, Collection<String> roles) {
-        if (PermissionUserAndRole.isSuperSysAdmin(username,roles)) {
-            return true;
-        }
-        boolean allowPermissions = false;
-
-        for (String sysrole : roles) {
-            // check deny permission
-            log.debug("sysrole: {}", sysrole);
-            SysroleModelAttribute denyPermission = this.sysroleModelAttributeRepository
-                    .findById(new SysroleModelAttribute.SysroleModelAttributeId(attributePK, sysrole,
-                            PermissionTypeEnum.DENY, permission))
-                    .orElse(null);
-
-            if (denyPermission != null) {
-                throw new DenyPermissionException(String.join(" ", "拒绝权限", attributePK.getModelId(),
-                        attributePK.getAttributeId(), permission.name(), sysrole));
+            if (isUserDeny) {
+                throw new DenyPermissionException(
+                        String.join(" ", "用户拒绝权限", modelId, permission.name(), username));
             }
-            ;
 
-            // check allow permission
-            if (this.sysroleModelAttributeRepository.countByIdAttributeIdAndIdPermissionAndIdPermissionType(attributePK,
-                    permission, PermissionTypeEnum.ALLOW) > 0) {
-                SysroleModelAttribute allowPermission = this.sysroleModelAttributeRepository
-                        .findById(new SysroleModelAttribute.SysroleModelAttributeId(attributePK, sysrole,
-                                PermissionTypeEnum.ALLOW, permission))
-                        .orElse(null);
-                if (allowPermission != null) {
-                    allowPermissions = true;
+            boolean isRoleDeny = em.createNamedQuery("SysroleModel.existByPermission", Boolean.class)
+                    .setParameter("modelId", modelId)
+                    .setParameter("permission", permission)
+                    .setParameter("permissionType", PermissionTypeEnum.DENY)
+                    .getSingleResult();
+
+            if (isRoleDeny) {
+                throw new DenyPermissionException(
+                        String.join(" ", "角色拒绝权限", modelId, permission.name(), username));
+            }
+
+
+            /**
+             * 是否配置了用户的权限
+             */
+            boolean isUserAllowConfig = em.createNamedQuery("UserModel.existByPermission", Boolean.class)
+                    .setParameter("modelId", modelId)
+                    .setParameter("permission", permission)
+                    .setParameter("permissionType", PermissionTypeEnum.DENY)
+                    .getSingleResult();
+
+            /**
+             * 是否配置了角色的权限
+             */
+            boolean isRoleAllowConfig = em.createNamedQuery("SysroleModel.existByPermission", Boolean.class)
+                    .setParameter("modelId", modelId)
+                    .setParameter("permission", permission)
+                    .setParameter("permissionType", PermissionTypeEnum.DENY)
+                    .getSingleResult();
+
+            boolean isAllowConfig = isRoleAllowConfig || isUserAllowConfig;
+
+            /**
+             * 自己是否有权限
+             */
+
+            if (isAllowConfig) {
+                boolean isUserAllow = em.createNamedQuery("UserModel.existById", Boolean.class)
+                        .setParameter("id", new UserModel.UserModelId(modelId, username, PermissionTypeEnum.ALLOW, permission))
+                        .getSingleResult();
+
+                List<SysroleModel.SysroleModelId> sysroleModelIdList = roles.stream().map(m -> new SysroleModel.SysroleModelId(modelId, m, PermissionTypeEnum.ALLOW, permission)).toList();
+                boolean isRoleAllow = em.createNamedQuery("SysroleModel.existInIds", Boolean.class)
+                        .setParameter("ids", sysroleModelIdList)
+                        .getSingleResult();
+
+                if (isRoleAllow || isUserAllow) {
+
+                } else {
+                    throw new NoPermissionException(
+                            String.join(" ", "没有权限", modelId, permission.name(), username));
                 }
-                ;
             }
-        }
 
-        if (!allowPermissions) {
-            throw new NoPermissionException(
-                    String.join(" ", "没有权限", attributePK.getAttributeId(), permission.name(), username));
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
         }
         return true;
     }
-
-
-    /**
-     * 检查模型权限,使用规则表达式
-     *
-     * @param modelId
-     * @param permission
-     * @param username
-     * @param entity
-     * @return
-     */
-    public boolean hasPermission(String modelId, PermissionEnum permission, String username,Collection<String> roles, Object entity) {
-
-        if (PermissionUserAndRole.isSuperSysAdmin(username,roles)) {
-            return true;
-        }
-
-        //个人名下的角色的授权
-        boolean isDeny = this.sysroleModelRepository.isPermission(modelId, PermissionTypeEnum.DENY, username)
-                || this.userModelRepository.existsById(new UserModel.UserModelId(modelId, username, PermissionTypeEnum.DENY, permission));
-        if (isDeny) {
-            throw new DenyPermissionException(
-                    String.join(" ", "拒绝权限", modelId, permission.name(), username));
-        }
-
-        boolean isConfig = this.sysroleModelRepository.isConfig(modelId, PermissionTypeEnum.ALLOW)
-                || this.userModelRepository.isConfig(modelId, PermissionTypeEnum.ALLOW);
-
-        boolean isAllow = this.sysroleModelRepository.isPermission(modelId, PermissionTypeEnum.ALLOW, username)
-                || this.userModelRepository.existsById(new UserModel.UserModelId(modelId, username, PermissionTypeEnum.ALLOW, permission));
-//        if (isConfig && !isAllow) {
-//            throw new NoPermissionException(String.join(" ", "没有权限", modelId, permission.name(), username));
-//        }
-
-        boolean allowPermissions = false;
-
-        if (isConfig && !isAllow) {
-            return false;
-        }
-
-        return true;
-
-    }
-
-    /**
-     * 检查模型属性权限,使用规则表达式
-     *
-     * @param attributePK
-     * @param permission
-     * @param username
-     * @param entity
-     * @return
-     */
-    public boolean hasPermission(ModelAttributeId attributePK, PermissionEnum permission, String username,Collection<String> roles,
-                                 Object entity) {
-        if (PermissionUserAndRole.isSuperSysAdmin(username,roles)) {
-            return true;
-        }
-
-        boolean allowPermissions = false;
-        int allowPermissionCount = 0;
-
-        for (String sysrole : roles) {
-            // check deny permission
-            log.debug("sysrole: {}", sysrole);
-            SysroleModelAttribute denyPermission = this.sysroleModelAttributeRepository
-                    .findById(new SysroleModelAttribute.SysroleModelAttributeId(attributePK, sysrole,
-                            PermissionTypeEnum.DENY, permission))
-                    .orElse(null);
-
-            if (denyPermission != null) {
-                throw new DenyPermissionException(String.join(" ", "拒绝权限", attributePK.getModelId(),
-                        attributePK.getAttributeId(), permission.name(), sysrole));
-            }
-            ;
-
-            // check allow permission
-            int allowCount = this.sysroleModelAttributeRepository
-                    .countByIdAttributeIdAndIdPermissionAndIdPermissionType(attributePK, permission,
-                            PermissionTypeEnum.ALLOW);
-            allowPermissionCount = allowPermissionCount + allowCount;
-            if (allowCount > 0) {
-                SysroleModelAttribute allowPermission = this.sysroleModelAttributeRepository
-                        .findById(new SysroleModelAttribute.SysroleModelAttributeId(attributePK, sysrole,
-                                PermissionTypeEnum.ALLOW, permission))
-                        .orElse(null);
-                if (allowPermission != null) {
-                    allowPermissions = true;
-                }
-                ;
-            }
-        }
-
-
-        if (!allowPermissions && allowPermissionCount > 0) {
-            throw new NoPermissionException(
-                    String.join(" ", "没有权限", attributePK.getAttributeId(), permission.name(), username));
-        }
-        return true;
-    }
-
 }
