@@ -1,0 +1,53 @@
+pipeline {
+    agent { label 'dengbo-fedora' }
+
+    environment {
+        // 可选: 定义镜像名称和版本
+        IMAGE_NAME = 'sparrow-permission-service'
+        IMAGE_TAG = "${env.GIT_COMMIT.take(7)}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // 假设你的 Dockerfile 在项目根目录
+                    sh """
+                    docker build -f src/main/docker/Dockerfile -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    """
+                }
+            }
+        }
+
+        stage('Deploy with Compose') {
+            steps {
+                configFileProvider([configFile(fileId: 'sparrow-permission-service.yml', targetLocation: 'docker-compose.yml')]) {
+                    sh '''
+                        docker compose -f docker-compose.yml up -d --remove-orphans
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo '💥 构建失败，请检查日志'
+        }
+        success {
+            echo '✅ 服务已成功构建并部署'
+        }
+    }
+}

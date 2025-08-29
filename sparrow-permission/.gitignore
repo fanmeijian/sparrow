@@ -1,0 +1,7 @@
+/.settings/
+/target/
+/.DS_Store
+/.classpath
+/.factorypath
+/.project
+/docker-compose.yaml
