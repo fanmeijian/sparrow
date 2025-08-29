@@ -1,0 +1,27 @@
+services:
+  dengbo-bpm:
+    image: youweisoft/sparrow-bpm-server:1.1
+    ports:
+      - 8091:8080 
+    environment:
+      JAVA_OPTS: "-Dkie.maven.settings.custom=/opt/settings.xml -Dorg.kie.deployment.desc.location=file:/opt/kie-deployment-descriptor.xml -Djava.security.egd=file:/dev/./urandom"
+      SPRING_APPLICATION_JSON: >
+        {
+          "server.port": 8080,
+          "server.servlet.context-path": "/dengbo-bpm",
+          "spring.datasource.url": "jdbc:postgresql://{host}:{port}/{db}",
+          "spring.datasource.username": "{username}",
+          "spring.datasource.password": "{password}",
+          "spring.jpa.properties.hibernate.dialect": "org.hibernate.dialect.PostgreSQLDialect",
+          "keycloak.auth-server-url": "https://keycloak.linkair-tech.cn",
+          "keycloak.realm": "{realm}",
+          "keycloak.resource": "{client-id}",
+          "keycloak.credentials.secret": "{client-secret}"
+        }
+      SPRING_PROFILES_ACTIVE: prd
+    volumes:
+      - ~/kjars/dengbo-bpm:/opt/kjars
+      - ./bpm-application-service.xml:/bpm-application-service.xml:rw
+      - ./kie-deployment-descriptor-prd.xml:/opt/kie-deployment-descriptor.xml:ro
+      - ./settings.xml:/opt/settings.xml:ro
+      
