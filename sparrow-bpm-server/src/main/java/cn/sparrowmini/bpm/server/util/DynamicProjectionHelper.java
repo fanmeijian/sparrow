@@ -169,7 +169,7 @@ public class DynamicProjectionHelper {
                         projField.getType(), joinPath, joins));
             } else {
                 // 普通标量字段，或实体里找不到对应字段但 projection 是标量 —— 直接取 get(name)
-                if (isJavaStandardType(projField.getType()) || (domainField != null && isJavaStandardType(domainFieldType))) {
+                if (isJavaStandardType(projField) || (domainField != null && isJavaStandardType(domainField))) {
                     selections.add(from.get(name).alias(fieldAlias));
                 } else {
                     // 容错：如果既不是标量也不是已知关联/嵌入，避免误 join/误 get 带来异常
@@ -181,7 +181,6 @@ public class DynamicProjectionHelper {
 
         return selections;
     }
-
     private static boolean hasField(Class<?> type, String name) {
         return getField(type, name) != null;
     }
@@ -259,7 +258,7 @@ public class DynamicProjectionHelper {
 		for (Field field : projectionClass.getDeclaredFields()) {
 
 			// 跳过集合字段和基础类型字段
-			if (Collection.class.isAssignableFrom(field.getType()) || isJavaStandardType(field.getType()))
+			if (Collection.class.isAssignableFrom(field.getType()) || isJavaStandardType(field))
 				continue;
 
 			Field domainField = Arrays.stream(domainClass.getDeclaredFields())
@@ -381,15 +380,16 @@ public class DynamicProjectionHelper {
 		throw new IllegalArgumentException("Cannot extract generic type for field: " + field.getName());
 	}
 
-	private static boolean isJavaStandardType(Class<?> clazz) {
-		final Set<Class<?>> JAVA_TIME_TYPES = Set.of(java.time.LocalDate.class, java.time.LocalDateTime.class,
-				java.time.OffsetDateTime.class, java.time.Instant.class, java.time.ZonedDateTime.class,
-				java.time.OffsetTime.class, java.time.LocalTime.class, java.time.Duration.class,
-				java.time.Period.class);
+    private static boolean isJavaStandardType(Field field) {
+        Class<?> clazz = field.getType();
+        final Set<Class<?>> JAVA_TIME_TYPES = Set.of(java.time.LocalDate.class, java.time.LocalDateTime.class,
+                java.time.OffsetDateTime.class, java.time.Instant.class, java.time.ZonedDateTime.class,
+                java.time.OffsetTime.class, java.time.LocalTime.class, java.time.Duration.class,
+                java.time.Period.class);
 
-		return clazz.isPrimitive() || clazz.getName().startsWith("java.lang.") || clazz.equals(String.class)
-				|| Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
-				|| JAVA_TIME_TYPES.contains(clazz);
-	}
+        return clazz.isPrimitive() || clazz.getName().startsWith("java.lang.") || clazz.equals(String.class)
+                || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
+                || JAVA_TIME_TYPES.contains(clazz) || field.isAnnotationPresent(Embedded.class);
+    }
 
 }
