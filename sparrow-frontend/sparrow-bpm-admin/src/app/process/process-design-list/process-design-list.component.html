@@ -1,56 +1,47 @@
 <ng-container *ngIf="!route.firstChild">
-  <mat-tab-group>
-    <mat-tab label="基本信息">
-      <div class="s-toolbar">
-        <button mat-flat-button color="primary" [routerLink]="['new']"
-          [queryParams]="containerId">{{'add'|translate}}</button>
-      </div>
-      <mat-table [dataSource]="dataSource">
+  <div class="flex flex-row gap-2">
+    <button mat-flat-button color="primary" [routerLink]="['new']"
+      [queryParams]="containerId">{{'add'|translate}}</button>
+    <button mat-flat-button routerLink="../global-variable" color="primary">全局变量</button>
 
-        <ng-container matColumnDef="name">
-          <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
-          <mat-cell *matCellDef="let element">
-            <a mat-button [routerLink]="['view']" [queryParams]="element.id" color="primary">{{element.processName}}</a>
-          </mat-cell>
-        </ng-container>
+  </div>
+  <mat-table [dataSource]="dataSource">
 
-        <ng-container matColumnDef="processId">
-          <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
-          <mat-cell *matCellDef="let element">
-            {{element.id.processId}}
-          </mat-cell>
-        </ng-container>
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <a mat-button [routerLink]="['view']" [queryParams]="element.id" color="primary">{{element.processName}}</a>
+      </mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="version">
-          <mat-header-cell *matHeaderCellDef> 版本 </mat-header-cell>
-          <mat-cell *matCellDef="let element">
-            {{element.id.processVersion}}
-          </mat-cell>
-        </ng-container>
+    <ng-container matColumnDef="processId">
+      <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element.id.processId}}
+      </mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="action">
-          <mat-header-cell *matHeaderCellDef> </mat-header-cell>
-          <mat-cell *matCellDef="let element">
+    <ng-container matColumnDef="version">
+      <mat-header-cell *matHeaderCellDef> 版本 </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element.id.processVersion}}
+      </mat-cell>
+    </ng-container>
 
-            <button mat-button (click)="publish(element)" color="primary">{{'publish'|translate}}</button>
-            <button mat-button (click)="unpublish(element)" color="primary">{{'unpublish'|translate}}</button>
-            <button mat-button (click)="authorize(element)" color="primary">{{'authorize'|translate}}</button>
-          </mat-cell>ƒ
-        </ng-container>
+    <ng-container matColumnDef="action">
+      <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+      <mat-cell *matCellDef="let element">
 
-        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-      </mat-table>
-      <div *ngIf="dataSource.data.length==0">No Records Found</div>
+        <button mat-button (click)="publish(element)" color="primary">{{'publish'|translate}}</button>
+        <button mat-button (click)="unpublish(element)" color="primary">{{'unpublish'|translate}}</button>
+        <button mat-button (click)="authorize(element)" color="primary">{{'authorize'|translate}}</button>
+      </mat-cell>ƒ
+    </ng-container>
 
-
-    </mat-tab>
-
-    <mat-tab label="全局变量">
-      <app-process-global></app-process-global>
-
-    </mat-tab>
-  </mat-tab-group>
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+  <div *ngIf="dataSource.data.length==0">No Records Found</div>
 
 </ng-container>
 <router-outlet></router-outlet>

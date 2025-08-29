@@ -6,6 +6,8 @@ import { environment } from 'src/environments/environment';
 ///@ts-ignore
 import * as BpmnEditor from 'src/assets/bpmn/index.js'
 import { EditorApi, EditorStandaloneResource } from 'src/app/types/common/Editor'
+import { StandaloneEditorApi } from 'src/app/types';
+import { getProcessName } from 'src/app/util/xml.util';
 
 
 @Component({
@@ -15,21 +17,25 @@ import { EditorApi, EditorStandaloneResource } from 'src/app/types/common/Editor
 
 })
 export class ProcessDesignComponent implements OnInit, AfterViewInit {
+  window = window;
   downloadSvg() {
-    this.editor.getPreview().then((svgContent: any) => {
-      const elem = window.document.createElement("a");
-      elem.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgContent);
-      elem.download = "model.svg";
-      document.body.appendChild(elem);
-      elem.click();
-      document.body.removeChild(elem);
-    });
+    this.editor.getContent().then(content => {
+      this.editor.getPreview().then((svgContent: any) => {
+        const elem = window.document.createElement("a");
+        elem.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgContent);
+        elem.download = `${getProcessName(content)}${new Date().getTime()}.svg`;
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+      });
+    })
+
   }
   download() {
     this.editor.getContent().then((content) => {
       const elem = window.document.createElement("a");
       elem.href = "data:text/plain;charset=utf-8," + encodeURIComponent(content);
-      elem.download = "model.bpmn";
+      elem.download = `${getProcessName(content)}${new Date().getTime()}.bpmn`;
       document.body.appendChild(elem);
       elem.click();
       document.body.removeChild(elem);
@@ -54,7 +60,7 @@ export class ProcessDesignComponent implements OnInit, AfterViewInit {
 
     reader.readAsText(file); // 读取为文本
   }
-  editor!: EditorApi
+  editor!: StandaloneEditorApi
   save() {
     const $svg = this.editor.getPreview()
     const $xml = this.editor.getContent()
@@ -128,7 +134,7 @@ export class ProcessDesignComponent implements OnInit, AfterViewInit {
 
     });
 
-    editor.subscribeToContentChanges((isDirty: boolean) => this.isDirty = isDirty);
+    this.editor.subscribeToContentChanges((isDirty: boolean) => { this.isDirty = isDirty; console.log(isDirty) });
 
   }
 

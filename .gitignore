@@ -11,3 +11,4 @@ sparrow-frontend/sparrow-bpm-admin/.editorconfig
 sparrow-frontend/sparrow-bpm-admin/.hintrc
 sparrow-frontend/sparrow-rule-admin/.editorconfig
 sparrow-frontend/sparrow-server-admin/.editorconfig
+sparrow-bpm-server/sparrow-bpm-server.iml

@@ -1,12 +1,15 @@
 <div class="flex gap-2">
-  <button mat-stroked-button type="button" color="primary" (click)="save()">{{'save'|translate}}</button>
+  <button mat-stroked-button color="primary" routerLink="../">返回</button>
+  <button mat-stroked-button type="button" color="primary" (click)="save()">
+    <span [ngClass]="{'text-red-500': isDirty}"><ng-container *ngIf="isDirty">*</ng-container>{{'save'|translate}}</span>
+  </button>
   <input type="file" hidden #fileInput accept=".bpmn" (change)="import($event.target)">
   <button mat-stroked-button color="primary" (click)="fileInput.click()">{{'import'|translate}}</button>
   <button mat-stroked-button color="primary">撤销</button>
   <button mat-stroked-button color="primary">重做</button>
-  <button mat-stroked-button color="primary" (click)="download()">下载</button>
+  <button mat-stroked-button color="primary" (click)="download()">下载BPMN</button>
   <button mat-stroked-button color="primary" (click)="downloadSvg()">下载SVG</button>
-  <span class="red">未保存</span>
+  
 </div>
 
 <div id="bpmn-container" #editor></div>

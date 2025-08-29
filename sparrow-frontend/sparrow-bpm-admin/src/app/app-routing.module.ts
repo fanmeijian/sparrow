@@ -8,6 +8,7 @@ import { ProcessInstanceListComponent } from './process/process-instance-list/pr
 import { ProcessInstanceComponent } from './process/process-instance/process-instance.component';
 import { ProcessContainerListComponent } from './process/process-container-list/process-container-list.component';
 import { ProcessDeployedListComponent } from './process/process-deployed-list/process-deployed-list.component';
+import { GlobalVariableClass, ProcessGlobalComponent } from './process/process-global/process-global.component';
 
 const routes: Routes = [
   {
@@ -32,6 +33,9 @@ const routes: Routes = [
           }
         ]
       },
+      {
+        path: 'global-variable', component: ProcessGlobalComponent
+      }
     ]
   },
   {
