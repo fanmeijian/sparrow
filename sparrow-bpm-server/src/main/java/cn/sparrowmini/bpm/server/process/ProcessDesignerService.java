@@ -36,7 +36,7 @@ public interface ProcessDesignerService {
     @GetMapping(value = "")
     @ResponseBody
     @Operation(summary = "流程设计列表")
-    public Page<ProcessDesignView> getProcessDesignList(Container.ContainerId containerId, Pageable pageable);
+    public Page<ProcessDesignDto> getProcessDesignList(Container.ContainerId containerId, Pageable pageable);
 
     @GetMapping(value = "/view")
     @ResponseBody

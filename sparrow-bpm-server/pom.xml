@@ -49,7 +49,13 @@
 
 
 	<dependencies>
-		<!--部署流程服务,jbpm扩展服务-->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.13.1</version>
+        </dependency>
+
+        <!--部署流程服务,jbpm扩展服务-->
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-server-spring-boot-starter</artifactId>
@@ -211,6 +217,42 @@
 
 	<build>
 		<plugins>
+            <!-- ANTLR4 插件：编译时生成 Lexer/Parser -->
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.13.1</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 自定义语法文件目录 -->
+                            <sourceDirectory>${project.basedir}/src/main/antlr</sourceDirectory>
+                            <outputDirectory>target/generated-sources/antlr</outputDirectory>
+                            <visitor>true</visitor> <!-- 开启生成 BaseVisitor -->
+                            <arguments>
+                                <argument>-package</argument>
+                                <argument>cn.sparrowmini.bpm.server.antlr</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Java 编译插件：让编译器识别 ANTLR 生成的源码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.target}</source> <!-- 你的 JDK 版本 -->
+                    <target>${maven.compiler.target}</target>
+                    <generatedSourcesDirectory>target/generated-sources/antlr</generatedSourcesDirectory>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

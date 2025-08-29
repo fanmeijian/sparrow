@@ -27,6 +27,9 @@ public class ProcessDesignerServiceImpl implements ProcessDesignerService {
     @Autowired
     private ProcessDesignRepository processDesignRepository;
 
+    @Autowired
+    private CommonJpaService commonJpaService;
+
 
     @Transactional
     @Override
@@ -68,8 +71,10 @@ public class ProcessDesignerServiceImpl implements ProcessDesignerService {
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     @Override
-    public Page<ProcessDesignView> getProcessDesignList(Container.ContainerId containerId,Pageable pageable) {
-       return this.processDesignRepository.findByContainerId(containerId,pageable);
+    public Page<ProcessDesignDto> getProcessDesignList(Container.ContainerId containerId,Pageable pageable) {
+        String filter = String.format("containerId.groupId='%s' and containerId.artifactId='%s' and containerId.version='%s'", containerId.getGroupId(), containerId.getArtifactId(), containerId.getVersion());
+        return commonJpaService.getEntityList(ProcessDesign.class,pageable,filter,ProcessDesignDto.class);
+//        return this.processDesignRepository.findByContainerId(containerId,pageable);
     }
 
     @Transactional

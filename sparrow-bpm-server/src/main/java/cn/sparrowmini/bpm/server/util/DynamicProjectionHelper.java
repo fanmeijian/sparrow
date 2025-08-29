@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  * 动态构建 JPA Tuple 查询，并将结果自动映射为 Projection DTO。 支持嵌套对象和集合（Collection）字段自动加载。
  * 主键总是基于 domain class，不依赖 Projection DTO。
  */
+@Slf4j
 public class DynamicProjectionHelper {
 
 	public static <P> Page<P> findAllProjection(EntityManager em, Class<?> domainType, Pageable pageable, String filter,
@@ -47,7 +49,7 @@ public class DynamicProjectionHelper {
 		// ----------------------------
 		List<Map<String, Object>> flatList = new ArrayList<>();
 		Field domainIdField = findIdField(domainType);
-		String domainIdName = domainIdField.getName();
+//		String domainIdName = domainIdField.getName();
 		for (Tuple tuple : tuples) {
 			Map<String, Object> map = new LinkedHashMap<>();
 			for (TupleElement<?> elem : tuple.getElements()) {
@@ -56,7 +58,7 @@ public class DynamicProjectionHelper {
 			flatList.add(map);
 		}
 
-		boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
+        boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
 				.anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
 
 		try {
@@ -124,35 +126,102 @@ public class DynamicProjectionHelper {
 	// ----------------------------
 	// 构建 select 字段
 	// ----------------------------
-	public static List<Selection<?>> buildSelections(Class<?> domainType, CriteriaBuilder cb, From<?, ?> root,
-			Class<?> projectionClass, String prefix, Map<String, From<?, ?>> joins) {
-		List<Selection<?>> selections = new ArrayList<>();
+    public static List<Selection<?>> buildSelections(
+            Class<?> entityType, CriteriaBuilder cb, From<?, ?> from,
+            Class<?> projectionType, String prefix, Map<String, From<?, ?>> joins) {
 
-		Field idField = findIdField(domainType);
-		String idName = idField.getName();
-		String alias = prefix.isEmpty() ? idName : prefix + "." + idName;
-		selections.add(root.get(idName).alias(alias));
+        List<Selection<?>> selections = new ArrayList<>();
 
-		for (Field field : projectionClass.getDeclaredFields()) {
-			String fieldName = field.getName();
-			if(fieldName.equals(idName)) continue;
-			Class<?> fieldType = field.getType();
-			String fieldAlias = prefix.isEmpty() ? fieldName : prefix + "." + fieldName;
+        // 仅当当前 from 对应的是实体时，才考虑添加它的 id
+        Field idField = findIdField(entityType);
+        String idName = idField.getName();
+        String alias = prefix.isEmpty() ? idName : prefix + "." + idName;
+        selections.add(from.get(idField.getName()).alias(alias));
 
-			if (Collection.class.isAssignableFrom(fieldType))
-				continue;
-			if (isJavaStandardType(fieldType)) {
-				selections.add(root.get(fieldName).alias(fieldAlias));
-			} else {
-				String joinPath = prefix.isEmpty() ? fieldName : prefix + "." + fieldName;
-				From<?, ?> join = joins.computeIfAbsent(joinPath, k -> root.join(fieldName, JoinType.LEFT));
-				selections.addAll(buildSelections(domainType, cb, join, fieldType, fieldAlias, joins));
-			}
-		}
-		return selections;
-	}
+        for (Field projField : projectionType.getDeclaredFields()) {
+            String name = projField.getName();
 
-	// ----------------------------
+            // 如果已经通过上面的 id 处理覆盖了，就跳过
+            if (idField != null && name.equals(idField.getName())) {
+                continue;
+            }
+
+            // 在实体上找同名的 domain 字段（为了知道它是关联、嵌入还是普通列）
+            Field domainField = getField(entityType, name);
+            Class<?> domainFieldType = (domainField != null) ? domainField.getType() : null;
+
+            // 集合跳过（你的原逻辑）
+            if (domainFieldType != null && Collection.class.isAssignableFrom(domainFieldType)) {
+                continue;
+            }
+
+            String fieldAlias = makeAlias(prefix, name);
+
+            if (domainField != null && isEmbedded(domainField) && !isAssociation(domainField)) {
+                // 嵌入类型：不能 join，但JPA可以直接处理
+                selections.add(from.get(name).alias(fieldAlias));
+            } else if (domainField != null && isAssociation(domainField)) {
+                // 关联实体：LEFT JOIN 然后递归（注意把 entityType 换成关联实体类型）
+                String joinPath = makeAlias(prefix, name);
+                From<?, ?> join = joins.computeIfAbsent(joinPath, k -> from.join(name, JoinType.LEFT));
+                selections.addAll(buildSelections(
+                        domainFieldType, cb, join,
+                        projField.getType(), joinPath, joins));
+            } else {
+                // 普通标量字段，或实体里找不到对应字段但 projection 是标量 —— 直接取 get(name)
+                if (isJavaStandardType(projField.getType()) || (domainField != null && isJavaStandardType(domainFieldType))) {
+                    selections.add(from.get(name).alias(fieldAlias));
+                } else {
+                    // 容错：如果既不是标量也不是已知关联/嵌入，避免误 join/误 get 带来异常
+                    // 你也可以在这里记录一下日志便于排查
+                    log.info("不处理的字段 {}", name);
+                }
+            }
+        }
+
+        return selections;
+    }
+
+    private static boolean hasField(Class<?> type, String name) {
+        return getField(type, name) != null;
+    }
+    private static Field getField(Class<?> type, String name) {
+        Class<?> t = type;
+        while (t != null && t != Object.class) {
+            try { Field f = t.getDeclaredField(name); f.setAccessible(true); return f; }
+            catch (NoSuchFieldException ignored) {}
+            t = t.getSuperclass();
+        }
+        return null;
+    }
+//    private static boolean isJavaStandardType(Class<?> t) {
+//        return t.isPrimitive()
+//                || Number.class.isAssignableFrom(t)
+//                || CharSequence.class.isAssignableFrom(t)
+//                || java.util.Date.class.isAssignableFrom(t)
+//                || java.time.temporal.Temporal.class.isAssignableFrom(t)
+//                || Boolean.class == t || Character.class == t
+//                || java.util.UUID.class == t;
+//    }
+    private static boolean isAssociation(Field f) {
+        return f.isAnnotationPresent(ManyToOne.class)
+                || f.isAnnotationPresent(OneToOne.class);
+    }
+    private static boolean isEmbedded(Field f) {
+        return f.isAnnotationPresent(Embedded.class)
+                || f.isAnnotationPresent(EmbeddedId.class)
+                || f.getType().isAnnotationPresent(Embeddable.class);
+    }
+    private static boolean isEmbeddedId(Field f) {
+        return f.isAnnotationPresent(EmbeddedId.class)
+                || f.getType().isAnnotationPresent(Embeddable.class);
+    }
+    private static String makeAlias(String prefix, String name) {
+        return prefix == null || prefix.isEmpty() ? name : prefix + "." + name;
+    }
+
+
+    // ----------------------------
 	// 工具方法
 	// ----------------------------
 	private static Field findIdField(Class<?> type) {
@@ -197,7 +266,8 @@ public class DynamicProjectionHelper {
 					.filter(f -> f.getName().equals(field.getName())).findFirst().orElse(null);
 			if (domainField == null)
 				continue;
-			if (!domainField.isAnnotationPresent(OneToOne.class) && !domainField.isAnnotationPresent(ManyToOne.class))
+			if (!(domainField.isAnnotationPresent(OneToOne.class)
+                            || domainField.isAnnotationPresent(ManyToOne.class)))
 				continue;
 
 			Class<?> childType = domainField.getType();
@@ -321,4 +391,5 @@ public class DynamicProjectionHelper {
 				|| Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
 				|| JAVA_TIME_TYPES.contains(clazz);
 	}
+
 }
