@@ -1,0 +1,31 @@
+<h3>已选分类</h3>
+<mat-chip-list #chipList aria-label="Fruit selection">
+  <mat-chip *ngFor="let fruit of selectedSysroles" (removed)="remove(fruit)">
+    {{ fruit.name }}
+    <button matChipRemove>
+      <mat-icon>cancel</mat-icon>
+    </button>
+  </mat-chip>
+</mat-chip-list>
+
+<div>
+  <h3>字典分类</h3>
+  <mat-selection-list #shoes [multiple]="false">
+    <mat-list-option
+      *ngFor="let item of sysroles; let i = index"
+      [value]="item"
+      (click)="select(item)"
+    >
+      {{ i + 1 }}. {{ item.name }}({{ item.code }})
+    </mat-list-option>
+  </mat-selection-list>
+</div>
+<mat-paginator
+  [pageSizeOptions]="[5, 10, 20]"
+  [pageSize]="pageable.pageSize"
+  showFirstLastButtons
+  [length]="pageable.length"
+  (page)="onPageChange($event)"
+  aria-label="Select page of periodic elements"
+>
+</mat-paginator>

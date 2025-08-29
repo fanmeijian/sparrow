@@ -1,0 +1,22 @@
+<form [formGroup]="form" class="s-row">
+  <mat-form-field>
+    <mat-label>名称</mat-label>
+    <input matInput formControlName="name" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>代码</mat-label>
+    <input matInput formControlName="code" />
+  </mat-form-field>
+
+  <!-- <mat-form-field>
+    <mat-label></mat-label>
+    <input matInput formControlName="content" />
+  </mat-form-field> -->
+
+</form>
+
+<ngx-monaco-editor style="height: calc(100vh - 300px);" [options]="editorOptions" [(ngModel)]="code" (ngModelChange)="onChange($event)"></ngx-monaco-editor>
+
+
+<button mat-button (click)="onSubmit()">提交</button>

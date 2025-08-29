@@ -1,0 +1,4 @@
+<spr-entity-list [entityList]="data" [total]="total" [viewConfig]="[
+  { name: 'name', field: 'name', link: '../rule-form', id: 'id'},
+  { name: 'remark', field: 'remark', id: 'id', link: ''},
+  ]" (onPage)="onPage($event)" (onDelete)="onDelete($event)"></spr-entity-list>

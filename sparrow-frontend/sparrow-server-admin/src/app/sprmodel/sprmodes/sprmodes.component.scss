@@ -1,0 +1,72 @@
+.mat-column-sysroles {
+  word-wrap: break-word !important;
+  white-space: unset !important;
+  flex: 0 0 30% !important;
+  /* width: 40% !important; */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  padding: 2px;
+  word-break: break-word;
+
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+/* .mat-column-code {
+  word-wrap: break-word !important;
+  white-space: unset !important;
+  flex: 0 0 30% !important;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  padding: 2px;
+  word-break: break-word;
+
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+.mat-column-users {
+  word-wrap: break-word !important;
+  white-space: unset !important;
+  flex: 0 0 30% !important;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  padding: 2px;
+  word-break: break-word;
+
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+} */
+
+.att-permission{
+  padding: 5px;
+  cursor: pointer;
+}
+
+.att-permission:hover{
+  color: #3f51b5;
+}
+
+
+.mat-accordion {
+  margin: 10px;
+  width: 300px;
+}
+
+
+.editor-container{
+  height: 100px;
+}
+
+.example-table-container {
+  position: relative;
+  min-height: 200px;
+  height: calc(100vh - 250px);
+  overflow: auto;
+}

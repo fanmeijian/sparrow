@@ -1,0 +1,35 @@
+.mat-form-field {
+  margin-right: 4px;
+}
+
+mat-tree-node {
+  height: 24px !important;
+  min-height: 24px !important;
+}
+
+.mat-tree-node,
+.mat-nested-tree-node {
+  font-weight: 500;
+  font-size: 12px !important;
+}
+
+.button__arrow {
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+}
+
+:host ::ng-deep .mat-checkbox-inner-container {
+  margin-right: 6px !important;
+  height: 14px !important;
+  width: 14px !important;
+}
+
+.tree {
+  margin-left: 4px;
+}
+
+.tree__root {
+  font-weight: 700;
+  font-size: 13px !important;
+}

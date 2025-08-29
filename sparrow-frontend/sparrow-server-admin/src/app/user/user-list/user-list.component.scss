@@ -1,0 +1,16 @@
+
+.actions{
+  width: 300px;
+  display: flex;
+  flex-wrap: wrap;
+}
+.example-container {
+  position: relative;
+}
+
+.example-table-container {
+  position: relative;
+  min-height: 200px;
+  height: calc(100vh - 450px);
+  overflow: auto;
+}

@@ -1,0 +1,124 @@
+<div class="spr-toolbar-container">
+  <button mat-raised-button color="primary" routerLink="dict-form/new">新增</button>
+</div>
+<div class="left-tree-right-content-container">
+  <div>
+    <app-dynamic-tree-view
+      [treeService]="dictTreeService"
+      [parentId]="'root'"
+      (onNodeClick)="onNodeClick($event)"
+    ></app-dynamic-tree-view>
+  </div>
+
+  <div>
+    <router-outlet></router-outlet>
+  </div>
+</div>
+
+<!-- <div class="spr-toolbar-container">
+  <button mat-raised-button color="primary" (click)="newCatalog()">
+    新建分类
+  </button>
+  <button mat-raised-button color="primary" (click)="newDict()">
+    新建字典
+  </button>
+</div>
+<div class="left-tree-right-content-container">
+  <div>
+    <div
+      style="width: 100%; color: grey; text-align: center"
+      *ngIf="dataSource.data.length == 0"
+    >
+      尚无数据<br />
+    </div>
+    <mat-tree
+      [dataSource]="dataSource"
+      [treeControl]="treeControl"
+      class="mat-tree"
+    >
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+        <button mat-icon-button disabled></button>
+        <span
+          [class]="
+            node.me.id === selectedMenu?.me?.id
+              ? 'tree-node-name-selected'
+              : 'tree-node-name'
+          "
+          (click)="selectedMenu = node"
+          >[{{ node.me.code }}]{{ node.me.name }}</span
+        >
+      </mat-tree-node>
+      <mat-tree-node
+        *matTreeNodeDef="let node; when: hasChild"
+        matTreeNodePadding
+      >
+        <button
+          mat-icon-button
+          [attr.aria-label]="'Toggle ' + node.item"
+          matTreeNodeToggle
+        >
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+          </mat-icon>
+        </button>
+        <span
+          [class]="
+            node.me.id === selectedMenu?.me?.id
+              ? 'tree-node-name-selected'
+              : 'tree-node-name'
+          "
+          (click)="selectedMenu = node"
+          >[{{ node.me.code }}]{{ node.me.name }} ({{node.me.childCount}})</span
+        >
+      </mat-tree-node>
+    </mat-tree>
+  </div>
+
+  <div>
+    <mat-card>
+      <mat-card-subtitle
+        >{{ selectedMenu?.me?.name }} ({{ selectedMenu?.me?.code }})
+      </mat-card-subtitle>
+      <mat-card-content>
+        <div>
+          <mat-tab-group>
+            <mat-tab label="基本信息">
+              <div class="twocolumn-box">
+                <div>
+                  <span>名称:</span><span>{{ selectedMenu?.me?.name }}</span>
+                </div>
+                <div>
+                  <span>代码:</span><span>{{ selectedMenu?.me?.code }}</span>
+                </div>
+                <div>
+                  <span>类型:</span><span>{{ selectedMenu?.me?.type }}</span>
+                </div>
+                <div>
+                  <span>上级: </span>
+                  <span>
+                    <ng-container *ngFor="let item of selectedMenu?.parents"
+                      >{{ item.name }},</ng-container
+                    >
+                  </span>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="edit(selectedMenu)">
+          编辑
+        </button>
+        <button
+          mat-button
+          color="warn"
+          (click)="deleteMenu(selectedMenu)"
+          [disabled]="selectedMenu?.childCount > 0"
+        >
+          删除
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div> -->

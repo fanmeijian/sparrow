@@ -1,0 +1,21 @@
+<mat-table [dataSource]="dataSource">
+  <ng-container matColumnDef="#">
+    <mat-header-cell *matHeaderCellDef>#</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-checkbox [checked]="selected.isSelected(element)" (change)="selected.toggle(element)"></mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+
+  <ng-container *ngFor="let column of columns" [matColumnDef]="column.code">
+    <mat-header-cell *matHeaderCellDef>{{column.name}}</mat-header-cell>
+    <mat-cell *matCellDef="let element">{{element|jsonPath: column.code}}</mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+  <mat-row *matRowDef="let row;columns: displayedColumns"></mat-row>
+</mat-table>
+
+<mat-action-row>
+  <button mat-button (click)="confirm()">confirm</button>
+</mat-action-row>

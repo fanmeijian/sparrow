@@ -1,0 +1,68 @@
+
+/* 整个 Gridster 容器 */
+/* gridster {
+  background-color: white !important;
+  padding: 10px;
+  border-radius: 8px;
+  height: calc(100vh - 400px) !important;
+} */
+
+/* 网格项目 */
+/* .gridster-item {
+  border: 2px dashed #bbb;
+  background-color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease-in-out;
+} */
+
+/* 鼠标悬停时高亮 */
+.gridster-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+}
+
+/* 展示阶段 */
+.gridster.view-mode {
+  background-color: transparent;
+  /* 去掉网格背景 */
+}
+
+.gridster.view-mode .gridster-item {
+  border: none;
+  /* 去掉边框 */
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+
+.gridster.gridster {
+  background-color: #f9f9f9 !important;
+}
+
+.gridster .gridster-item {
+  border-radius: 8px !important;
+}
+
+
+.formly-field1{
+  width: 100%;
+  padding: 100pxx;
+}
+
+
+:root {
+  /* 定义 Gridster 单元格尺寸变量 */
+  --gridster-cell-size: 64px;
+}
+
+/* Gridster 每个格子 */
+gridster {
+  --gridster-cell-width: var(--gridster-cell-size);
+  --gridster-cell-height: var(--gridster-cell-size);
+  background-color: white !important;
+}
+
+gridster-item {
+  width: var(--gridster-cell-width);
+  height: var(--gridster-cell-height);
+}

@@ -1,0 +1,29 @@
+<mat-table [dataSource]="dataSource">
+
+  <ng-container matColumnDef="#">
+    <mat-header-cell *matHeaderCellDef> # </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(element) : null"
+        [checked]="selection.isSelected(element)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="process">
+    <mat-header-cell *matHeaderCellDef> process </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{element.processName}}
+    </mat-cell>
+  </ng-container>
+
+    <ng-container matColumnDef="task">
+    <mat-header-cell *matHeaderCellDef> task </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+     {{element.nodeName}} {{element.taskName}}
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+</mat-table>
+<button mat-stroked-button (click)="confirm()"> confirm</button>

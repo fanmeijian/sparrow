@@ -1,0 +1,77 @@
+<button mat-icon-button (click)="view()" color="primary" matTooltip="查看权限">
+  <mat-icon>lock</mat-icon>
+</button>
+<ng-template #permissionDialog>
+  <h3 mat-dialog-title>模型/属性权限</h3>
+  <mat-dialog-content>
+    <mat-tab-group>
+      <mat-tab label="用户({{ permission?.usernames?.length }})">
+        <div
+          class="spr-model-psermission-list"
+          *ngFor="let user of permission?.usernames"
+        >
+          <span
+            class="material-icons"
+            style="color: red; cursor: pointer"
+            (click)="removeUser(user)"
+          >
+            close </span
+          ><span>{{ user.id?.username }} {{ user.id?.permission }} </span
+          ><span
+            [style]="
+              user.id?.permissionType === 'DENY' ? 'color:red' : 'color:green'
+            "
+            >{{ user.id?.permissionType }}</span
+          >
+        </div>
+      </mat-tab>
+      <mat-tab label="角色({{ permission?.sysroles?.length }})">
+        <div
+          *ngFor="let sysrole of permission?.sysroles"
+          class="spr-model-psermission-list"
+        >
+          <span
+            class="material-icons"
+            style="color: red; cursor: pointer"
+            (click)="remove(sysrole)"
+          >
+            close </span
+          ><span>{{ sysrole.id?.sysroleId }} {{ sysrole.id?.permission }} </span
+          ><span
+            [style]="
+              sysrole.id?.permissionType === 'DENY'
+                ? 'color:red'
+                : 'color:green'
+            "
+            >{{ sysrole.id?.permissionType }}</span
+          >
+        </div>
+      </mat-tab>
+      <mat-tab label="规则({{ permission?.rules?.length }})">
+        <div
+          *ngFor="let rule of permission?.rules"
+          class="spr-model-psermission-list"
+        >
+          <span
+            class="material-icons"
+            style="color: red; cursor: pointer"
+            (click)="removeRule(rule)"
+          >
+            close </span
+          ><span
+            >{{ rule.rule?.name }} {{ rule.rule?.ruleCondition }}
+            {{ rule.id?.permission }} </span
+          ><span
+            [style]="
+              rule.id?.permissionType === 'DENY' ? 'color:red' : 'color:green'
+            "
+            >{{ rule.id?.permissionType }}</span
+          >
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button color="primary" mat-dialog-close>关闭</button>
+  </mat-dialog-actions>
+</ng-template>

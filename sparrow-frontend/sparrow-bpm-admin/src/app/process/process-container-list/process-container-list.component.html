@@ -1,0 +1,80 @@
+<router-outlet></router-outlet>
+<ng-container *ngIf="!route.firstChild">
+  <div class="s-toolbar">
+    <button mat-flat-button (click)="add()" color="primary">{{'add'|translate}}{{'project'|translate}}</button>
+  </div>
+  <div class="s-row">
+    <mat-card *ngFor="let item of dataSource">
+      <mat-card-content>
+        <div class="s-col-ct">
+          <div class="s-row">
+            <button mat-button color="primary" routerLink="process-design-list"
+              [queryParams]="item.id">{{item.name}}</button>
+          </div>
+          <div>{{item.id.groupId}}:{{item.id.artifactId}}-{{item.id.version}}</div>
+          <div>{{item.remark}}</div>
+        </div>
+
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="s-row-r">
+          <button mat-button (click)="deploy(item)" color="primary">
+            {{'deploy'|translate}}
+          </button>
+          <button mat-button color="primary" (click)="edit(item)">{{'edit'|translate}}</button>
+
+          <!-- <button mat-button (click)="unDeploy(item)" color="error">
+            {{'undeploy'|translate}}
+          </button> -->
+          <button mat-button color="error" (click)="delete(item)">
+            删除
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+
+  </div>
+  <mat-paginator [length]="pageable.length" [pageSize]="pageable.size" [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPage($event)">
+  </mat-paginator>
+  <ng-template #containerDlg>
+    <form [formGroup]="formGroup" (ngSubmit)="ngSubmit()">
+      <div class="s-row">
+        <ng-container formGroupName="id">
+          <mat-form-field appearance="fill">
+            <mat-label>组</mat-label>
+            <input matInput formControlName="groupId">
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>构件</mat-label>
+            <input matInput formControlName="artifactId">
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>版本</mat-label>
+            <input matInput formControlName="version">
+          </mat-form-field>
+        </ng-container>
+
+        <mat-form-field appearance="fill">
+          <mat-label>名称</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+      </div>
+
+
+      <mat-form-field appearance="fill" style="width: 100%;">
+        <mat-label>描述</mat-label>
+        <textarea matInput formControlName="remark"></textarea>
+      </mat-form-field>
+
+      <mat-dialog-actions>
+        <button type="submit" mat-stroked-button color="primary">确定</button>
+        <button type="button" mat-stroked-button mat-dialog-close color="error">取消</button>
+      </mat-dialog-actions>
+
+    </form>
+  </ng-template>
+</ng-container>

@@ -1,0 +1,15 @@
+.s-col-ct{
+  min-width: 200px;
+  width: 250px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.s-row-r{
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+}

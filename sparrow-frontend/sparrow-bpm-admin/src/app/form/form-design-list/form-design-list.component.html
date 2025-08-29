@@ -1,0 +1,54 @@
+<ng-container *ngIf="!route.firstChild">
+  <div class="s-toolbar">
+    <button mat-flat-button color="primary" [routerLink]="['new']">{{'add'|translate}}</button>
+
+  </div>
+  <mat-table [dataSource]="dataSource">
+
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef> name </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <a mat-button [routerLink]="['view']" [queryParams]="{id: element.id}">{{element.name}}</a>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="process">
+      <mat-header-cell *matHeaderCellDef> process </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <div class="s-col">
+          <div *ngFor="let item of element.processForms">
+            {{item.id.processId}} {{item.id.processVersion}}
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="task">
+      <mat-header-cell *matHeaderCellDef> task </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <div class="s-col">
+          <div *ngFor="let item of element.taskForms">
+            {{item.id.taskName}} {{item.id.processId}} {{item.id.processVersion}}
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="action">
+      <mat-header-cell *matHeaderCellDef> action </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <button mat-button (click)="linkProcess(element)">link process</button>
+        <button mat-button (click)="linkTask(element)">link task</button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+</ng-container>
+<router-outlet></router-outlet>
+
+
+<ng-template #linkProcessDlg>
+
+</ng-template>

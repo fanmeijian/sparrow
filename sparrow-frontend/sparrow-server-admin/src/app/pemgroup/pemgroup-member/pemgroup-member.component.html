@@ -1,0 +1,23 @@
+<h3 mat-dialog-title>组成员</h3>
+
+<mat-dialog-content>
+  <div>{{ data.name }}</div>
+  <mat-tab-group>
+    <mat-tab label="用户授权（{{selectedUsernames.length}}）">
+      <app-user-selection
+        [multiple]="true"
+        [selected]="selectedUsernames"
+      ></app-user-selection>
+    </mat-tab>
+    <mat-tab label="角色授权（{{selectedSysroles.length}}）">
+      <app-sysrole-selection [multiple]="true" [selectedSysroles]="selectedSysroles"></app-sysrole-selection>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button (click)="submit()" [mat-dialog-close]="true" cdkFocusInitial color="primary">
+    确定
+  </button>
+  <button mat-button mat-dialog-close color="warn">取消</button>
+</mat-dialog-actions>

@@ -1,0 +1,39 @@
+    <button type="button" mat-button (click)="drawer.toggle()">
+      Toggle sidenav
+    </button>
+<mat-drawer-container class="example-container" autosize>
+  <mat-drawer #drawer class="example-sidenav" mode="side">
+    <p>Auto-resizing sidenav</p>
+  </mat-drawer>
+
+  <div class="example-sidenav-content">
+    <div
+      style="
+        display: flex;
+        height: calc(100vh - 300px);
+        flex-direction: row;
+        flex: 1 0 48%;
+      "
+    >
+      <div #editorContainer style="width: 50%; border: 1px solid #ccc"></div>
+      <div>
+        <form [formGroup]="form" (ngSubmit)="onSubmit(model)">
+          <formly-form
+            [form]="form"
+            [fields]="fields"
+            [model]="model"
+          ></formly-form>
+          <button
+            mat-stroked-button
+            color="primary"
+            type="submit"
+            class="btn btn-default"
+          >
+            Submit
+          </button>
+        </form>
+        <div>{{ model | json }}</div>
+      </div>
+    </div>
+  </div>
+</mat-drawer-container>

@@ -1,0 +1,164 @@
+<div class="left-tree-right-content-container">
+  <div>
+    <div class="s-toolbar">
+      <button class="button" mat-stroked-button color="primary" (click)="new()">
+        新增
+      </button>
+      <button mat-stroked-button color="primary" [matMenuTriggerFor]="menu">
+        批量
+        <span class="material-symbols-outlined">
+          arrow_drop_down
+        </span>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button class="button" mat-menu-item color="warn" (click)="delete()" [disabled]="checklistSelection.isEmpty()">
+          删除</button>
+        <button class="button" mat-menu-item color="primary" (click)="permission()"
+          [disabled]="checklistSelection.isEmpty()">授权</button>
+        <button mat-menu-item (click)="openAppDlg()" [disabled]="checklistSelection.isEmpty()">变更APP</button>
+      </mat-menu>
+
+    </div>
+<!--
+    <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="example-tree">
+
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+        {{node.name}}
+      </mat-tree-node>
+
+      <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
+        <div class="mat-tree-node">
+          <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
+            <mat-icon class="mat-icon-rtl-mirror">
+              {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+            </mat-icon>
+          </button>
+          {{node.name}}
+        </div>
+        <div [class.example-tree-invisible]="!treeControl.isExpanded(node)" role="group">
+          <ng-container matTreeNodeOutlet></ng-container>
+        </div>
+      </mat-nested-tree-node>
+    </mat-tree> -->
+
+
+    <mat-tree class="mat-tree" [dataSource]="dataSource" [treeControl]="treeControl" [cdkDropListData]="dataSource.data"
+      cdkDropList (cdkDropListDropped)="drop($event)">
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle matTreeNodePadding [cdkDragData]="node" cdkDragLockAxis="y" cdkDrag>
+        <button mat-icon-button disabled></button>
+        <div>
+          <mat-checkbox class="checklist-leaf-node" [checked]="checklistSelection.isSelected(node)"
+            (change)="todoLeafItemSelectionToggle(node)"></mat-checkbox><span (click)="onMenuClick(node)" [class]="
+              node.id === selectedMenu?.id
+                ? 'tree-node-name-selected'
+                : 'tree-node-name'
+            ">[{{ node.code }}]{{ node.name }}</span>
+          <button mat-icon-button cdkDragLockAxis="y" cdkDragHandle>
+            <span class="material-symbols-outlined">
+              drag_indicator
+            </span>
+          </button>
+        </div>
+      </mat-tree-node>
+
+      <mat-tree-node *matTreeNodeDef="let node; when: hasNoContent" matTreeNodePadding></mat-tree-node>
+
+      <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding [cdkDragData]="node" cdkDragLockAxis="y" cdkDrag>
+        <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name"
+          (click)="expansionModel.toggle(node.id)">
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+          </mat-icon>
+        </button>
+        <div>
+          <mat-checkbox class="checklist-leaf-node" [checked]="descendantsAllSelected(node)"
+            [indeterminate]="descendantsPartiallySelected(node)"
+            (change)="todoItemSelectionToggle(node)"></mat-checkbox><span (click)="onMenuClick(node)" [class]="
+              node.id === selectedMenu?.id
+                ? 'tree-node-name-selected'
+                : 'tree-node-name'
+            ">[{{ node.code }}]{{ node.name }}({{ node.childCount }})</span>
+          <button mat-icon-button cdkDragLockAxis="y" cdkDragHandle>
+            <span class="material-symbols-outlined">
+              drag_indicator
+            </span>
+          </button>
+        </div>
+      </mat-tree-node>
+    </mat-tree>
+  </div>
+
+  <div>
+    <span *ngIf="!selectedMenu">请选择菜单</span>
+    <mat-card *ngIf="selectedMenu">
+      <mat-card-subtitle>
+        {{ selectedMenu?.name }} ({{ selectedMenu?.code }})
+      </mat-card-subtitle>
+      <mat-card-content>
+        <div>
+          <mat-tab-group>
+            <mat-tab label="基本信息">
+              <div class="twocolumn-box">
+                <div>
+                  <span>app</span><span>{{ flatNodeMap.get(selectedMenu)?.appName }}</span>
+                </div>
+                <div>
+                  <span>url</span><span>{{ flatNodeMap.get(selectedMenu)?.url }}</span>
+                </div>
+                <div>
+                  <span>target</span><span>{{ flatNodeMap.get(selectedMenu)?.target }}</span>
+                </div>
+                <div>
+                  <span>图标</span><span>{{ flatNodeMap.get(selectedMenu)?.icon }}</span>
+                </div>
+                <div>
+                  <span>上级</span><span>{{ flatNodeMap.get(selectedMenu)?.parentName }}</span>
+                </div>
+                <div>
+                  <span>route</span><span>{{ flatNodeMap.get(selectedMenu)?.route }}</span>
+                </div>
+                <div>
+                  <span>query params</span><span>{{ flatNodeMap.get(selectedMenu)?.queryParams }}</span>
+                </div>
+
+              </div>
+              <app-base-op-log-column [element]="selectedMenu"></app-base-op-log-column>
+            </mat-tab>
+
+            <mat-tab label="授权用户（{{ permissions?.users?.length }}）">
+              <mat-chip *ngFor="let chipItem of permissions.users" (removed)="removePermission([chipItem], [])">
+                {{ chipItem }}
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip>
+            </mat-tab>
+
+            <mat-tab label="授权角色（{{ permissions?.sysroles?.length }}）">
+              <mat-chip-list #chipList>
+                <mat-chip *ngFor="let chipItem of permissions.sysroles" (removed)="removePermission([], [chipItem])">
+                  {{ chipItem.name }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-list>
+            </mat-tab>
+            <!-- <mat-tab label="审计日志">
+              <app-entity-log
+                [id]="selectedMenu?.id"
+                [modelId]="selectedMenu?.modelName"
+              ></app-entity-log>
+            </mat-tab> -->
+          </mat-tab-group>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="edit(selectedMenu)">编辑</button>
+        <button mat-button color="primary" (click)="openPermissionDialog(selectedMenu)">授权</button>
+        <button mat-button color="warn" (click)="deleteMenu(selectedMenu)"
+          [disabled]="selectedMenu?.childCount > 0">删除</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

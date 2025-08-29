@@ -1,0 +1,24 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon"
+    (click)="drawer.toggle()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <!-- <span style="font-size: 14px;">荔园BPM</span> -->
+  <span class="example-spacer"></span>
+
+  <button mat-button [matMenuTriggerFor]="menu">{{'Language'|translate}}</button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="switchLang('zh-CN')">中文</button>
+    <button mat-menu-item (click)="switchLang('en-US')">英文</button>
+  </mat-menu>
+</mat-toolbar>
+<mat-drawer-container class="example-container" autosize style="height: calc(100vh - 50px);">
+  <mat-drawer #drawer style="width: 200px;overflow-x: unset; overflow-y: unset;" mode="side" opened>
+    <app-menu-tree></app-menu-tree>
+  </mat-drawer>
+  <div style="padding: 10px;background-color: white;border-radius: 10px;margin: 10px;">
+    <router-outlet></router-outlet>
+  </div>
+
+</mat-drawer-container>
+

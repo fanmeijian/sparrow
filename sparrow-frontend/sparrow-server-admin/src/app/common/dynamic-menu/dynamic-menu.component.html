@@ -1,0 +1,54 @@
+<div>
+  <!-- This button triggers the overlay and is it's origin -->
+  <button
+    mat-button
+    (click)="isOpen = menu.children.length > 0?  !isOpen : false"
+    type="button"
+    cdkOverlayOrigin
+    #trigger="cdkOverlayOrigin"
+  >
+    <!-- {{isOpen ? "Close" : "Open"}} -->
+    {{ menu.name }}
+    <mat-icon class="mat-icon-rtl-mirror" *ngIf="menu.children.length > 0">
+      {{ isOpen ? "expand_less" : "expand_more" }}
+    </mat-icon>
+  </button>
+
+  <!-- This template displays the overlay content and is connected to the button -->
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isOpen"
+  >
+      <mat-tree
+        [dataSource]="dataSource"
+        [treeControl]="treeControl"
+        (mouseleave)="isOpen = false"
+      >
+        <!-- This is the tree node template for leaf nodes -->
+        <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+          <!-- use a disabled button to provide padding for tree leaf -->
+          <!-- <button mat-icon-button disabled></button> -->
+          {{ node.name }}
+        </mat-tree-node>
+        <!-- This is the tree node template for expandable nodes -->
+        <mat-tree-node
+          *matTreeNodeDef="let node; when: hasChild"
+          matTreeNodePadding
+        >
+          <button
+            mat-icon-button
+            matTreeNodeToggle
+            [attr.aria-label]="'Toggle ' + node.name"
+          >
+            <mat-icon class="mat-icon-rtl-mirror">
+              {{
+                treeControl.isExpanded(node) ? "expand_more" : "chevron_right"
+              }}
+            </mat-icon>
+          </button>
+          {{ node.name }}
+        </mat-tree-node>
+      </mat-tree>
+  </ng-template>
+</div>

@@ -1,0 +1,56 @@
+
+<div class="spr-toolbar-container">
+  <button mat-raised-button (click)="window.history.back()" color="warn">返回</button>
+  <button mat-raised-button (click)="save()" color="primary">保存</button>
+  <button mat-raised-button (click)="preview1()" color="primary">预览</button>
+  <button mat-raised-button (click)="viewSource()" color="primary">源码</button>
+</div>
+<h3>配置文件设置</h3>
+
+<div>
+  <form [formGroup]="formGroup" class="spr-form-field">
+    <mat-form-field appearance="fill">
+      <mat-label>名称</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>代码</mat-label>
+      <input matInput formControlName="code">
+    </mat-form-field>
+
+    <!-- <mat-form-field appearance="fill">
+      <mat-label>列表显示的列</mat-label>
+      <mat-select formControlName="displayColumns" multiple>
+        <mat-option *ngFor="let item of columns" [value]="item.code">{{item.name}}</mat-option>
+      </mat-select>
+    </mat-form-field> -->
+  </form>
+
+</div>
+<!-- <form-builder #formbuilder
+  [form]="formJson"
+  [options]="formOptions"
+></form-builder> -->
+
+<ng-template #soruceCode>
+  <h3 mat-dialog-title>表单源码</h3>
+  <mat-dialog-content style="height: 80%">
+    <pre
+      id="json"
+    ><code class="language-json" #json [innerHTML]="formJson|json"></code></pre>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button mat-dialog-close="">关闭</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #preview>
+  <h3 mat-dialog-title>预览</h3>
+  <mat-dialog-content style="height: 80%">
+    <!-- <formio [form]="formJson" [refresh]="refreshForm"></formio> -->
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button mat-dialog-close="">关闭</button>
+  </mat-dialog-actions>
+</ng-template>

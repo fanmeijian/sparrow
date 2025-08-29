@@ -1,0 +1,8 @@
+<div class="s-row">
+  <button mat-flat-button type="button" color="primary" (click)="save()">{{'save'|translate}}</button>
+  <input type="file" hidden #fileInput accept=".bpmn" (change)="import($event.target)">
+  <button mat-flat-button color="primary" (click)="fileInput.click()">{{'import'|translate}}</button>
+
+
+</div>
+<div id="bpmn-container" #editor></div>

@@ -1,0 +1,49 @@
+<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
+  <mat-tab label="基本信息">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <button mat-flat-button>submit</button>
+      <div class="s-row">
+        <mat-form-field>
+          <mat-label>名称</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>代码</mat-label>
+          <input matInput formControlName="code">
+        </mat-form-field>
+      </div>
+
+      <div class="s-col">
+        <mat-form-field>
+          <mat-label>描述</mat-label>
+          <textarea matInput formControlName="remark"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="s-col" formGroupName="head">
+
+        <mat-form-field>
+          <mat-label>包</mat-label>
+          <input matInput formControlName="packageName">
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>引入包</mat-label>
+          <textarea style="height: 300px;" matInput formControlName="imports"></textarea>
+        </mat-form-field>
+      </div>
+
+    </form>
+
+  </mat-tab>
+  <mat-tab label="规则列表">
+
+
+    <div>
+      <button mat-button routerLink="../rule-form" [queryParams]="{ templateId: form.value.id}">new rule</button>
+    </div>
+
+    <app-rule-list [templateId]="form.value.id"></app-rule-list>
+  </mat-tab>
+</mat-tab-group>

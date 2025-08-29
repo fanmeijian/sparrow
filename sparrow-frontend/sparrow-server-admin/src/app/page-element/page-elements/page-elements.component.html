@@ -1,0 +1,103 @@
+<div class="s-toolbar">
+  <button mat-raised-button (click)="new()" color="primary">新增</button>
+</div>
+<app-search-filter (applyFilter)="applyFilter($event)"></app-search-filter>
+<mat-table [dataSource]="dataSource">
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef>序号</mat-header-cell>
+    <mat-cell *matCellDef="let element; let index = index">
+      {{ index + 1 }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef>名称</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.name }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="code">
+    <mat-header-cell *matHeaderCellDef>代码</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.id }}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="modified">
+    <mat-header-cell *matHeaderCellDef>更新时间</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{ element.modifiedBy }} {{element.modifiedDate| date: 'short'}}
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="pageId">
+    <mat-header-cell *matHeaderCellDef>页面</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <span>{{ element.pageId }}</span>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="users">
+    <mat-header-cell *matHeaderCellDef>授权用户</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-chip-list #chipList>
+        <mat-chip *ngFor="let userPageElement of element.userPageElements" (removed)="remove([],[userPageElement])">
+          {{ userPageElement.id.username?.substring(0, 8) }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+      </mat-chip-list>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="sysroles">
+    <mat-header-cell *matHeaderCellDef>授权角色</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <mat-chip-list #chipList>
+        <mat-chip *ngFor="let sysrolePageElement of element.sysrolePageElements"
+          (removed)="remove([sysrolePageElement.id],[] )">
+          {{ sysrolePageElement.sysroleName }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+      </mat-chip-list>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="auditlog">
+    <mat-header-cell *matHeaderCellDef>审计日志</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <app-entity-log [id]="element?.id" [modelId]="element?.modelName"></app-entity-log>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <div class="s-row">
+        <button mat-stroked-button color="primary" (click)="edit(element)">
+          编辑
+        </button>
+        <button mat-stroked-button color="warn" (click)="delete(element)">
+          删除
+        </button>
+        <button mat-stroked-button color="primary" (click)="openPermission(element)">
+          授权
+        </button>
+      </div>
+      <!-- <app-entity-log [id]="element?.id" [modelId]="element?.modelName"></app-entity-log> -->
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>
+
+
+<mat-paginator #paginator [pageSizeOptions]="[5, 10, 20]" [pageSize]="pageable.pageSize" [length]="pageable.length"
+  [pageIndex]="pageable.pageIndex" (page)="onPage($event)" showFirstLastButtons
+  aria-label="Select page of periodic elements">
+</mat-paginator>

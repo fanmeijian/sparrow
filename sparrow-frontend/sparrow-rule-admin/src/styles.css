@@ -1,0 +1,44 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+
+.s-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.s-link {
+  color: -webkit-link;
+  cursor: pointer;
+}
+
+.s-link:hover {
+  text-decoration: underline;
+}
+
+.s-link:visited {
+  color: #0b0080;
+}
+
+
+.table-container{
+  height: calc(100vh - 200px);
+  overflow: auto;
+}
+.table-container th{
+  background-color: var(--mat-sidenav-content-background-color) !important;
+}
+
+
+
+.s-col{
+  display: flex;
+  flex-direction: column;
+
+}

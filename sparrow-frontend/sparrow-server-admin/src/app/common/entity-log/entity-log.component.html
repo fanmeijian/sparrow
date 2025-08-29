@@ -1,0 +1,31 @@
+<button mat-stroked-button (click)="openDialog()">日志</button>
+
+<ng-template #dialogTempl>
+  <h1 mat-dialog-title> 审计日志（{{ opLogs?.length }}）</h1>
+  <mat-dialog-content>
+    <div style="overflow-y: scroll; max-height: 200px">
+      <div
+        style="background-color: #e5e5e5; padding: 10px; margin: 10px"
+        *ngFor="let item of opLogs; let i = index"
+      >
+        <span [style]="'color:' + (item.type === 'ADD' ? 'green' : 'blue')">{{
+          item.type === "ADD" ? "创建" : "修改"
+        }}</span>
+        {{ item.username ? item.username : item.modifiedBy }}
+        {{ item.timestamp | date : "short" }}
+        <!-- <span *ngIf="i>0 && opLogs">{{diffEntity(item, opLogs[i-1])|json}}</span> -->
+        <div *ngFor="let item of diffEntity(item?.entity, opLogs![i - 1]?.entity)">
+          <span style="color: blueviolet;">{{ item.key }}</span> {{ item.type }}
+          {{
+            item.type === "UPDATE"
+              ? item.oldValue + "->" + item.value
+              : item.value
+          }}
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button color="primary" mat-dialog-close>关闭</button>
+  </mat-dialog-actions>
+</ng-template>

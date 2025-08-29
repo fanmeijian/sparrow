@@ -1,3 +1,8 @@
 /target/
 .idea/
 /.project
+.gitignore
+sparrow-frontend/sparrow-rule-admin/yalc.lock
+sparrow-frontend/sparrow-bpm-admin/src/assets/.gitkeep
+sparrow-frontend/sparrow-rule-admin/src/assets/.gitkeep
+sparrow-frontend/sparrow-server-admin/src/assets/.gitkeep

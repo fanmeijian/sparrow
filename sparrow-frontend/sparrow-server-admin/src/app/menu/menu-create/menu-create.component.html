@@ -1,0 +1,58 @@
+<h3 mat-dialog-title>新增/编辑菜单</h3>
+
+<mat-dialog-content class="mat-typography">
+  <form [formGroup]="formGroup">
+    <mat-form-field>
+      <mat-label>名称</mat-label>
+      <input type="text" matInput formControlName="name" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>图标</mat-label>
+      <input type="text" matInput formControlName="icon" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>代码</mat-label>
+      <input type="text" matInput formControlName="code" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Link</mat-label>
+      <input type="text" matInput formControlName="url" />
+    </mat-form-field>
+
+    <mat-radio-group formControlName="type"
+      [ngClass]="{ 'radio-invalid': formGroup.get('type').touched && formGroup.get('type').invalid}">
+      <mat-radio-button value="url">URL</mat-radio-button>
+      <mat-radio-button value="route">Route</mat-radio-button>
+    </mat-radio-group>
+
+    <ng-container *ngIf="formGroup.value.type==='url'">
+      <mat-form-field>
+        <mat-label>Target</mat-label>
+        <input type="text" matInput formControlName="target" />
+      </mat-form-field>
+    </ng-container>
+
+    <ng-container *ngIf="formGroup.value.type==='route'">
+      <mat-form-field>
+        <mat-label>Query Params</mat-label>
+        <input type="text" matInput formControlName="queryParams" />
+      </mat-form-field>
+    </ng-container>
+
+
+
+    <div>
+      菜单上级：
+      <app-menu-tree-selection (onSelected)="onSelected($event)"></app-menu-tree-selection>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="submit()" cdkFocusInitial color="primary">
+    确定
+  </button>
+  <button mat-button mat-dialog-close color="warn">取消</button>
+</mat-dialog-actions>

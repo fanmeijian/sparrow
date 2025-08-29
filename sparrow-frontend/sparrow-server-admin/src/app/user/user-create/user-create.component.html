@@ -1,0 +1,24 @@
+<form [formGroup]="formGroup" (submit)="submit()">
+  <h1 mat-dialog-title>新增/编辑用户</h1>
+  <mat-dialog-content>
+    <mat-form-field appearance="fill">
+      <mat-label>名</mat-label>
+      <input matInput formControlName="firstName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>姓</mat-label>
+      <input matInput formControlName="lastName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>用户名</mat-label>
+      <input matInput formControlName="username" />
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-button color="primary">确定</button>
+    <button type="button" mat-button color="warn" mat-dialog-close>取消</button>
+  </mat-dialog-actions>
+</form>

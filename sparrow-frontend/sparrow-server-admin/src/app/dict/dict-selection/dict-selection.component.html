@@ -1,0 +1,73 @@
+<ng-container *ngIf="showType==='TREE'">
+  <mat-chip-list #chipList aria-label="Fruit selection">
+    <mat-chip *ngFor="let fruit of selectedItems" (removed)="remove(fruit)">
+      {{ fruit.item }}
+      <button matChipRemove>
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip>
+  </mat-chip-list>
+
+  <mat-tree
+        [dataSource]="dataSource"
+        [treeControl]="treeControl"
+        class="mat-tree"
+      >
+        <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+          <button mat-icon-button disabled></button>
+          <!-- <span
+            [class]="
+              node.me.id === selectedMenu?.me?.id
+                ? 'tree-node-name-selected'
+                : 'tree-node-name'
+            "
+            (click)="selectedMenu = node"
+            >[{{ node.me.code }}]{{ node.me.name }}({{ node.childCount }})</span
+          > -->
+          <span (click)="select(node)">[{{ node.me.code }}]{{ node.me.name }}({{ node.childCount }})</span>
+        </mat-tree-node>
+        <mat-tree-node
+          *matTreeNodeDef="let node; when: hasChild"
+          matTreeNodePadding
+        >
+          <button
+            mat-icon-button
+            [attr.aria-label]="'Toggle ' + node.item"
+            matTreeNodeToggle
+          >
+            <mat-icon class="mat-icon-rtl-mirror">
+              {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+            </mat-icon>
+          </button>
+          <!-- {{ node.item }} -->
+          <!-- <span
+            [class]="
+              node.me.id === selectedMenu?.me?.id
+                ? 'tree-node-name-selected'
+                : 'tree-node-name'
+            "
+            (click)="selectedMenu = node"
+            ></span
+          > -->
+          <span (click)="select(node)">[{{ node.me.code }}]{{ node.me.name }}({{ node.childCount }})</span>
+          <mat-progress-bar
+            *ngIf="node.isLoading"
+            mode="indeterminate"
+            class="example-tree-progress-bar"
+          ></mat-progress-bar>
+        </mat-tree-node>
+      </mat-tree>
+
+</ng-container>
+
+<ng-container *ngIf="showType==='SELECT'">
+  <mat-form-field appearance="fill">
+    <mat-label>请选择</mat-label>
+    <mat-select (selectionChange)="onSelectionChange($event)">
+      <mat-option>-- None --</mat-option>
+      <mat-option *ngFor="let item of dicts" [value]="item.code">
+        {{item.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</ng-container>

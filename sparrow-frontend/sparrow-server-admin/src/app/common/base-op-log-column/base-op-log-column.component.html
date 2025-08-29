@@ -1,0 +1,9 @@
+<div>
+  {{ element?.modifiedBy }}<span style="color: #3f51b5">更新于</span>
+  {{ element?.modifiedDate | date : "short" }}
+</div>
+
+<div>
+  {{ element?.createdBy }}<span style="color: green">创建于</span>
+  {{ element?.createdDate | date : "short" }}
+</div>

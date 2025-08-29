@@ -1,0 +1,66 @@
+<div style="display: flex; flex-direction: row;">
+  <div style="width: 300px;">
+    <div *ngFor="let item of containers" class="s-row" style="align-items: center;">
+      <button mat-icon-button color="error" (click)="disposeContainer(item['container-id'])">
+        <mat-icon>close</mat-icon>
+      </button>
+      <button mat-button color="primary" (click)="getProcesses(item['container-id'])">{{item['container-id']}}</button>
+
+    </div>
+  </div>
+  <mat-table [dataSource]="dataSource">
+
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <a mat-button [routerLink]="['view']" [queryParams]="element.id" color="primary">{{element.processName}}</a>
+
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="containerId">
+      <mat-header-cell *matHeaderCellDef> containerId </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element['container-id']}}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="processId">
+      <mat-header-cell *matHeaderCellDef> processId </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element['process-id']}}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="processName">
+      <mat-header-cell *matHeaderCellDef> processName </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element['process-name']}}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="processVersion">
+      <mat-header-cell *matHeaderCellDef> processVersion </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element['process-version']}}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="action">
+      <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <button mat-icon-button color="primary">
+          <mat-icon>play_circle_outline</mat-icon>
+        </button>
+        <button mat-icon-button color="primary" (click)="showImage(element)">
+          <mat-icon>image</mat-icon>
+        </button>
+
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+
+</div>

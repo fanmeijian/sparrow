@@ -1,0 +1,46 @@
+<ng-container *ngIf="!route.firstChild">
+  <button mat-flat-button color="primary" [routerLink]="['new']">add</button>
+
+  <mat-table [dataSource]="dataSource">
+
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef> name </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <a mat-button [routerLink]="['view']" [queryParams]="{id: element.processInstanceId}" color="primary">
+          {{element.processInstanceId}} {{element.processName}}
+        </a>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="initiator">
+      <mat-header-cell *matHeaderCellDef> start </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element.identity}} {{element.start|date: 'short'}}
+      </mat-cell>
+    </ng-container>
+
+
+    <ng-container matColumnDef="state">
+      <mat-header-cell *matHeaderCellDef> status </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{element.status}}
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="action">
+      <mat-header-cell *matHeaderCellDef> action </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <button mat-button *ngIf="element.status==1" color="error" (click)="abort(element)">abort</button>
+        <button mat-button *ngIf="[1,2,3].includes(element.status)" color="error" (click)="delete(element)">delete</button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+  <mat-paginator [length]="pageable.length" [pageSize]="pageable.size" [pageSizeOptions]="[5, 10, 25, 100]"
+    (page)="onPage($event)">
+  </mat-paginator>
+
+</ng-container>
+<router-outlet></router-outlet>

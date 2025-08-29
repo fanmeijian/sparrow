@@ -1,0 +1,17 @@
+.example-container{
+  height: calc(100vh - 60px);
+}
+
+.side{
+  width: 200px;
+  padding: 10px;
+}
+
+.example-sidenav-content{
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 5px;
+  height: calc(100vh - 120px);
+}
+

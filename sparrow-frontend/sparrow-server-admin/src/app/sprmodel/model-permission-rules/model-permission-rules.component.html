@@ -1,0 +1,68 @@
+<button mat-raised-button (click)="new()" color="primary">新增</button>
+<!-- <div class="editor-container" #editorContainer>
+  触发条件
+</div> -->
+<div class="example-table-container">
+  <mat-table [dataSource]="dataSource">
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let element; let index = index">
+        <!-- <span class="s-button"
+          mat-button
+          color="primary"
+          routerLink="/sparrow-form-create"
+          [queryParams]="{ id: element.id }"
+          >{{ index + 1 }}.</span
+        > -->
+        <button mat-icon-button color="warn" (click)="delete(index)">
+          <mat-icon>close</mat-icon>
+        </button>{{ index + 1 }}.
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef>名称</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <mat-form-field>
+          <mat-label></mat-label>
+          <input type="text" [(ngModel)]="element.name" matInput />
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="code">
+      <mat-header-cell *matHeaderCellDef>描述</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <mat-form-field>
+          <mat-label></mat-label>
+          <input type="text" [(ngModel)]="element.description" matInput />
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="users">
+      <mat-header-cell *matHeaderCellDef>表达式</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <mat-form-field>
+          <mat-label></mat-label>
+          <textarea [(ngModel)]="element.condition" matInput></textarea>
+        </mat-form-field>
+
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let i=index">
+        <button mat-icon-button color="warn" (click)="delete(i)">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+  </mat-table>
+
+
+</div>

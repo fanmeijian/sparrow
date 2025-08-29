@@ -1,0 +1,16 @@
+<div class="log" *ngFor="let item of logs">
+  {{item.createdBy}} - {{item.createdDate | date: 'yyyy-MM-dd HH:mm:ss'}} - {{item.origin}}
+  <div>{{item.method}}</div>
+  <div>{{item.args}}</div>
+</div>
+
+
+<mat-paginator
+  [pageSizeOptions]="[5, 10, 20]"
+  [pageSize]="pageable.pageSize"
+  showFirstLastButtons
+  [length]="pageable.length"
+  (page)="onPageChange($event)"
+  aria-label="Select page of periodic elements"
+>
+</mat-paginator>

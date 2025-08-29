@@ -1,0 +1,30 @@
+mat-form-field{
+  margin: 10px;
+  width: 100%;
+}
+
+.editor-container{
+  height: 100px;
+  /* background-color: red; */
+}
+
+.mat-column-id {
+  word-wrap: break-word !important;
+  white-space: unset !important;
+  flex: 0 0 60px !important;
+  /* width: 40% !important; */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  padding: 2px;
+  word-break: break-word;
+
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+.editor-container{
+  height: 100px;
+}
+

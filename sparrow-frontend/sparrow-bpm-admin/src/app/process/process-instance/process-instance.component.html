@@ -1,0 +1,38 @@
+<mat-tab-group>
+  <mat-tab label="基本信息">
+    {{process.status}} {{process.processInstanceId}} {{process.processName}} {{process.start|date: 'short'}}
+    <app-process-instance-image [processInstanceId]="process?.processInstanceId"></app-process-instance-image>
+
+    <h4>当前节点</h4>
+    <div *ngFor="let item of activeNodes">
+      {{item['node-instance-id']}} {{item['node-name']}} {{item['node-type']}} {{item['node-completed']}}
+      {{item['start-date']|date: 'short'}}
+      <button *ngIf="canAbort(item)" mat-button color="error" (click)="abortNode(item)">abort</button>
+      <!-- <button mat-button color="error" (click)="nominate(item)">nominate</button> -->
+      <button mat-button color="error" (click)="reassign(item)">reassign</button>
+      <button mat-button color="error" (click)="getReassignments(item)">get reassign</button>
+      <button mat-button color="error" (click)="addPotOwners(item)">addPotential</button>
+      <button mat-button color="error" (click)="forward(item)">forward</button>
+      <button mat-button color="error" (click)="delegate(item)">delegate</button>
+      <button mat-button color="error" (click)="skip(item)">skip</button>
+    </div>
+
+    <h4>流程节点</h4>
+    <div *ngFor="let item of processNodes">
+      {{item.id}} {{item.name}} {{item.type}}
+      <button *ngIf="canTrigger(item)" mat-button color="primary" (click)="triggerNode(item)">trigger</button>
+    </div>
+  </mat-tab>
+  <mat-tab label="流转记录">
+    <div *ngFor="let item of nodeInstances">
+      {{item.nodeInstanceId}} {{item.nodeName}} {{item.type}} {{item.nodeType}} {{item.date|date: 'short'}}
+      <button mat-button *ngIf="item.type===0" (click)="retrigger(item)">re-trigger</button>
+    </div>
+  </mat-tab>
+  <mat-tab label="流程变量">
+    <div *ngFor="let item of getKeys(processVariables)">
+      <span>{{item}} </span>
+      {{processVariables[item]|json}}
+    </div>
+  </mat-tab>
+</mat-tab-group>

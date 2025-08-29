@@ -1,0 +1,34 @@
+
+mat-table{
+  width: 100%;
+  height: calc(100vh - 300px);
+  overflow: scroll;
+}
+
+
+.mat-column-auditlog {
+  word-wrap: break-word !important;
+  white-space: unset !important;
+  flex: 0 0 200px !important;
+  /* width: 5% !important; */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  padding: 2px;
+  word-break: break-word;
+
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+/*
+.actions{
+  width: 300px;
+  display: flex;
+  flex-wrap: wrap;
+} */
+
+.mat-column-users {
+  flex: 0 1 120px !important;
+  /* width: 120px !important; */
+}

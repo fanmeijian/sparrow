@@ -1,0 +1,21 @@
+<h5 mat-dialog-title>规则</h5>
+<mat-dialog-content>
+  <div class="s-col" [formGroup]="form">
+    <mat-form-field>
+      <mat-label>name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>remark</mat-label>
+      <textarea matInput formControlName="remark"></textarea>
+    </mat-form-field>
+  </div>
+  <ngx-monaco-editor style="height: 400px;" [options]="editorOptions" [(ngModel)]="code"
+    (ngModelChange)="onChange($event)"></ngx-monaco-editor>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button (click)="submit()">confirm</button>
+  <button mat-button color="accent" mat-dialog-close="">cancle</button>
+</mat-dialog-actions>

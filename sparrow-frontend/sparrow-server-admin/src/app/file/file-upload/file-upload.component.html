@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>文件上传</h1>
+<mat-dialog-content>
+  <input
+    #fileInput
+    type="file"
+    (change)="selectFile($event)"
+    style="display: none"
+    ngModel
+    multiple
+  />
+  <mat-form-field class="example-full-width" (click)="fileInput.click()">
+    <input
+      matInput
+      placeholder="请选择文件"
+      value="{{
+        fileInput.value.substr(fileInput.value.lastIndexOf('\\') + 1)
+      }}"
+    />
+    <mat-icon matSuffix>folder_open</mat-icon>
+  </mat-form-field>
+  &nbsp;
+  <button mat-raised-button color="primary" (click)="upload()">上传</button>
+
+  <div *ngFor="let uploadedFile of uploadedFiles">
+    <mat-icon>insert_drive_file</mat-icon>
+    {{ uploadedFile.name }} - {{ uploadedFile.progress }}%
+    <mat-progress-bar
+      mode="determinate"
+      value="{{ uploadedFile.progress }}"
+    ></mat-progress-bar>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button color="primary" mat-dialog-close>关闭</button>
+</mat-dialog-actions>

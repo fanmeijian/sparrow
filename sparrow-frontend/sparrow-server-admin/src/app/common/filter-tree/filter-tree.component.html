@@ -1,0 +1,52 @@
+<mat-form-field *ngIf="!disabled">
+  <mat-label>搜索</mat-label>
+  <input matInput [(ngModel)]="searchString" />
+</mat-form-field>
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+  <mat-tree-node
+    *matTreeNodeDef="let node"
+    [style.display]="filterLeafNode(node) ? 'none' : 'block'"
+    matTreeNodeToggle
+    matTreeNodePadding
+    matTreeNodePaddingIndent="20"
+  >
+    <button class="button__arrow" mat-icon-button disabled></button>
+    <mat-checkbox
+      [disabled]="disabled"
+      class="checklist-leaf-node"
+      [checked]="checklistSelection.isSelected(node)"
+      (change)="todoLeafItemSelectionToggle(node)"
+      >{{ node.name }}</mat-checkbox
+    >
+  </mat-tree-node>
+
+  <mat-tree-node
+    *matTreeNodeDef="let node; when: hasChild"
+    [style.display]="filterParentNode(node) ? 'none' : 'block'"
+    matTreeNodePadding
+    matTreeNodePaddingIndent="20"
+  >
+    <button
+      type="button"
+      class="button__arrow"
+      mat-icon-button
+      matTreeNodeToggle
+      [attr.aria-label]="'Toggle ' + node.name"
+    >
+      <mat-icon class="mat-icon-rtl-mirror">
+        {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+      </mat-icon>
+    </button>
+    <mat-checkbox
+      [disabled]="true"
+      [checked]="descendantsAllSelected(node)"
+      [indeterminate]="descendantsPartiallySelected(node)"
+      (change)="todoItemSelectionToggle(node)"
+      >{{ node.name }}</mat-checkbox
+    >
+  </mat-tree-node>
+</mat-tree>
+
+<!-- Copyright 2021 Google LLC. All Rights Reserved.
+    Use of this source code is governed by an MIT-style license that
+    can be found in the LICENSE file at http://angular.io/license -->

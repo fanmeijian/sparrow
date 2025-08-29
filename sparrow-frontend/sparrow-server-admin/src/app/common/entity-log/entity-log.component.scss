@@ -1,0 +1,11 @@
+.log {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.item {
+  flex: 0 1 100px;
+  margin: 10px;
+}

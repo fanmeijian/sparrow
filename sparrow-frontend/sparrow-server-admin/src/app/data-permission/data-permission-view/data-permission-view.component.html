@@ -1,0 +1,76 @@
+<button mat-icon-button (click)="view()" color="primary" matTooltip="查看权限" [disabled]="!data">
+  <mat-icon>lock</mat-icon>
+</button>
+<ng-template #permissionDialog>
+  <h1 mat-dialog-title>数据权限</h1>
+  <mat-dialog-content>
+    <mat-tab-group>
+      <mat-tab label="用户">
+        <div
+          *ngFor="let user of dataPermission?.usernames"
+          style="display: flex; flex-direction: row; align-items: center"
+        >
+          <span
+            class="material-icons"
+            style="color: red; cursor: pointer"
+            (click)="removeUser(user, dataPermission)"
+          >
+            close </span
+          ><span>{{ user.username }} {{ user.permission }} </span
+          ><span
+            [style]="
+              user.permissionType === 'DENY' ? 'color:red' : 'color:green'
+            "
+            >{{ user.permissionType }}</span
+          >
+        </div>
+      </mat-tab>
+      <mat-tab label="角色">
+        <div
+          *ngFor="let sysrole of dataPermission?.sysroleIds"
+          style="display: flex; flex-direction: row; align-items: center"
+        >
+          <span
+            class="material-icons"
+            style="color: red; cursor: pointer"
+            (click)="remove(sysrole, dataPermission)"
+          >
+            close </span
+          ><span>{{ sysrole.sysroleId }} {{ sysrole.permission }} </span
+          ><span
+            [style]="
+              sysrole.permissionType === 'DENY' ? 'color:red' : 'color:green'
+            "
+            >{{ sysrole.permissionType }}</span
+          >
+        </div>
+      </mat-tab>
+      <mat-tab label="规则">
+        <div
+          *ngFor="let item of dataPermission?.groups"
+          style="display: flex; flex-direction: row; align-items: center"
+        >
+          <span
+            class="material-icons"
+            style="color: red; cursor: pointer"
+            (click)="removeRule(item, dataPermission)"
+          >
+            close </span
+          ><span
+            >{{ item.groupId }}
+            {{ item.permission }} </span
+          ><span
+            [style]="
+              item.permissionType === 'DENY' ? 'color:red' : 'color:green'
+            "
+            >{{ item.permissionType }}</span
+          >
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button color="primary" mat-dialog-close>关闭</button>
+  </mat-dialog-actions>
+</ng-template>
