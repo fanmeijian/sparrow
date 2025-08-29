@@ -1,0 +1,8 @@
+/target/
+/.settings/
+/.classpath
+/.factorypath
+/.project
+/bpm-application-service.xml
+/transaction-logs/
+bpm-application-service.xml

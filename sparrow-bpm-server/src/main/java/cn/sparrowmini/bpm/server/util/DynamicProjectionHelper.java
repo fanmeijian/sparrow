@@ -1,0 +1,324 @@
+package cn.sparrowmini.bpm.server.util;
+
+import cn.sparrowmini.bpm.server.antlr.PredicateBuilder;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.support.PageableExecutionUtils;
+
+import javax.persistence.*;
+import javax.persistence.criteria.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * 动态构建 JPA Tuple 查询，并将结果自动映射为 Projection DTO。 支持嵌套对象和集合（Collection）字段自动加载。
+ * 主键总是基于 domain class，不依赖 Projection DTO。
+ */
+public class DynamicProjectionHelper {
+
+	public static <P> Page<P> findAllProjection(EntityManager em, Class<?> domainType, Pageable pageable, String filter,
+                                                Class<P> projectionClass) {
+
+		// ----------------------------
+		// Step 1: 构建查询并获取 Tuple
+		// ----------------------------
+		TypedQuery<Tuple> query = buildQuery(em, domainType, pageable, filter, projectionClass);
+		if (pageable.isPaged()) {
+			query.setFirstResult(pageable.getPageSize() * pageable.getPageNumber());
+			query.setMaxResults(pageable.getPageSize());
+		}
+		List<Tuple> tuples = query.getResultList();
+		ObjectMapper objectMapper = new ObjectMapper();// 注册 Java 8 日期时间模块
+		objectMapper.registerModule(new JavaTimeModule());
+		        // 禁用时间戳输出（可选）
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// ----------------------------
+		// Step 2: Tuple -> List<Map<String,Object>>
+		// ----------------------------
+		List<Map<String, Object>> flatList = new ArrayList<>();
+		Field domainIdField = findIdField(domainType);
+		String domainIdName = domainIdField.getName();
+		for (Tuple tuple : tuples) {
+			Map<String, Object> map = new LinkedHashMap<>();
+			for (TupleElement<?> elem : tuple.getElements()) {
+				map.put(elem.getAlias(), tuple.get(elem));
+			}
+			flatList.add(map);
+		}
+
+		boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
+				.anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
+
+		try {
+			loadSingle(flatList, domainType, projectionClass, em, objectMapper, domainIdField);
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (hasCollectionField) {
+			// ----------------------------
+			// Step 3: 加载集合字段
+			// ----------------------------
+			loadCollections(flatList, domainType, projectionClass, em, objectMapper, domainIdField);
+		}
+
+		// ----------------------------
+		// Step 4: 最终转换为 DTO
+		// ----------------------------
+		List<P> result = new ArrayList<>();
+		for (Map<String, Object> m : flatList) {
+			P dto = objectMapper.convertValue(m, projectionClass);
+			result.add(dto);
+		}
+
+		return PageableExecutionUtils.getPage(result, pageable,
+				() -> getCountQuery(filter, domainType, em).getSingleResult());
+	}
+
+	// ----------------------------
+	// 构建 Tuple 查询
+	// ----------------------------
+	public static <P> TypedQuery<Tuple> buildQuery(EntityManager em, Class<?> domainType, Pageable pageable,
+			String filter, Class<P> projectionClass) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Tuple> query = cb.createTupleQuery();
+		Root<?> root = query.from(domainType);
+
+		List<Selection<?>> selections = buildSelections(domainType, cb, root, projectionClass, "", new HashMap<>());
+		query.multiselect(selections);
+
+		if (filter != null && !filter.isBlank()) {
+			query.where(PredicateBuilder.buildPredicate(filter, cb, root));
+		}
+
+		Sort sort = pageable.getSort();
+		if (sort.isSorted()) {
+			query.orderBy(QueryUtils.toOrders(sort, root, cb));
+		}
+
+		return em.createQuery(query);
+	}
+
+	public static <T> TypedQuery<Long> getCountQuery(String filter, Class<T> domainClass, EntityManager em) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+		Root<?> countRoot = countQuery.from(domainClass);
+		countQuery.select(cb.count(countRoot));
+		if (filter != null && !filter.isBlank()) {
+			countQuery.where(PredicateBuilder.buildPredicate(filter, cb, countRoot));
+		}
+		return em.createQuery(countQuery);
+	}
+
+	// ----------------------------
+	// 构建 select 字段
+	// ----------------------------
+	public static List<Selection<?>> buildSelections(Class<?> domainType, CriteriaBuilder cb, From<?, ?> root,
+			Class<?> projectionClass, String prefix, Map<String, From<?, ?>> joins) {
+		List<Selection<?>> selections = new ArrayList<>();
+
+		Field idField = findIdField(domainType);
+		String idName = idField.getName();
+		String alias = prefix.isEmpty() ? idName : prefix + "." + idName;
+		selections.add(root.get(idName).alias(alias));
+
+		for (Field field : projectionClass.getDeclaredFields()) {
+			String fieldName = field.getName();
+			if(fieldName.equals(idName)) continue;
+			Class<?> fieldType = field.getType();
+			String fieldAlias = prefix.isEmpty() ? fieldName : prefix + "." + fieldName;
+
+			if (Collection.class.isAssignableFrom(fieldType))
+				continue;
+			if (isJavaStandardType(fieldType)) {
+				selections.add(root.get(fieldName).alias(fieldAlias));
+			} else {
+				String joinPath = prefix.isEmpty() ? fieldName : prefix + "." + fieldName;
+				From<?, ?> join = joins.computeIfAbsent(joinPath, k -> root.join(fieldName, JoinType.LEFT));
+				selections.addAll(buildSelections(domainType, cb, join, fieldType, fieldAlias, joins));
+			}
+		}
+		return selections;
+	}
+
+	// ----------------------------
+	// 工具方法
+	// ----------------------------
+	private static Field findIdField(Class<?> type) {
+		Class<?> current = type;
+		while (current != null && !current.equals(Object.class)) {
+			for (Field f : current.getDeclaredFields()) {
+				if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(EmbeddedId.class)) {
+					f.setAccessible(true);
+					return f;
+				}
+			}
+			current = current.getSuperclass();
+		}
+		throw new IllegalArgumentException("No @Id/@EmbeddedId found in " + type.getName());
+	}
+
+	// ---------------------------
+	// 1️⃣ 单对象关联
+	// ---------------------------
+	private static void loadSingle(List<Map<String, Object>> flatList, Class<?> domainClass, Class<?> projectionClass,
+			EntityManager em, ObjectMapper objectMapper, Field domainIdField) throws IllegalAccessException {
+
+		if (flatList.isEmpty())
+			return;
+
+		Set<Object> parentIds = new HashSet<>();
+		for (Map<String, Object> m : flatList) {
+			Object id = m.get(domainIdField.getName());
+			if (id != null)
+				parentIds.add(id);
+		}
+		if (parentIds.isEmpty())
+			return;
+
+		for (Field field : projectionClass.getDeclaredFields()) {
+
+			// 跳过集合字段和基础类型字段
+			if (Collection.class.isAssignableFrom(field.getType()) || isJavaStandardType(field.getType()))
+				continue;
+
+			Field domainField = Arrays.stream(domainClass.getDeclaredFields())
+					.filter(f -> f.getName().equals(field.getName())).findFirst().orElse(null);
+			if (domainField == null)
+				continue;
+			if (!domainField.isAnnotationPresent(OneToOne.class) && !domainField.isAnnotationPresent(ManyToOne.class))
+				continue;
+
+			Class<?> childType = domainField.getType();
+			Field childIdField = findIdField(childType);
+			childIdField.setAccessible(true);
+
+			List<Object> fkIds = flatList.stream().map(m -> m.get(domainField.getName() + "." + childIdField.getName()))
+					.filter(Objects::nonNull).collect(Collectors.toList());
+			if (fkIds.isEmpty())
+				continue;
+
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+			Root<?> root = cq.from(childType);
+			String childAlias = "child";
+
+			cq.multiselect(root.alias(childAlias)).where(root.get(childIdField.getName()).in(fkIds));
+
+			List<Tuple> childTuples = em.createQuery(cq).getResultList();
+
+			Map<Object, Object> idToChild = new HashMap<>();
+			for (Tuple t : childTuples) {
+				Object childObj = t.get(childAlias);
+				Object childId = childIdField.get(childObj);
+				idToChild.put(childId, childObj);
+			}
+
+			for (Map<String, Object> m : flatList) {
+				Object fkValue = m.get(domainField.getName() + "." + childIdField.getName());
+				if (fkValue != null)
+					m.put(field.getName(), idToChild.get(fkValue));
+			}
+		}
+	}
+
+	private static void loadCollections(List<Map<String, Object>> flatList, Class<?> domainClass,
+			Class<?> projectionClass, EntityManager em, ObjectMapper objectMapper, Field domainIdField) {
+
+		String domainIdName = domainIdField.getName();
+		List<Object> ids = new ArrayList<>();
+		Map<Object, Map<String, Object>> idToMap = new LinkedHashMap<>();
+
+		for (Map<String, Object> m : flatList) {
+			Object id = m.get(domainIdName);
+			ids.add(id);
+			idToMap.put(id, m);
+		}
+
+		for (Field collectionField : projectionClass.getDeclaredFields()) {
+
+			if (!Collection.class.isAssignableFrom(collectionField.getType()))
+				continue;
+
+			Class<?> dtoChildType = extractGenericType(collectionField);
+			Field domainCollectionField = Arrays.stream(domainClass.getDeclaredFields())
+					.filter(f -> f.getName().equals(collectionField.getName())).findFirst()
+					.orElseThrow(() -> new IllegalArgumentException(
+							"Cannot find domain collection field for " + collectionField.getName()));
+
+			Class<?> entityChildType = (Class<?>) ((ParameterizedType) domainCollectionField.getGenericType())
+					.getActualTypeArguments()[0];
+
+			Field manyToOneField = findManyToOneField(entityChildType, domainClass);
+			String parentIdName = domainIdName;
+
+			// 子表查询
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+			Root<?> childRoot = cq.from(entityChildType);
+
+			cq.multiselect(childRoot, childRoot.get(manyToOneField.getName()).get(parentIdName).alias(parentIdName));
+			cq.where(childRoot.get(manyToOneField.getName()).get(parentIdName).in(ids));
+
+			List<Tuple> childTuples = em.createQuery(cq).getResultList();
+
+			Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+			for (Tuple t : childTuples) {
+				Object parentId = t.get(parentIdName);
+				Map<String, Object> childMap = objectMapper.convertValue(t.get(0), Map.class);
+				grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childMap);
+			}
+
+			// 填充到父 Map
+			for (Map.Entry<Object, Map<String, Object>> entry : idToMap.entrySet()) {
+				Object id = entry.getKey();
+				Map<String, Object> parentMap = entry.getValue();
+				List<Map<String, Object>> children = grouped.getOrDefault(id, List.of());
+				parentMap.put(collectionField.getName(), children);
+			}
+		}
+	}
+
+	private static Field findManyToOneField(Class<?> childType, Class<?> parentType) {
+		for (Field f : childType.getDeclaredFields()) {
+			if (f.isAnnotationPresent(ManyToOne.class) && f.getType().equals(parentType)) {
+				f.setAccessible(true);
+				return f;
+			}
+		}
+		throw new IllegalArgumentException(
+				"Cannot find ManyToOne field in " + childType.getName() + " pointing to " + parentType.getName());
+	}
+
+	private static Class<?> extractGenericType(Field field) {
+		Type type = field.getGenericType();
+		if (type instanceof ParameterizedType) {
+			Type actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
+			if (actualType instanceof Class<?>)
+				return (Class<?>) actualType;
+		}
+		throw new IllegalArgumentException("Cannot extract generic type for field: " + field.getName());
+	}
+
+	private static boolean isJavaStandardType(Class<?> clazz) {
+		final Set<Class<?>> JAVA_TIME_TYPES = Set.of(java.time.LocalDate.class, java.time.LocalDateTime.class,
+				java.time.OffsetDateTime.class, java.time.Instant.class, java.time.ZonedDateTime.class,
+				java.time.OffsetTime.class, java.time.LocalTime.class, java.time.Duration.class,
+				java.time.Period.class);
+
+		return clazz.isPrimitive() || clazz.getName().startsWith("java.lang.") || clazz.equals(String.class)
+				|| Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
+				|| JAVA_TIME_TYPES.contains(clazz);
+	}
+}

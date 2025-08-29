@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.6.6</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<groupId>cn.sparrowmini</groupId>
+	<artifactId>sparrow-bpm-server</artifactId>
+	<version>1.1</version>
+	<packaging>jar</packaging>
+	<name>bpm server</name>
+
+	<properties>
+		<version.org.kie>7.74.1.Final</version.org.kie>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<narayana.version>5.9.0.Final</narayana.version>
+		<fabric8.version>3.5.40</fabric8.version>
+		<version.com.h2database>1.4.197</version.com.h2database>
+		<version.io.swagger>1.6.2</version.io.swagger>
+		<version.org.apache.cxf>3.4.5</version.org.apache.cxf>
+		<version.org.webjars.swagger-ui>2.2.10</version.org.webjars.swagger-ui>
+		<version.org.keycloak>21.1.1</version.org.keycloak>
+		<version.com.h2database>1.4.197</version.com.h2database>
+		<version.org.springframework.boot>2.6.6</version.org.springframework.boot>
+		<version.spring>2.6.6</version.spring>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.keycloak.bom</groupId>
+				<artifactId>keycloak-adapter-bom</artifactId>
+				<version>${version.org.keycloak}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
+	<dependencies>
+		<!--部署流程服务,jbpm扩展服务-->
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-server-spring-boot-starter</artifactId>
+			<version>${version.org.kie}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>jbpm-process-svg</artifactId>
+			<version>${version.org.kie}</version>
+			<exclusions>
+				<exclusion>
+				    <groupId>xml-apis</groupId>
+				    <artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-data-rest</artifactId>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.data</groupId>-->
+<!--			<artifactId>spring-data-rest-hal-explorer</artifactId>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.jbpm</groupId>-->
+<!--			<artifactId>jbpm-flow</artifactId>-->
+<!--			<version>${version.org.kie}</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.jbpm</groupId>-->
+<!--			<artifactId>jbpm-bpmn2</artifactId>-->
+<!--			<version>${version.org.kie}</version>-->
+<!--		</dependency>-->
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-flow</artifactId>
+			<version>${version.org.kie}</version>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.jbpm</groupId>-->
+<!--			<artifactId>jbpm-event-emitters-kafka</artifactId>-->
+<!--			<version>${version.org.kie}</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.jbpm</groupId>-->
+<!--			<artifactId>keycloak-http-workitem</artifactId>-->
+<!--			<version>0.0.1</version>-->
+<!--		</dependency>-->
+
+		<!--keycloak 集成 spring-->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+		</dependency>
+
+		<!--加入监控-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${version.com.h2database}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.protobuf</groupId>
+					<artifactId>protobuf-java</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.3.8</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.11</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.protobuf</groupId>
+					<artifactId>protobuf-java</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Swagger -->
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-service-description-swagger</artifactId>
+			<version>${version.org.apache.cxf}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-jaxrs</artifactId>
+			<version>${version.io.swagger}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.ws.rs</groupId>
+					<artifactId>jsr311-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!--        <dependency>-->
+		<!--            <groupId>org.webjars</groupId>-->
+		<!--            <artifactId>swagger-ui</artifactId>-->
+		<!--            <version>5.10.3</version>-->
+		<!--        </dependency>-->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.7.0</version>
+		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<version>2.6.6</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.6.6</version>
+				<configuration>
+					<mainClass>cn.sparrowmini.bpm.server.BpmApplication</mainClass>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
