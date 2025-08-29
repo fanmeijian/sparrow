@@ -1,10 +1,18 @@
 <ng-container *ngIf="!route.firstChild">
-  <button mat-flat-button color="primary" [routerLink]="['new']">add</button>
 
   <mat-table [dataSource]="dataSource">
 
+    <ng-container matColumnDef="title">
+      <mat-header-cell *matHeaderCellDef> 标题 </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <a mat-button [routerLink]="['view']" [queryParams]="{id: element.processInstanceId}" color="primary">
+          {{element.title}}
+        </a>
+      </mat-cell>
+    </ng-container>
+
     <ng-container matColumnDef="name">
-      <mat-header-cell *matHeaderCellDef> name </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 流程 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         <a mat-button [routerLink]="['view']" [queryParams]="{id: element.processInstanceId}" color="primary">
           {{element.processInstanceId}} {{element.processName}}
@@ -13,7 +21,7 @@
     </ng-container>
 
     <ng-container matColumnDef="initiator">
-      <mat-header-cell *matHeaderCellDef> start </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 提交人 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         {{element.identity}} {{element.start|date: 'short'}}
       </mat-cell>
@@ -21,17 +29,18 @@
 
 
     <ng-container matColumnDef="state">
-      <mat-header-cell *matHeaderCellDef> status </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 状态 </mat-header-cell>
       <mat-cell *matCellDef="let element">
-        {{element.status}}
+        <span [ngClass]="{'red':element.status===3, 'green': element.status==2, 'blue':element.status==1}">{{getStatusName(element.status)}}</span>
       </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="action">
-      <mat-header-cell *matHeaderCellDef> action </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> </mat-header-cell>
       <mat-cell *matCellDef="let element">
-        <button mat-button *ngIf="element.status==1" color="error" (click)="abort(element)">abort</button>
-        <button mat-button *ngIf="[1,2,3].includes(element.status)" color="error" (click)="delete(element)">delete</button>
+        <button mat-button *ngIf="element.status==1" color="accent" (click)="abort(element)">{{'abort'|translate}}</button>
+        <button mat-button *ngIf="[1,2,3].includes(element.status)" color="accent"
+          (click)="delete(element)">{{'delete'|translate}}</button>
       </mat-cell>
     </ng-container>
 

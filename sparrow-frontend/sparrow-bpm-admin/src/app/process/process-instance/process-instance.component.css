@@ -1,0 +1,12 @@
+.mat-tab{
+    height: calc(100vh - 300px);
+    overflow: scroll;
+}
+
+.mat-column-id{
+    max-width: 40px;
+}
+
+.mat-column-type{
+    max-width: 180px;
+}

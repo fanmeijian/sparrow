@@ -1,23 +1,45 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
-declare global {
-  interface Window {
-    BpmnEditor: any;
-  }
-}
+///@ts-ignore
+import * as BpmnEditor from 'src/assets/bpmn/index.js'
+import { EditorApi, EditorStandaloneResource } from 'src/app/types/common/Editor'
 
 
 @Component({
   selector: 'app-process-design',
   templateUrl: './process-design.component.html',
-  styleUrls: ['./process-design.component.css']
+  styleUrls: ['./process-design.component.css'],
+
 })
 export class ProcessDesignComponent implements OnInit, AfterViewInit {
+  downloadSvg() {
+    this.editor.getPreview().then((svgContent: any) => {
+      const elem = window.document.createElement("a");
+      elem.href = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgContent);
+      elem.download = "model.svg";
+      document.body.appendChild(elem);
+      elem.click();
+      document.body.removeChild(elem);
+    });
+  }
+  download() {
+    this.editor.getContent().then((content) => {
+      const elem = window.document.createElement("a");
+      elem.href = "data:text/plain;charset=utf-8," + encodeURIComponent(content);
+      elem.download = "model.bpmn";
+      document.body.appendChild(elem);
+      elem.click();
+      document.body.removeChild(elem);
+      // this.editor.markAsSaved();
+    });
+  }
   process: any
   containerId: any
+
+  isDirty?: boolean = false
 
   import($event: any) {
     const file = $event.files[0]
@@ -32,7 +54,7 @@ export class ProcessDesignComponent implements OnInit, AfterViewInit {
 
     reader.readAsText(file); // 读取为文本
   }
-  editor: any
+  editor!: EditorApi
   save() {
     const $svg = this.editor.getPreview()
     const $xml = this.editor.getContent()
@@ -74,22 +96,41 @@ export class ProcessDesignComponent implements OnInit, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    const script = document.createElement('script');
-    script.src = 'assets/bpm/index.js';
+    const editor = BpmnEditor
+    console.log(editor)
 
-    script.onload = async () => {
-      const editor = (window as any).BpmnEditor;
-      if (editor) {
-        this.editor = editor.open({
-          container: document.getElementById('bpmn-container')!,
-          initialContent: this.onBpmnLoad(), // async 返回 Promise，直接用
-          fileName: 'diagram.bpmn',
-          readOnly: false,
-        });
-      }
-    };
+    const resources: Map<string, EditorStandaloneResource> = new Map();
+    resources.set("customWorkItem.wid", {
+      contentType: "text",
+      content: Promise.resolve(`
+                  [
+                    [
+                      "name" : "HttpServiceTask",
+                      "parameters" : [
+                        "Method" : new StringDataType(),
+                        "Url" : new StringDataType(),
+                        "Body" : new StringDataType()
+                      ],
+                      "displayName" : "HTTP Service Task",
+                      "icon" : "defaultservicenodeicon.png",
+                      "category" : "Service"
+                    ]
+                  ]
+                `)
+    })
 
-    document.body.appendChild(script);
+
+    this.editor = editor.open({
+      container: document.getElementById('bpmn-container')!,
+      initialContent: this.onBpmnLoad(), // async 返回 Promise，直接用
+      readOnly: false,
+      resources: resources
+
+    });
+
+    editor.subscribeToContentChanges((isDirty: boolean) => this.isDirty = isDirty);
+
   }
 
 }
+

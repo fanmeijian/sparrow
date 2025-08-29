@@ -4,35 +4,143 @@
     <app-process-instance-image [processInstanceId]="process?.processInstanceId"></app-process-instance-image>
 
     <h4>当前节点</h4>
-    <div *ngFor="let item of activeNodes">
+    <mat-table [dataSource]="activeNodes">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> # </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item['node-instance-id']}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item['node-name']}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="s-row">
+            <button *ngIf="canAbort(item)" mat-button color="accent"
+              (click)="abortNode(item)">{{'abort'|translate}}</button>
+            <!-- <button mat-button color="error" (click)="nominate(item)">nominate</button> -->
+            <button mat-button color="accent" (click)="reassign(item)">{{'reassign'|translate}}</button>
+            <button mat-button color="primary"
+              (click)="getReassignments(item)">{{'get'|translate}}{{'reassign'|translate}}</button>
+            <button mat-button color="accent" (click)="addPotOwners(item)">{{'addPotential'|translate}}</button>
+            <button mat-button color="primary" (click)="forward(item)">{{'forward'|translate}}</button>
+            <button mat-button color="primary" (click)="delegate(item)">{{'delegate'|translate}}</button>
+            <button mat-button color="primary" (click)="skip(item)">{{'skip'|translate}}</button>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+    <!-- <div *ngFor="let item of activeNodes">
       {{item['node-instance-id']}} {{item['node-name']}} {{item['node-type']}} {{item['node-completed']}}
       {{item['start-date']|date: 'short'}}
-      <button *ngIf="canAbort(item)" mat-button color="error" (click)="abortNode(item)">abort</button>
-      <!-- <button mat-button color="error" (click)="nominate(item)">nominate</button> -->
-      <button mat-button color="error" (click)="reassign(item)">reassign</button>
+      <button *ngIf="canAbort(item)" mat-button color="accent" (click)="abortNode(item)">{{'abort'|translate}}</button>
+      <button mat-button color="error" (click)="nominate(item)">nominate</button>
+      <button mat-button color="error" (click)="reassign(item)">{{'reassign'|translate}}</button>
       <button mat-button color="error" (click)="getReassignments(item)">get reassign</button>
       <button mat-button color="error" (click)="addPotOwners(item)">addPotential</button>
       <button mat-button color="error" (click)="forward(item)">forward</button>
       <button mat-button color="error" (click)="delegate(item)">delegate</button>
       <button mat-button color="error" (click)="skip(item)">skip</button>
-    </div>
+    </div> -->
 
-    <h4>流程节点</h4>
-    <div *ngFor="let item of processNodes">
+    <h4>流程节点定义</h4>
+
+    <mat-table [dataSource]="processNodes">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> # </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item.id}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item.name}} {{item.type}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="s-row">
+            <button *ngIf="canTrigger(item)" mat-button color="primary"
+              (click)="triggerNode(item)">{{'trigger'|translate}}</button>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+
+    <!-- <div *ngFor="let item of processNodes">
       {{item.id}} {{item.name}} {{item.type}}
-      <button *ngIf="canTrigger(item)" mat-button color="primary" (click)="triggerNode(item)">trigger</button>
-    </div>
+      <button *ngIf="canTrigger(item)" mat-button color="primary"
+        (click)="triggerNode(item)">{{'trigger'|translate}}</button>
+    </div> -->
   </mat-tab>
   <mat-tab label="流转记录">
-    <div *ngFor="let item of nodeInstances">
+    <!-- <div *ngFor="let item of nodeInstances">
       {{item.nodeInstanceId}} {{item.nodeName}} {{item.type}} {{item.nodeType}} {{item.date|date: 'short'}}
       <button mat-button *ngIf="item.type===0" (click)="retrigger(item)">re-trigger</button>
-    </div>
+    </div> -->
+
+    <mat-table [dataSource]="nodeInstances">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> # </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item.nodeInstanceId}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="type">
+        <mat-header-cell *matHeaderCellDef> 动作 </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item.type==0?'进入':'完成'}} {{item.date|date: 'short'}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="nodeType">
+        <mat-header-cell *matHeaderCellDef> 类型 </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item.nodeType}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          {{item.nodeName||item.nodeType}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <div class="s-row">
+            <button mat-button *ngIf="item.type===0" (click)="retrigger(item)" color="accent">重新激活</button>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="['id','type','name','nodeType','actions']"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: ['id','type','name','nodeType','actions'];"></mat-row>
+    </mat-table>
   </mat-tab>
   <mat-tab label="流程变量">
-    <div *ngFor="let item of getKeys(processVariables)">
-      <span>{{item}} </span>
-      {{processVariables[item]|json}}
+    <div class="mat-tab">
+      <app-json-viewer [json]="processVariables"></app-json-viewer>
     </div>
   </mat-tab>
 </mat-tab-group>

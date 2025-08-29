@@ -23,7 +23,7 @@ import { FormDesignListComponent } from './form/form-design-list/form-design-lis
 import { ProcessSelectionComponent } from './process/process-selection/process-selection.component';
 import { TaskSelectionComponent } from './task/task-selection/task-selection.component';
 import { ProcessInstanceListComponent } from './process/process-instance-list/process-instance-list.component';
-import { BASE_PATH as BPM_BASE_PATH, JbpmApiModule, ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService } from '@sparrowmini/jbpm-api';
+import { BASE_PATH as BPM_BASE_PATH, ApiModule as JbpmApiModule, ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService } from '../lib/index';
 import { ProcessInstanceComponent } from './process/process-instance/process-instance.component';
 import { ProcessImageComponent } from './process/process-image/process-image.component';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -31,12 +31,9 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ProcessContainerListComponent } from './process/process-container-list/process-container-list.component';
 import { ProcessDeployedListComponent } from './process/process-deployed-list/process-deployed-list.component';
 import { ProcessInstanceImageComponent } from './process/process-instance-image/process-instance-image.component';
-import { GridsterModule } from 'angular-gridster2';
-import { GridsterTypeComponent } from './form/form-design/formly-gridster-type';
-import { GristerTestComponent } from './form/grister-test/grister-test.component';
-import { FormPreviewComponent } from './form/form-preview/form-preview.component';
-import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
-import { GristerFieldTypeComponent } from './form/grister-field-type/grister-field-type.component';
+import { JsonViewerComponent } from './json-viewer/json-viewer.component';
+import { ProcessGlobalComponent } from './process/process-global/process-global.component';
+import { BASE_PATH, CommonApiModule, CommonApiService } from '@sparrowmini/common-api';
 
 @NgModule({
   declarations: [
@@ -55,10 +52,8 @@ import { GristerFieldTypeComponent } from './form/grister-field-type/grister-fie
     ProcessContainerListComponent,
     ProcessDeployedListComponent,
     ProcessInstanceImageComponent,
-    GridsterTypeComponent,
-    GristerTestComponent,
-    FormPreviewComponent,
-    GristerFieldTypeComponent
+    JsonViewerComponent,
+    ProcessGlobalComponent
   ],
   imports: [
     BrowserModule,
@@ -67,17 +62,11 @@ import { GristerFieldTypeComponent } from './form/grister-field-type/grister-fie
     KeycloakAngularModule,
     AngularMaterialModule,
     HttpClientModule,
-    MonacoEditorModule.forRoot(),
-    FormlyModule.forRoot({
-      types: [
-        { name: 'gridster', component: GristerFieldTypeComponent }
-      ]
-    }),
-    // FormlyModule.forRoot(),
+    FormlyModule.forRoot(),
     FormlyMaterialModule,
     ReactiveFormsModule,
     JbpmApiModule,
-    GridsterModule,
+    CommonApiModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -87,7 +76,7 @@ import { GristerFieldTypeComponent } from './form/grister-field-type/grister-fie
     }),
   ],
   providers: [
-    ProcessQueriesService, ProcessInstancesService, ProcessInstanceAdministrationService,
+    [ProcessQueriesService, ProcessInstancesService, ProcessInstanceAdministrationService, CommonApiService],
     { provide: BPM_BASE_PATH, useValue: environment.bpmApi + '/rest' },
     {
       provide: APP_INITIALIZER,
@@ -105,6 +94,7 @@ import { GristerFieldTypeComponent } from './form/grister-field-type/grister-fie
       provide: ErrorHandler,
       useClass: GlobalErrorHandlerService,
     },
+    {provide: BASE_PATH, useValue: environment.bpmApi}
   ],
   bootstrap: [AppComponent]
 })
@@ -123,5 +113,8 @@ function initializeKeycloak(keycloak: KeycloakService) {
         onLoad: 'login-required',
       },
       bearerExcludedUrls: ['/assets'],
+    }).then(async res => {
+      const profile: any = await keycloak.loadUserProfile();
+      sessionStorage.setItem('username', profile.username || profile.id);
     });
 }

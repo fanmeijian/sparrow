@@ -10,5 +10,14 @@
   "authorize": "授权",
   "import": "导入",
   "project": "项目",
-  "edit": "编辑"
+  "edit": "编辑",
+  "trigger": "跳转",
+  "reassign": "重分配",
+  "abort": "终止",
+  "get": "获取",
+  "addPotential":"增加执行人",
+  "forward": "转发",
+  "delegate": "委托",
+  "skip": "跳过",
+  "delete": "删除"
 }

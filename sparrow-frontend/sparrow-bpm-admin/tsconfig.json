@@ -23,6 +23,10 @@
       "es2020",
       "dom"
     ],
+    "paths": {
+      "bpmn-editor": ["src/types/index.d.ts"]
+    },
+    "skipLibCheck": true,
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {

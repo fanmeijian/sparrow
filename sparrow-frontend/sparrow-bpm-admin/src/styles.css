@@ -1,7 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
+/* @import "tailwindcss"; */
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; font-size: 10px; }
+
 
 .s-link{
   color: -webkit-link;
@@ -37,60 +39,4 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; font-size: 
   gap: 10px;
   background-color: #e5e5e5;
   border-radius: 5px;
-}
-
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-blockquote {
-  padding: 0 1em;
-  color: rgba(0, 0, 0, 0.535);
-  border-left: 0.25em solid rgba(0, 0, 0, 0.11);
-}
-
-table {
-  border-spacing: 0;
-  border-collapse: collapse;
-  margin-bottom: 16px;
-
-  th,
-  td {
-    padding: 6px 13px;
-    border: 1px solid #ddd;
-
-    &[align='left'] {
-      text-align: left;
-    }
-
-    &[align='center'] {
-      text-align: center;
-    }
-
-    &[align='right'] {
-      text-align: right;
-    }
-  }
-
-  tr:nth-child(2n) {
-    background-color: rgba(0, 0, 0, 0.03);
-  }
-}
-
-
-
-.mat-form-field {
-  margin: 0;
-  padding: 0;
-}
-
-.mat-form-field-wrapper {
-  padding-bottom: 0;
-}
-
-.mat-button {
-  min-width: unset;
-  padding: 0 4px;
 }

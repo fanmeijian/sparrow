@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
-import { ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService } from '@sparrowmini/jbpm-api';
+import { ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService } from '../../../lib';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -55,6 +55,19 @@ export class ProcessInstanceListComponent implements OnInit {
   ngOnInit(): void {
     if (!this.route.firstChild) {
       this.onPage({ pageIndex: this.pageable.page, pageSize: this.pageable.size })
+    }
+  }
+
+  getStatusName(status: number){
+    switch(status){
+      case 1:
+        return '审批中'
+      case 2:
+        return '已完成'
+      case 3:
+        return '已终止'
+      default:
+        return '未知'
     }
   }
 

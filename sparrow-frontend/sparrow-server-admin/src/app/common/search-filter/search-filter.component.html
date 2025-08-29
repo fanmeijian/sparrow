@@ -1,7 +1,0 @@
-<mat-form-field appearance="standard" style="width: 300px;">
-  <mat-label>搜索</mat-label>
-  <input matInput (keypress)="applyFilter1($event)" [(ngModel)]="searchStr">
-  <button *ngIf="searchStr" matSuffix mat-icon-button aria-label="Clear" (click)="resetFilter()">
-    <mat-icon>close</mat-icon>
-  </button>
-</mat-form-field>

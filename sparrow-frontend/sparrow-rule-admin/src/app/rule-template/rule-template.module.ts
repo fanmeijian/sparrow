@@ -13,7 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { EntiyListModule, MenuModule } from '@sparrowmini/common-ui-nm';
+import { EntiyListModule } from '@sparrowmini/common-ui-nm';
 import { KeycloakAngularModule } from 'keycloak-angular';
 import { AngularMaterialModule } from '../angular-material.module';
 import { AppRoutingModule } from '../app-routing.module';
@@ -39,7 +39,6 @@ import { RuleTemplateRoutingModule } from './rule-template-routing';
     MatPaginatorModule,
     MatTableModule,
     MatButtonModule,
-    MenuModule,
     FormsModule,
     MonacoEditorModule,
   ]

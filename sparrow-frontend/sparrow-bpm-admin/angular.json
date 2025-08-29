@@ -27,17 +27,13 @@
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "src/assets/fonts",
-                "output": "/fonts"
-              },
-              { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "/assets/monaco/" }
+                "input": "src/assets/bpmn",
+                "output": "/"
+              }
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.css"
-            ],
-            "scripts": [
-              "node_modules/@kie-tools/kie-editors-standalone/dist/bpmn/index.js"
             ]
           },
           "configurations": {
@@ -111,5 +107,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

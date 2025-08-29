@@ -1,3 +1,15 @@
 .mat-column-name{
   width: 200px !important;
 }
+
+.red{
+  color: red;
+}
+
+.green{
+  color: green;
+}
+
+.blue{
+  color: blue;
+}

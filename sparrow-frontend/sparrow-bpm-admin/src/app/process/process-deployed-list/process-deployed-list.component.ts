@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
-import { KIEServerAndKIEContainersService, ProcessAndTaskDefinitionsService, ProcessQueriesService } from '@sparrowmini/jbpm-api';
+import { KIEServerAndKIEContainersService, ProcessAndTaskDefinitionsService, ProcessQueriesService } from '../../../lib';
 import { ProcessImageComponent } from '../process-image/process-image.component';
 import { environment } from 'src/environments/environment';
 

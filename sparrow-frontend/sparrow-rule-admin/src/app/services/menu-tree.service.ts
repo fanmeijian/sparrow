@@ -16,6 +16,9 @@ export class MenuTreeService implements TreeService {
   ) {
 
   }
+  move(nodeId: any, nextNodeId: any): Observable<void> {
+    throw new Error("Method not implemented.")
+  }
   getChildren(node: any): Observable<DynamicFlatNode[]> {
     const parentId = node?.id||node?.code
     const httpParams = parentId ? new HttpParams({ fromObject: { parentId: parentId, appId: 'system' } }) : { appId: 'system' }

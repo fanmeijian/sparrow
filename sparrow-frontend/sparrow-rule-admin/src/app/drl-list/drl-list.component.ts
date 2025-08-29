@@ -13,13 +13,13 @@ export class DrlListComponent implements OnInit {
 
   pageable: any = { page: 0, size: 10, sort: [], length: 0 }
 
-  onDelete($event: any[]) {
-    this.ruleService.deleteDrl($event.map(m => m.id)).subscribe(() => {
+  onDelete($event: any) {
+    this.ruleService.deleteDrl($event.map((m: any) => m.id)).subscribe(() => {
       this.onPage(this.pageable)
     });
   }
   total = 0
-  onPage($event: PageEvent) {
+  onPage($event: any) {
     console.log($event)
     if ($event) {
       this.pageable.page = $event.pageIndex

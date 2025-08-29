@@ -6,3 +6,8 @@ sparrow-frontend/sparrow-rule-admin/yalc.lock
 sparrow-frontend/sparrow-bpm-admin/src/assets/.gitkeep
 sparrow-frontend/sparrow-rule-admin/src/assets/.gitkeep
 sparrow-frontend/sparrow-server-admin/src/assets/.gitkeep
+sparrow-frontend/sparrow-bpm-admin/yalc.lock
+sparrow-frontend/sparrow-bpm-admin/.editorconfig
+sparrow-frontend/sparrow-bpm-admin/.hintrc
+sparrow-frontend/sparrow-rule-admin/.editorconfig
+sparrow-frontend/sparrow-server-admin/.editorconfig

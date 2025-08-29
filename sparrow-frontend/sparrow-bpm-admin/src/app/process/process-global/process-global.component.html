@@ -1,0 +1,34 @@
+<button mat-button (click)="add()">add</button>
+<mat-table [dataSource]="dataSource">
+
+    <ng-container matColumnDef="code">
+        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+            <mat-form-field>
+                <input matInput [(ngModel)]="element.code" [disabled]="selected!=element" />
+            </mat-form-field>
+        </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="value">
+        <mat-header-cell *matHeaderCellDef> 值 </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+            <mat-form-field>
+                <input matInput [(ngModel)]="element.value" [disabled]="selected!=element" />
+            </mat-form-field>
+        </mat-cell>
+    </ng-container>
+
+
+    <ng-container matColumnDef="action">
+        <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+            <button mat-button (click)="edit(element)" color="primary">编辑</button>
+            <button mat-button (click)="save(element)" color="primary">保存</button>
+            <button mat-button (click)="delete(element)" color="primary">删除</button>
+        </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+</mat-table>

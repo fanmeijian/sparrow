@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { environment } from 'src/environments/environment';
-import { EntiyListModule, MenuModule } from '@sparrowmini/common-ui-nm';
+import { EntiyListModule, SprTreeModule } from '@sparrowmini/common-ui-nm';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { AngularMaterialModule } from './angular-material.module';
 import { CommonModule } from '@angular/common';
@@ -18,13 +18,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { DrlFormComponent } from './drl-form/drl-form.component';
 import { FormsModule } from '@angular/forms';
 import { MonacoEditorModule, NgxMonacoEditorConfig } from 'ngx-monaco-editor-v2';
-import { RuleTemplateListComponent } from './rule-template/rule-template-list/rule-template-list.component';
-import { RuleTemplateFormComponent } from './rule-template/rule-template-form/rule-template-form.component';
-import { RuleFormComponent } from './rule-template/rule-form/rule-form.component';
-import { RuleListComponent } from './rule-template/rule-list/rule-list.component';
-import { RuleTemplateModule } from './rule-template/rule-template.module';
 import { monacoConfig } from './config/monaco-config';
-import { BASE_PATH as COMMON_API_BASE } from '@sparrowmini/common-api';
+import { BASE_PATH as COMMON_API_BASE, CommonApiModule, CommonApiService } from '@sparrowmini/common-api';
 
 
 
@@ -61,8 +56,9 @@ function initializeKeycloak(keycloak: KeycloakService) {
     MatPaginatorModule,
     MatTableModule,
     MatButtonModule,
-    MenuModule,
     FormsModule,
+    SprTreeModule,
+    CommonApiModule,
     MonacoEditorModule.forRoot(monacoConfig)
   ],
   providers: [
@@ -72,7 +68,8 @@ function initializeKeycloak(keycloak: KeycloakService) {
       multi: true,
       deps: [KeycloakService],
     },
-    {provide: COMMON_API_BASE, useValue: environment.ruleApi}
+    {provide: COMMON_API_BASE, useValue: environment.ruleApi},
+    CommonApiService
   ],
   bootstrap: [AppComponent]
 })

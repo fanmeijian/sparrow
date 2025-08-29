@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { KeycloakService } from 'keycloak-angular';
 
 @Component({
   selector: 'app-root',
@@ -8,7 +9,16 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class AppComponent {
 
-  constructor(private translate: TranslateService) {
+  sessionStorage = sessionStorage
+  logout() {
+    this.keycloak.logout();
+  }
+  title = 'sparrow-app-admin';
+
+  constructor(
+    private keycloak: KeycloakService,
+    private translate: TranslateService
+  ){
     translate.setDefaultLang('zh-CN');
   }
 

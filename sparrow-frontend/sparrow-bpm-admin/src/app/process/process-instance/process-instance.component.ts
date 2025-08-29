@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ProcessAndTaskDefinitionsService, ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService, TaskInstanceAdministrationService, TaskInstancesService } from '@sparrowmini/jbpm-api';
+import { ProcessAndTaskDefinitionsService, ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService, TaskInstanceAdministrationService, TaskInstancesService } from '../../../lib';
 import { combineLatest, map, ObservableInput, of, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import _ from 'lodash'
@@ -13,9 +13,12 @@ import _ from 'lodash'
   providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService]
 })
 export class ProcessInstanceComponent implements OnInit {
+
+  displayedColumns = ['id','name','actions']
   retrigger(nodeInstance: any) {
     const $retrigger = this.processInstancesAdminService.retriggerNodeInstance(nodeInstance.externalId, nodeInstance.processInstanceId, nodeInstance.nodeInstanceId);
-    combineLatest(this.cancelNode(nodeInstance), $retrigger).subscribe(([cancelNode, retriiger]) => {
+    const $cancelNodes = this.cancelNode(nodeInstance)
+    combineLatest({$cancelNodes, $retrigger}).subscribe((res) => {
 
     })
   }
@@ -109,8 +112,8 @@ export class ProcessInstanceComponent implements OnInit {
       // switchMap(m => this.processInstancesAdminService.triggerNode(containerId, processInstanceId, nodeInstanceId))
     ).subscribe()
     const $triggerNode = this.processInstancesAdminService.triggerNode(containerId, processInstanceId, node.id)
-    combineLatest($ativeNodes, $triggerNode).subscribe(([a1, a2]) => {
-
+    combineLatest({$ativeNodes, $triggerNode}).subscribe((res) => {
+      
     })
   }
 
@@ -153,7 +156,6 @@ export class ProcessInstanceComponent implements OnInit {
   ngOnInit(): void {
     const processInstanceId: any = this.route.snapshot.queryParamMap.get("id")
     this.processInstanceId = processInstanceId
-
 
 
     this.http.get(`${environment.bpmApi}/process-instances/${processInstanceId}`).subscribe((process: any) => {

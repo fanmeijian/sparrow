@@ -1,38 +1,34 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon"
-    (click)="drawer.toggle()">
+
+<mat-toolbar color="primary" style="height: 60px">
+  <button mat-icon-button (click)="drawer.toggle()">
     <mat-icon>menu</mat-icon>
   </button>
-  <span style="font-size: 14px;">荔园BPM</span>
+  <!-- <div class="breadcrumb">首页 /</div> -->
   <span class="example-spacer"></span>
-
-  <button mat-button [matMenuTriggerFor]="menu">{{'Language'|translate}}</button>
-  <mat-menu #menu="matMenu">
-    <button mat-menu-item (click)="switchLang('zh-CN')">中文</button>
-    <button mat-menu-item (click)="switchLang('en-US')">英文</button>
-  </mat-menu>
-
+  <button mat-button color="accent" (click)="logout()">注销</button>
 </mat-toolbar>
 
-<mat-drawer-container class="example-container" autosize style="height: calc(100vh - 70px);">
-  <mat-drawer #drawer class="example-sidenav" mode="side" opened>
-    <mat-action-list style="width: 200px;">
-      <button mat-list-item color="primary" [routerLink]="['/process-container-list']"
-        routerLinkActive="router-link-active">流程设计</button>
-      <button mat-list-item color="primary" [routerLink]="['/form-design-list']"
-        routerLinkActive="router-link-active">表单设计</button>
-      <button mat-list-item color="primary" [routerLink]="['/process-deployed-list']"
-        routerLinkActive="router-link-active">已部署应用</button>
-      <button mat-list-item color="primary" [routerLink]="['/process-instance-list']"
-        routerLinkActive="router-link-active">流程管理</button>
-    </mat-action-list>
+<mat-drawer-container class="example-container" autosize>
+  <mat-drawer #drawer mode="side" opened>
+    <div class="menu-container">
+      <mat-action-list style="width: 200px;">
+        <button mat-list-item color="primary" [routerLink]="['/process-instance-list']"
+          routerLinkActive="router-link-active">流程管理</button>
+        <button mat-list-item color="primary" [routerLink]="['/process-container-list']"
+          routerLinkActive="router-link-active">流程设计</button>
+        <button mat-list-item color="primary" [routerLink]="['/form-design-list']"
+          routerLinkActive="router-link-active">表单设计</button>
+        <button mat-list-item color="primary" [routerLink]="['/process-deployed-list']"
+          routerLinkActive="router-link-active">已部署应用</button>
 
+      </mat-action-list>
+      <div class="user-info">
+        <span>{{sessionStorage.getItem('username')}}</span>
+      </div>
+    </div>
   </mat-drawer>
 
-  <div class="example-sidenav-content">
-    <div style="padding: 10px;background-color: white;border-radius: 10px;margin: 10px;height: calc(100vh - 100px);">
-      <router-outlet></router-outlet>
-    </div>
+  <div class="sidenav-content">
+    <router-outlet></router-outlet>
   </div>
-
 </mat-drawer-container>

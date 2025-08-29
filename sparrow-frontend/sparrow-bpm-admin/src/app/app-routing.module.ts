@@ -8,7 +8,6 @@ import { ProcessInstanceListComponent } from './process/process-instance-list/pr
 import { ProcessInstanceComponent } from './process/process-instance/process-instance.component';
 import { ProcessContainerListComponent } from './process/process-container-list/process-container-list.component';
 import { ProcessDeployedListComponent } from './process/process-deployed-list/process-deployed-list.component';
-import { GristerTestComponent } from './form/grister-test/grister-test.component';
 
 const routes: Routes = [
   {
@@ -46,10 +45,8 @@ const routes: Routes = [
       {
         path: 'new',
         component: FormDesignComponent,
-      },{
-        path:'grister-test',
-        component: GristerTestComponent
-      }
+      },
+      
     ]
   },
 

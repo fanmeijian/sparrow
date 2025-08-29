@@ -1,7 +1,7 @@
-<div style="display: flex; flex-direction: row;">
-  <div style="width: 300px;">
+<div style="display: grid; grid-template-columns: 1fr 3fr;">
+  <div>
     <div *ngFor="let item of containers" class="s-row" style="align-items: center;">
-      <button mat-icon-button color="error" (click)="disposeContainer(item['container-id'])">
+      <button mat-icon-button color="accent" (click)="disposeContainer(item['container-id'])">
         <mat-icon>close</mat-icon>
       </button>
       <button mat-button color="primary" (click)="getProcesses(item['container-id'])">{{item['container-id']}}</button>
@@ -19,28 +19,28 @@
     </ng-container>
 
     <ng-container matColumnDef="containerId">
-      <mat-header-cell *matHeaderCellDef> containerId </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 应用 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         {{element['container-id']}}
       </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="processId">
-      <mat-header-cell *matHeaderCellDef> processId </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 流程ID </mat-header-cell>
       <mat-cell *matCellDef="let element">
         {{element['process-id']}}
       </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="processName">
-      <mat-header-cell *matHeaderCellDef> processName </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 流程名称 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         {{element['process-name']}}
       </mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="processVersion">
-      <mat-header-cell *matHeaderCellDef> processVersion </mat-header-cell>
+      <mat-header-cell *matHeaderCellDef> 版本 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         {{element['process-version']}}
       </mat-cell>
