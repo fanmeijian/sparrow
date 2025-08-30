@@ -2,6 +2,7 @@ package cn.sparrowmini.common.service;
 
 import cn.sparrowmini.common.model.BaseFile;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,6 +15,11 @@ public interface StorageService {
 
     public <T extends BaseFile> void remove(T file);
 
-    public void download(OutputStream outputStream, String path);
+    public void download(OutputStream outputStream, String id);
 
+    public <T extends BaseFile> void download(OutputStream outputStream, T fileInfo);
+
+    public <T extends BaseFile> T getFileInfo(String id);
+
+    public <T extends BaseFile> Page<T> getFileList(Pageable pageable, String filter);
 }
