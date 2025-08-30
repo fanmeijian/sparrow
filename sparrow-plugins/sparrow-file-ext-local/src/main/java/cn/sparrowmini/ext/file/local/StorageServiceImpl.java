@@ -3,6 +3,8 @@ package cn.sparrowmini.ext.file.local;
 import cn.sparrowmini.common.model.BaseFile;
 import cn.sparrowmini.common.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -43,9 +45,22 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public void download(OutputStream outputStream, String id) {
-        localFileRepository.findById(id).ifPresent(localFile -> {
-            storageServiceLocal.readFile(outputStream,localFile.getPath());
-        });
-        throw new RuntimeException("文件步存在！" + id);
+        LocalFile localFile = getFileInfo(id);
+        download(outputStream, localFile);
+    }
+
+    @Override
+    public <T extends BaseFile> void download(OutputStream outputStream, T fileInfo) {
+        storageServiceLocal.readFile(outputStream,fileInfo.getPath());
+    }
+
+    @Override
+    public <T extends BaseFile> T getFileInfo(String id) {
+        return (T) localFileRepository.findById(id).orElseThrow();
+    }
+
+    @Override
+    public <T extends BaseFile> Page<T> getFileList(Pageable pageable, String filter) {
+        return null;
     }
 }
