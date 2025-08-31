@@ -2,6 +2,7 @@ package cn.sparrowmini.bpm.server.workitem;
 import cn.sparrowmini.bpm.server.process.GlobalVariableMap;
 import cn.sparrowmini.bpm.server.process.VariableArchiveRepository;
 import cn.sparrowmini.bpm.server.repository.VariableMapRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.drools.core.common.InternalKnowledgeRuntime;
 import org.drools.core.process.instance.impl.DefaultWorkItemManager;
 import org.drools.persistence.jpa.processinstance.JPAWorkItemManager;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.util.Map;
 
+@Slf4j
 @Component("HttpServiceTask")
 public class HttpServiceTaskHandler extends AbstractLogOrThrowWorkItemHandler {
 
@@ -42,7 +44,7 @@ public class HttpServiceTaskHandler extends AbstractLogOrThrowWorkItemHandler {
             String url = (String) workItem.getParameter("Url");
             Object body = workItem.getParameter("Body");
             url = GlobalVariableMap.resolve(url, containerId);
-
+            log.info("url:{} body {}",url, body);
             Object result;
             switch (method.toUpperCase()) {
                 case "GET":
