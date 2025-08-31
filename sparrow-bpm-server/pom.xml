@@ -231,7 +231,7 @@
                         <configuration>
                             <!-- 自定义语法文件目录 -->
                             <sourceDirectory>${project.basedir}/src/main/antlr</sourceDirectory>
-                            <outputDirectory>target/generated-sources/antlr</outputDirectory>
+                            <outputDirectory>target/generated-sources/cn/sparrowmini/bpm/server/antlr</outputDirectory>
                             <visitor>true</visitor> <!-- 开启生成 BaseVisitor -->
                             <arguments>
                                 <argument>-package</argument>
@@ -255,7 +255,7 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>target/generated-sources/antlr</source>
+                                <source>target/generated-sources</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -270,7 +270,7 @@
                 <configuration>
                     <source>${maven.compiler.target}</source> <!-- 你的 JDK 版本 -->
                     <target>${maven.compiler.target}</target>
-                    <generatedSourcesDirectory>target/generated-sources/antlr</generatedSourcesDirectory>
+                    <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
                 </configuration>
             </plugin>
 			<plugin>
