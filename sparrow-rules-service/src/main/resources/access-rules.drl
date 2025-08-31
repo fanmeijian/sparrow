@@ -1,0 +1,27 @@
+package cn.sparrowmini.rules.app;
+
+import cn.sparrowmini.rules.app.Member;
+import cn.sparrowmini.rules.app.MemberGroup;
+import cn.sparrowmini.rules.app.Article;
+import cn.sparrowmini.rules.app.AccessDecision;
+
+global java.util.List accessResults
+
+dialect  "mvel"
+
+rule "允许金牌会员查看内部资料"
+when
+    $member: Member(level == "GOLD")
+    $group: MemberGroup(type == "PREMIUM") from $member.groups
+    $article: Article(category == "internal", publishDaysAgo < 30)
+then
+    insert(new AccessDecision($member.id, $article.id, "VIEW", true));
+end
+
+rule "默认不允许下载"
+when
+    $member: Member()
+    $article: Article()
+then
+    insert(new AccessDecision($member.id, $article.id, "DOWNLOAD", false));
+end
