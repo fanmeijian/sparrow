@@ -1,0 +1,5 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* 三列，比例 1:2:1 */
+  gap: 10px;
+}

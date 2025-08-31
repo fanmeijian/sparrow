@@ -20,6 +20,10 @@ import { FormsModule } from '@angular/forms';
 import { MonacoEditorModule, NgxMonacoEditorConfig } from 'ngx-monaco-editor-v2';
 import { monacoConfig } from './config/monaco-config';
 import { BASE_PATH as COMMON_API_BASE, CommonApiModule, CommonApiService } from '@sparrowmini/common-api';
+import { DslListComponent } from './dsl/dsl-list/dsl-list.component';
+import { DslFormComponent } from './dsl/dsl-form/dsl-form.component';
+import { DslrListComponent } from './dsl/dslr-list/dslr-list.component';
+import { DslrFormComponent } from './dsl/dslr-form/dslr-form.component';
 
 
 
@@ -43,6 +47,10 @@ function initializeKeycloak(keycloak: KeycloakService) {
     AppComponent,
     DrlListComponent,
     DrlFormComponent,
+    DslListComponent,
+    DslFormComponent,
+    DslrListComponent,
+    DslrFormComponent,
   ],
   imports: [
     BrowserModule,

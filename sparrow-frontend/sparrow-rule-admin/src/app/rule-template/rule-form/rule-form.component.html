@@ -2,12 +2,17 @@
 <mat-dialog-content>
   <div class="s-col" [formGroup]="form">
     <mat-form-field>
-      <mat-label>name</mat-label>
+      <mat-label>名称</mat-label>
       <input matInput formControlName="name">
     </mat-form-field>
 
     <mat-form-field>
-      <mat-label>remark</mat-label>
+      <mat-label>代码</mat-label>
+      <input matInput formControlName="code">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>简述</mat-label>
       <textarea matInput formControlName="remark"></textarea>
     </mat-form-field>
   </div>

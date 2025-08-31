@@ -1,0 +1,32 @@
+<mat-toolbar color="primary" style="height: 60px">
+  <button mat-icon-button (click)="drawer.toggle()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <div class="breadcrumb">首页 /</div>
+  <span class="example-spacer"></span>
+  <button mat-button color="accent" (click)="logout()">注销</button>
+</mat-toolbar>
+
+<mat-drawer-container class="example-container" autosize>
+  <mat-drawer #drawer mode="side" opened>
+    <div class="menu-container">
+      <div style="overflow: auto; height: 100%;" class="s-col">
+        <!-- <spr-menu></spr-menu> -->
+         <a mat-button routerLink="menu" color="primary">菜单</a>
+         <a mat-button routerLink="scope" color="primary">功能</a>
+         <a mat-button routerLink="page" color="primary">页面</a>
+         <a mat-button routerLink="model" color="primary">模型</a>
+         <a mat-button routerLink="dict" color="primary">数据字典</a>
+         <a mat-button routerLink="config" color="primary">配置</a>
+      </div>
+      <div class="user-info">
+        <span>{{sessionStorage.getItem('username')}}</span>
+      </div>
+    </div>
+  </mat-drawer>
+
+  <div class="sidenav-content">
+    <router-outlet></router-outlet>
+  </div>
+</mat-drawer-container>
+

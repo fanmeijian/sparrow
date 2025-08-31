@@ -1,0 +1,11 @@
+<spr-entity-list [entityList]="data" [total]="total" [viewConfig]="[{
+  name: 'name',
+  field: 'name',
+  link: '../dsl-form',
+  id: 'id'
+},{
+  name: 'content',
+  field: 'content',
+  link: '../dsl-form',
+  id: 'id'
+}]" (onPage)="onPage($event)" (onDelete)="onDelete($event)"></spr-entity-list>

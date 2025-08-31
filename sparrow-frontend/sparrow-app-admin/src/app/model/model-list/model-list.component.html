@@ -1,0 +1,187 @@
+<!-- <div class="editor-container" #editorContainer>
+  触发条件
+</div> -->
+<div>
+  <button mat-flat-button (click)="synchronizeModel()" color="primary">
+    同步模型
+  </button>
+</div>
+<div class="example-table-container">
+  <mat-table [dataSource]="dataSource">
+    <ng-container matColumnDef="seq">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let element; let index = index">
+        {{ index + 1 }}.
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef>名称</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <div style="display: flex; flex-direction: column">
+          <span>{{ element.name }}</span>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="code">
+      <mat-header-cell *matHeaderCellDef>模型名称</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <div style="display: flex; flex-direction: column">
+          <div style="white-space: unset; word-break: break-all">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="openPermission(element)"
+              matTooltip="模型授权"
+            >
+              <mat-icon>manage_accounts</mat-icon>
+            </button>
+            {{ element.id }}
+          </div>
+
+          <div>
+            <div
+              *ngFor="let sysroleModel of element.sysroleModels"
+              style="display: flex; flex-direction: row; align-items: center"
+            >
+              <span
+                class="material-icons"
+                style="color: red; cursor: pointer"
+                (click)="removeSysrole(sysroleModel)"
+              >
+                close
+              </span>
+              {{ sysroleModel.id.sysroleId }}
+              {{ sysroleModel.id.permission }}
+              <span
+                [style]="
+                  'color: ' +
+                  (sysroleModel.id.permissionType === 'ALLOW' ? 'green' : 'red')
+                "
+                >{{ sysroleModel.id.permissionType }}</span
+              >
+            </div>
+          </div>
+
+          <div>
+            <div
+              *ngFor="let userModel of element.userModels"
+              style="display: flex; flex-direction: row; align-items: center"
+            >
+              <span
+                class="material-icons"
+                style="color: red; cursor: pointer"
+                (click)="removeUser(userModel)"
+              >
+                close
+              </span>
+              {{ userModel.id.username }}
+              {{ userModel.id.permission }}
+              <span
+                [style]="
+                  'color: ' +
+                  (userModel.id.permissionType === 'ALLOW' ? 'green' : 'red')
+                "
+                >{{ userModel.id.permissionType }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="users">
+      <mat-header-cell *matHeaderCellDef>属性名称</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <mat-accordion style="width: 100%">
+          <mat-expansion-panel (opened)="(true)">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                ({{ element.modelAttributes?.length }})
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div style="display: flex; flex-direction: column">
+              <ng-container *ngFor="let item of element.modelAttributes">
+                <div>
+                  <!-- <app-model-permission-view
+                [modelId]="element.id"
+                [attributeId]="item.id.attributeId"
+              ></app-model-permission-view> -->
+
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    (click)="openAttrPermission(item)"
+                    matTooltip="属性授权"
+                  >
+                    <mat-icon>manage_accounts</mat-icon>
+                  </button>
+                  {{ item.id.attributeId }}
+                </div>
+                <mat-divider></mat-divider>
+              </ng-container>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="sysroles">
+      <mat-header-cell *matHeaderCellDef>授权角色</mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <div>
+          <div
+            *ngFor="let user of element.sysroles"
+            style="display: flex; flex-direction: row; align-items: center"
+          >
+            <span
+              class="material-icons"
+              style="color: red; cursor: pointer"
+              (click)="remove(user, element)"
+            >
+              close
+            </span>
+            {{ user.sysrole.name }}({{ user.sysrole.code }})
+            {{ user.id.permission }}
+            <span
+              [style]="
+                'color: ' +
+                (user.id.permissionType === 'ALLOW' ? 'green' : 'red')
+              "
+              >{{ user.id.permissionType }}</span
+            >
+          </div>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="auditlog">
+      <mat-header-cell *matHeaderCellDef>审计日志</mat-header-cell>
+      <mat-cell *matCellDef="let element"> </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let element"> </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="10">没有记录</td>
+    </tr>
+  </mat-table>
+</div>
+
+<mat-paginator
+  [pageSizeOptions]="[5, 10, 20]"
+  [pageSize]="pageable.size"
+  showFirstLastButtons
+  [length]="pageable.length"
+  (page)="onPageChange($event)"
+  aria-label="Select page of periodic elements"
+>
+</mat-paginator>

@@ -12,3 +12,5 @@ sparrow-frontend/sparrow-bpm-admin/.hintrc
 sparrow-frontend/sparrow-rule-admin/.editorconfig
 sparrow-frontend/sparrow-server-admin/.editorconfig
 sparrow-bpm-server/sparrow-bpm-server.iml
+sparrow-frontend/sparrow-app-admin/.editorconfig
+sparrow-frontend/sparrow-app-admin/yalc.lock

@@ -1,0 +1,7 @@
+<button mat-button color="primary" routerLink="../dsl-form">new</button>
+<spr-entity-list [entityList]="data" [total]="total" [viewConfig]="[{
+  name: 'name',
+  field: 'name',
+  link: '../dsl-form',
+  id: 'id'
+}]" (onPage)="onPage($event)" (onDelete)="onDelete($event)"></spr-entity-list>

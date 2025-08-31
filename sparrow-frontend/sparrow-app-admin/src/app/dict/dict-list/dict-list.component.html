@@ -1,0 +1,42 @@
+<div class="grid">
+  <div>
+    <div class="s-row">
+      <button class="button" mat-stroked-button color="primary" routerLink="new">
+        新增
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        [matMenuTriggerFor]="menu"
+        [disabled]="checklistSelection.isEmpty()"
+      >
+        <div style="display: flex; align-items: center">
+          <span>批量</span>
+          <mat-icon> arrow_drop_down </mat-icon>
+        </div>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button
+          class="button"
+          mat-menu-item
+          color="warn"
+          (click)="delete()"
+          [disabled]="checklistSelection.isEmpty()"
+        >
+          删除
+        </button>
+      </mat-menu>
+    </div>
+    <spr-sortable-tree
+      [multiple]="true"
+      [clickable]="true"
+      [sortable]="true"
+      (onTreeSelect)="onTreeSelect($event)"
+      (onNodeClick)="onNodeClick($event)"
+    ></spr-sortable-tree>
+  </div>
+
+  <div>
+    <router-outlet></router-outlet>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
+  <mat-tab label="First">
+    <spr-user-selection
+      [multiple]="true"
+      (onSelect)="onUserSelect($event)"
+    ></spr-user-selection>
+  </mat-tab>
+  <mat-tab label="Second">
+    <spr-sysrole-selection [multiple]="true" (onSelect)="onSysroleSelect($event)"></spr-sysrole-selection>
+  </mat-tab>
+</mat-tab-group>
+
+<button mat-button (click)="close()">close</button>

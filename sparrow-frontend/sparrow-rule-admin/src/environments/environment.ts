@@ -1,6 +1,6 @@
 
 // const SPARROW_BASE='https://api2.linkair-tech.cn/sparrow-permission-service'
-const SPARROW_BASE='http://localhost:8080'
+const SPARROW_BASE='http://localhost:8999'
 // const SPARROW_API='https://api2.linkair-tech.cn/sparrow-permission-service'
 
 export const environment = {

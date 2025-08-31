@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { CommonApiService } from '@sparrowmini/common-api';
+import { DslClass } from 'src/app/dsl/dsl-list/dsl-list.component';
 export const RuleClass = 'cn.sparrowmini.rules.model.Rule'
 
 @Component({
@@ -16,13 +17,13 @@ export class RuleFormComponent implements OnInit {
     id: new FormControl(null),
     name: new FormControl(null, Validators.required),
     remark: new FormControl(null),
-    templateId: new FormControl(null, Validators.required),
+    code: new FormControl(null, Validators.required),
     content: new FormControl(null, Validators.required),
   })
 
   submit() {
     const body = [Object.assign({}, this.form.value, { content: this.code })]
-    this.commonApi.upsert(RuleClass, body).subscribe()
+    this.commonApi.upsert(DslClass, body).subscribe()
   }
   onChange($event: Event) {
     console.log($event);
@@ -37,7 +38,7 @@ export class RuleFormComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe((params: any) => {
       if (params.id) {
-        this.commonApi.get(RuleClass, params.id).subscribe((res: any) => {
+        this.commonApi.get(DslClass, params.id).subscribe((res: any) => {
           this.form.patchValue(res)
           this.code = this.form.value.content
         })

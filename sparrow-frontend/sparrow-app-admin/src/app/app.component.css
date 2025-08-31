@@ -1,0 +1,40 @@
+.example-spacer {
+  margin: 0 auto;
+}
+
+mat-drawer-container {
+  height: calc(100vh - 60px);
+}
+
+.sidenav-content {
+  padding: 0.5rem;
+}
+
+
+.breadcrumb {
+  /* margin: 0rem 0rem 0.5rem 0rem;
+  background-color: white;
+  border-radius: 5px;
+  padding: 1rem; */
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.menu-container {
+  width: 200px;
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.user-info {
+  height: 40px;
+  background-color: #e5e5e5;
+  /* padding: 10px; */
+  align-self: self-end;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}

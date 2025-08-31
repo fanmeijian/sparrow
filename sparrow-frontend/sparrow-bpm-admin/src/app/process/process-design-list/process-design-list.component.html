@@ -2,7 +2,7 @@
   <div class="flex flex-row gap-2">
     <button mat-flat-button color="primary" [routerLink]="['new']"
       [queryParams]="containerId">{{'add'|translate}}</button>
-    <button mat-flat-button routerLink="../global-variable" color="primary">全局变量</button>
+    <button mat-flat-button routerLink="../global-variable" [queryParams]="containerId" color="primary">全局变量</button>
 
   </div>
   <mat-table [dataSource]="dataSource">

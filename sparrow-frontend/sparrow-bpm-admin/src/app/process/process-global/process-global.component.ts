@@ -37,7 +37,7 @@ export class ProcessGlobalComponent implements OnInit {
   save(_t33: any) {
     this.route.queryParams.subscribe((params: any) => {
       console.log(params)
-      const body = [{ ..._t33, containerId: [params.artifactId,params.groupId,params.version].join('-') }]
+      const body = [{ ..._t33, containerId: [params.artifactId,params.version].join('-') }]
       this.commonApiService.upsert(GlobalVariableClass, body).subscribe()
     })
 
@@ -46,6 +46,6 @@ export class ProcessGlobalComponent implements OnInit {
     this.selected = element;
   }
   dataSource: any = new MatTableDataSource([]);
-  displayedColumns = ['code', 'value', 'action'];
+  displayedColumns = ['containerId','code', 'value', 'action'];
 
 }

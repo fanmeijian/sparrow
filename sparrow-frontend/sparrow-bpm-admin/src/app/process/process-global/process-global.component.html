@@ -1,15 +1,19 @@
 <button mat-flat-button (click)="add()" color="primary">添加</button>
 <mat-table [dataSource]="dataSource">
 
+    <ng-container matColumnDef="containerId">
+        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+        <mat-cell *matCellDef="let element">
+            {{element.containerId}}
+        </mat-cell>
+    </ng-container>
+
     <ng-container matColumnDef="code">
         <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
         <mat-cell *matCellDef="let element">
             <input type="text"
                 class="w-full border-1 border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 [(ngModel)]="element.code" [disabled]="selected!=element" />
-            <!-- <mat-form-field class="w-full">
-                
-            </mat-form-field> -->
         </mat-cell>
     </ng-container>
 
@@ -19,9 +23,6 @@
             <input type="text"
                 class="w-full border-1 border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 [(ngModel)]="element.value" [disabled]="selected!=element" />
-            <!-- <mat-form-field class="w-full">
-                
-            </mat-form-field> -->
         </mat-cell>
     </ng-container>
 
