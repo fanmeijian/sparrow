@@ -1,6 +1,10 @@
 // Expr.g4 (增强版)
 grammar Expr;
 
+@header {
+package cn.sparrowmini.bpm.server.antlr;
+}
+
 expr
     : expr AND expr         # AndExpr
     | expr OR expr          # OrExpr
