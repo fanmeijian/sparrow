@@ -30,15 +30,11 @@ public class BaseFile extends BaseOpLog implements Serializable {
     protected String name;
     protected long size;
     protected String hash;
-    protected String fileName;
     protected String type;
     @Column(length = 1000)
     protected String url;
 
     @ElementCollection
     protected Set<String> catalog;
-
-    protected String bucket;
-    protected String region;
 
 }

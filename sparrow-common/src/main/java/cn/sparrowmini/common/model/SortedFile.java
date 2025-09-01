@@ -1,5 +1,6 @@
 package cn.sparrowmini.common.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class SortedFile implements Serializable {
     private int seq;
+
+    @Column(nullable = false)
     private String fileId;
     private String name;
     private long size;
