@@ -16,6 +16,7 @@ import lombok.Setter;
 @Entity
 @Table(name = TablePrefix.NAME + "tx_cos_file")
 public class TxCosFile extends BaseFile {
+    private String fileName;
     private String bucket;
     private String region;
 }

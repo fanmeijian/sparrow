@@ -43,9 +43,9 @@ public class TxCosStorageService implements StorageService {
     @Autowired
     private HttpServletResponse response;
     @Override
-    public byte[] download(BaseFile file) {
+    public <T extends BaseFile> byte[] download(T file_) {
         COSClient cosClient = createCOSClient();
-
+        final TxCosFile file = (TxCosFile)file_;
         // 存储桶的命名格式为 BucketName-APPID，此处填写的存储桶名称必须为此格式
         String bucketName = file.getBucket();
         // 对象键(Key)是对象在存储桶中的唯一标识。详情请参见
@@ -108,7 +108,7 @@ public class TxCosStorageService implements StorageService {
             byte data[] = inputStream.readAllBytes();
             String key = DigestUtils.md5Hex(data).toUpperCase();
 
-            BaseFile cosFile = new BaseFile();
+            TxCosFile cosFile = new TxCosFile();
             cosFile.setBucket(this.config.getBucket());
             cosFile.setRegion(this.config.getRegion());
             cosFile.setName(key);
