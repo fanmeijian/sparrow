@@ -1,4 +1,4 @@
-package cn.sparrowmini.ext.file.local;
+package cn.sparrowmini.ext.oss.txcos;
 
 import cn.sparrowmini.common.model.BaseFile;
 import cn.sparrowmini.common.model.TablePrefix;
@@ -14,7 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
-@Table(name = TablePrefix.NAME + "local_file")
-public class LocalFile extends BaseFile {
-    private String fileName;
+@Table(name = TablePrefix.NAME + "tx_cos_file")
+public class TxCosFile extends BaseFile {
+    private String bucket;
+    private String region;
 }

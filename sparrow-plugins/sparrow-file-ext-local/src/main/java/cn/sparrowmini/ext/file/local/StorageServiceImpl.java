@@ -1,5 +1,6 @@
 package cn.sparrowmini.ext.file.local;
 
+import cn.sparrowmini.common.model.ApiResponse;
 import cn.sparrowmini.common.model.BaseFile;
 import cn.sparrowmini.common.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -61,6 +63,11 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public <T extends BaseFile> Page<T> getFileList(Pageable pageable, String filter) {
+        return null;
+    }
+
+    @Override
+    public <T extends BaseFile> ApiResponse<List<T>> createFile(List<Map<String, Object>> fileList) {
         return null;
     }
 }

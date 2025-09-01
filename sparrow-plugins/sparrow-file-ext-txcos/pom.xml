@@ -17,7 +17,7 @@
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
-				<version>3.5.2</version>
+				<version>3.5.5</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>cn.sparrowmini</groupId>
 			<artifactId>sparrow-common-service</artifactId>
-			<version>1.1.0</version>
+			<version>1.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

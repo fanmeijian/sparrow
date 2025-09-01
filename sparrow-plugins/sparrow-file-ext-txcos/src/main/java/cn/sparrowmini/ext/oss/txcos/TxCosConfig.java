@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "sparrow.cos.tx")
-public class CosConfig {
+public class TxCosConfig {
 
 	private String secretId;
 	private String secretKey;

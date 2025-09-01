@@ -1,6 +1,8 @@
 package cn.sparrowmini.ext.oss.txcos;
 
+import cn.sparrowmini.common.model.ApiResponse;
 import cn.sparrowmini.common.model.BaseFile;
+import cn.sparrowmini.common.service.CommonJpaService;
 import cn.sparrowmini.common.service.StorageService;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -16,19 +18,24 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
-public class StorageServiceImpl implements StorageService {
-    @Autowired private ObjectStorageService objectStorageService;
+public class TxCosStorageService implements StorageService {
     @Autowired
-    private CosConfig config;
+    private TxCosConfig config;
 
+    @Autowired
+    private CommonJpaService commonJpaService;
 
     @Autowired
     private HttpServletRequest httpServletRequest;
@@ -85,7 +92,7 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public BaseFile upload(InputStream inputStream, String fileName) {
+    public < T extends BaseFile> T upload(InputStream inputStream, String fileName) {
 
         // 调用 COS 接口之前必须保证本进程存在一个 COSClient 实例，如果没有则创建
         // 详细代码参见本页：简单操作 -> 创建 COSClient
@@ -122,7 +129,7 @@ public class StorageServiceImpl implements StorageService {
             cosFile.setHash(putObjectResult.getContentMd5());
             String url = httpServletRequest.getRequestURL().toString().replace(httpServletRequest.getServletPath(), "");
 
-            return cosFile;
+            return (T) cosFile;
         } catch (IOException |CosClientException e) {
             log.error(e.getMessage(), e);
         }
@@ -173,4 +180,30 @@ public class StorageServiceImpl implements StorageService {
         // 生成 cos 客户端。
         return new COSClient(cred, clientConfig);
     }
+
+    @Override
+    public void download(OutputStream outputStream, String id) {
+
+    }
+
+    @Override
+    public <T extends BaseFile> void download(OutputStream outputStream, T fileInfo) {
+
+    }
+
+    @Override
+    public <T extends BaseFile> T getFileInfo(String id) {
+        return (T) commonJpaService.getEntity(TxCosFile.class,id);
+    }
+
+    @Override
+    public <T extends BaseFile> Page<T> getFileList(Pageable pageable, String filter) {
+        return (Page<T>) commonJpaService.getEntityList(TxCosFile.class,pageable,filter);
+    }
+
+    @Override
+    public <T extends BaseFile> ApiResponse<List<T>> createFile(List<Map<String, Object>> fileList) {
+        return new ApiResponse<>(commonJpaService.upsertEntity(TxCosFile.class,fileList));
+    }
+
 }
