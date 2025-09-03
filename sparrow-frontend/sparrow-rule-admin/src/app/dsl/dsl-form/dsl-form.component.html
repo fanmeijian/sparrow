@@ -6,36 +6,35 @@
 </div>
 <h3>模板</h3>
 
-<mat-dialog-content>
-  <div [formGroup]="form">
-    <mat-form-field class="mr-2">
-      <mat-label>名称</mat-label>
-      <input matInput formControlName="name">
-    </mat-form-field>
+<div [formGroup]="form">
+  <mat-form-field class="mr-2">
+    <mat-label>名称</mat-label>
+    <input matInput formControlName="name">
+  </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>代码</mat-label>
-      <input matInput formControlName="code">
-    </mat-form-field>
+  <mat-form-field>
+    <mat-label>代码</mat-label>
+    <input matInput formControlName="code">
+  </mat-form-field>
 
-    <mat-form-field class="w-full">
-      <mat-label>简述</mat-label>
-      <textarea matInput formControlName="remark"></textarea>
-    </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>简述</mat-label>
+    <textarea matInput formControlName="remark"></textarea>
+  </mat-form-field>
 
-    <div>头定义</div>
-    <ngx-monaco-editor style="height: 200px;" [options]="{ language: 'java', theme: 'vs-dark' }" formControlName="head"></ngx-monaco-editor>
+  <div>头定义</div>
+  <ngx-monaco-editor style="height: 200px;" [options]="{ language: 'java', theme: 'vs-dark' }"
+    formControlName="head"></ngx-monaco-editor>
 
-    <div>规则模板</div>
-    <ngx-monaco-editor style="height: 400px;" [options]="editorOptions" formControlName="content"></ngx-monaco-editor>
-  </div>
+  <div>规则模板</div>
+  <ngx-monaco-editor style="height: 400px;" [options]="editorOptions" formControlName="content"></ngx-monaco-editor>
+</div>
 
 
-</mat-dialog-content>
 
 <h3>规则</h3>
 <div class="flex flex-row gap-2 mb-2">
-  <button mat-stroked-button color="primary" (click)="addDslr()">添加</button>
+  <button mat-stroked-button color="primary" routerLink="../dslr-form" [queryParams]="{dslId: dsl?.id}">添加</button>
 </div>
 
 <app-dslr-list></app-dslr-list>

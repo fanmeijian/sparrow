@@ -25,7 +25,9 @@ import { DslFormComponent } from './dsl/dsl-form/dsl-form.component';
 import { DslrListComponent } from './dsl/dslr-list/dslr-list.component';
 import { DslrFormComponent } from './dsl/dslr-form/dslr-form.component';
 import { DslPreviewComponent } from './dsl/dsl-preview/dsl-preview.component';
-
+import {DragDropModule} from '@angular/cdk/drag-drop';
+import {CdkDrag} from '@angular/cdk/drag-drop';
+import {MatDividerModule} from '@angular/material/divider';
 
 
 function initializeKeycloak(keycloak: KeycloakService) {
@@ -72,6 +74,9 @@ function initializeKeycloak(keycloak: KeycloakService) {
     FormsModule,
     SprTreeModule,
     CommonApiModule,
+    DragDropModule,
+    CdkDrag,
+    MatDividerModule,
     MonacoEditorModule.forRoot(monacoConfig)
   ],
   providers: [

@@ -1,11 +1,13 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { CommonApiService } from '@sparrowmini/common-api';
 import { environment } from 'src/environments/environment';
 import { DslrClass } from '../dslr-list/dslr-list.component';
+import { EditorComponent } from 'ngx-monaco-editor-v2';
+import * as monaco from 'monaco-editor';
 
 interface Condition {
   mappingKey?: string;
@@ -19,8 +21,57 @@ interface Condition {
   templateUrl: './dslr-form.component.html',
   styleUrls: ['./dslr-form.component.css']
 })
-export class DslrFormComponent implements OnInit {
+export class DslrFormComponent implements OnInit, AfterViewInit {
+  onNativeDragStart(e: DragEvent, text: string) {
+    e.dataTransfer?.setData('text/plain', text);
+  }
+  onNativeDragOver(e: DragEvent) { e.preventDefault(); }
+  onNativeDrop(e: DragEvent) {
+    e.preventDefault();
+    const text = e.dataTransfer?.getData('text/plain');
+    if (text && this.editor) {
+      this.editor.trigger('keyboard', 'type', { text });
+    }
+  }
 
+  private editor!: monaco.editor.IStandaloneCodeEditor;
+
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault(); // 允许 drop
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    const text = event.dataTransfer?.getData('text/plain');
+    if (text && this.editor) {
+      this.editor.trigger('keyboard', 'type', { text });
+    }
+  }
+
+
+  onEditorInit(editor: monaco.editor.IStandaloneCodeEditor) {
+    this.editor = editor;
+
+    // 监听 drop 事件
+    const container = this.editor.getDomNode();
+    if (container) {
+
+      container.addEventListener('dragover', (event: DragEvent) => {
+        console.log(event)
+        event.preventDefault(); // 必须阻止默认行为
+      });
+
+      container.addEventListener('drop', (event: DragEvent) => {
+        event.preventDefault();
+        const text = event.dataTransfer?.getData('text/plain');
+        console.log(text)
+        if (text) {
+          this.editor.trigger('keyboard', 'type', { text });
+        }
+      });
+    }
+  }
   dslr: any = {}
 
   submit() {
@@ -34,21 +85,26 @@ export class DslrFormComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
-    @Inject(MAT_DIALOG_DATA) public data: any,
     private commonApiService: CommonApiService
   ) { }
+  ngAfterViewInit(): void {
+
+  }
   ngOnInit(): void {
-    const dslId = this.data.id
+    const dslId = this.route.snapshot.queryParamMap.get('dslId')
     this.dslr.dslId = dslId
     this.http.get(`${environment.apiBase}/dsls/${dslId}/conditions`).subscribe((res: any) => {
       this.conditions = res.filter((f: any) => f.section == 'CONDITION')
       this.actions = res.filter((f: any) => f.section == 'CONSEQUENCE')
     });
+
+
   }
 
   getVariables(condition: any) {
     if (condition)
       return Object.keys(condition.variables)
+        .sort((a, b) => condition.variables![a] - condition.variables![b]);
     else
       return []
   }

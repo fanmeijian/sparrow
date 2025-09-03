@@ -6,10 +6,12 @@ import { RuleTemplateListComponent } from './rule-template/rule-template-list/ru
 import { RuleTemplateFormComponent } from './rule-template/rule-template-form/rule-template-form.component';
 import { DslListComponent } from './dsl/dsl-list/dsl-list.component';
 import { DslFormComponent } from './dsl/dsl-form/dsl-form.component';
+import { DslrFormComponent } from './dsl/dslr-form/dslr-form.component';
 
 const routes: Routes = [
   { path: 'dsl-list', component: DslListComponent },
   { path: 'dsl-form', component: DslFormComponent },
+  { path: 'dslr-form', component: DslrFormComponent },
   {
     path: '',
     pathMatch: 'full',

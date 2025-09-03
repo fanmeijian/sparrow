@@ -1,41 +1,33 @@
-<h3 mat-dialog-title>规则</h3>
-<mat-dialog-content class="h-96">
-    <h4>条件</h4>
-    <mat-selection-list #conditions_ [multiple]="false">
-        <mat-list-option *ngFor="let condition of conditions" [value]="condition">
-            {{condition.mappingKey}}
-        </mat-list-option>
-    </mat-selection-list>
+<button mat-flat-button (click)="submit()" color="primary">确定</button>
 
-    <div>
-        <mat-form-field *ngFor="let v of getVariables((conditions_?.selectedOptions?.selected||[])[0]?.value)"
-            class="mr-2">
-            <mat-label>{{v}}</mat-label>
-            <input matInput [(ngModel)]="form[v]">
-        </mat-form-field>
+
+<h4>条件</h4>
+<div class="flex flex-row mb-5">
+    <div style="width: 40%;" class="bg-blue-100	mr-3 p-2">
+        <div class="border-dashed border-1 mb-3 p-2 cursor-move" *ngFor="let condition of conditions" draggable="true"
+            (dragstart)="onNativeDragStart($event, condition.mappingKey)">{{condition.mappingKey}}
+        </div>
+
     </div>
-
-    <div>{{evalCondition((conditions_?.selectedOptions?.selected||[])[0]?.value)}}</div>
-    <!-- <div (click)="evalCondition((conditions_?.selectedOptions?.selected||[])[0]?.value)">get</div> -->
-    <h4>动作</h4>
-
-    <mat-selection-list #actions_ [multiple]="false">
-        <mat-list-option *ngFor="let action of actions" [value]="action">
-            {{action.mappingKey}}
-        </mat-list-option>
-    </mat-selection-list>
-
-    <div>
-        <mat-form-field *ngFor="let v of getVariables((actions_?.selectedOptions?.selected||[])[0]?.value)"
-            class="mr-2">
-            <mat-label>{{v}}</mat-label>
-            <input matInput [(ngModel)]="form[v]">
-        </mat-form-field>
+    <div class="w-full" (dragover)="onNativeDragOver($event)" (drop)="onNativeDrop($event)">
+        <ngx-monaco-editor style="height: 300px; width: 100%;" [(ngModel)]="dslr.name"
+            [options]="{ language: 'java', theme: 'vs-dark'}"></ngx-monaco-editor>
     </div>
+</div>
 
-    <div>{{evalAction((actions_?.selectedOptions?.selected||[])[0]?.value)}}</div>
-</mat-dialog-content>
+<mat-divider class="m-5"></mat-divider>
 
-<mat-dialog-actions>
-    <button mat-button (click)="submit()">确定</button>
-</mat-dialog-actions>
+
+<h4>动作</h4>
+<div class="flex flex-row mt-5">
+    <div style="width: 40%;" class="bg-blue-100	mr-3 p-2">
+        <div class="border-dashed border-1 mb-3 p-2 cursor-move" *ngFor="let action of actions" draggable="true"
+            (dragstart)="onNativeDragStart($event, action.mappingKey)">{{action.mappingKey}}
+        </div>
+
+    </div>
+    <div class="w-full" (dragover)="onNativeDragOver($event)" (drop)="onNativeDrop($event)">
+        <ngx-monaco-editor style="height: 300px; width: 100%;" [(ngModel)]="dslr.content"
+            [options]="{ language: 'java', theme: 'vs-dark'}"></ngx-monaco-editor>
+    </div>
+</div>

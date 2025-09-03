@@ -1,0 +1,13 @@
+.editor {
+  height: 400px;
+  border: 1px solid #ccc;
+}
+
+.draggable-item {
+  width: fit-content;
+  padding: 6px 12px;
+  background: #3f51b5;
+  color: white;
+  margin-bottom: 10px;
+  cursor: grab;
+}
