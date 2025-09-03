@@ -3,9 +3,7 @@ package cn.sparrowmini.rules.controller;
 import cn.sparrowmini.common.model.ApiResponse;
 import cn.sparrowmini.common.service.CommonJpaService;
 import cn.sparrowmini.rules.DrlView;
-import cn.sparrowmini.rules.model.Drl;
-import cn.sparrowmini.rules.model.RuleTemplate;
-import cn.sparrowmini.rules.model.RulesModelBean;
+import cn.sparrowmini.rules.model.*;
 import cn.sparrowmini.rules.repository.DrlRepository;
 import cn.sparrowmini.rules.service.RuleTemplateService;
 import cn.sparrowmini.rules.service.RulesService;
@@ -16,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +42,23 @@ public class RuleController {
 
     @Autowired
     private CommonJpaService commonJpaService;
+
+    @GetMapping("/drl-templates/{id}/preview")
+    @ResponseBody
+    @Operation(summary = "drl文件列表")
+    public Map<String, String> previewDrlTemplate(@PathVariable String id) {
+        DrlTemplate drlTemplate = this.commonJpaService.getEntity(DrlTemplate.class, id);
+        List<DrlTemplateRule> drlTemplateRules = commonJpaService.getEntityList(DrlTemplateRule.class, PageRequest.of(0, Integer.MAX_VALUE), null).stream().toList();
+        StringBuilder drl = new StringBuilder();
+        drl.append(drlTemplate.getHead());
+        drl.append("\n");
+        drlTemplateRules.forEach(drlTemplateRule -> {
+            drl.append(drlTemplateRule.getContent());
+            drl.append("\n\n\n");
+        });
+
+        return Map.of("data",drl.toString());
+    }
 
     @GetMapping("/drl/{id}")
     @ResponseBody
