@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "dsls")
@@ -30,9 +31,9 @@ public class DslController {
 
     @GetMapping("/{dslId}/to-drl")
     @ResponseBody
-    public String getDrlString(@PathVariable("dslId") String dslId) {
+    public Map<String, Object> getDrlString(@PathVariable("dslId") String dslId) {
         Dsl dsl = commonJpaService.getEntity(Dsl.class, dslId);
         List<Dslr> dslrs = commonJpaService.getEntityList(Dslr.class, PageRequest.of(0,Integer.MAX_VALUE),String.format("dslId='%s'",dsl.getId())).getContent();
-        return DSLExtractor.getDrl(dsl.getContent(),dslrs);
+        return Map.of("drl",DSLExtractor.getDrl(dsl,dslrs));
     }
 }

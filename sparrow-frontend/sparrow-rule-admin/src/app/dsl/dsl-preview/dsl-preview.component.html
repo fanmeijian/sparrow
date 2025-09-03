@@ -1,0 +1,7 @@
+<h3 mat-dialog-title>DSL预览</h3>
+<mat-dialog-content>
+    <ngx-monaco-editor style="height: 400px;" [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button color="accent" mat-dialog-close="">关闭</button>
+</mat-dialog-actions>

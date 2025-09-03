@@ -1,3 +1,5 @@
+<button class="mb-2" color="primary" mat-flat-button (click)="onSubmit()">提交</button>
+
 <form [formGroup]="form" class="s-row">
   <mat-form-field>
     <mat-label>名称</mat-label>
@@ -19,4 +21,3 @@
 <ngx-monaco-editor style="height: calc(100vh - 300px);" [options]="editorOptions" [(ngModel)]="code" (ngModelChange)="onChange($event)"></ngx-monaco-editor>
 
 
-<button mat-button (click)="onSubmit()">提交</button>

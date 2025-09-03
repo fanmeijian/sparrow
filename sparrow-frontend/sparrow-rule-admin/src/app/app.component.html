@@ -3,19 +3,20 @@
     (click)="drawer.toggle()">
     <mat-icon>menu</mat-icon>
   </button>
-  <span>My App</span>
+  <span></span>
   <span class="example-spacer"></span>
-  <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
-    <mat-icon>favorite</mat-icon>
-  </button>
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
-    <mat-icon>share</mat-icon>
-  </button>
+  <button mat-button color="accent" (click)="logout()">注销</button>
 </mat-toolbar>
 
 <mat-drawer-container class="example-container" autosize>
-  <mat-drawer #drawer style="width: 200px;overflow-x: unset; overflow-y: unset;" mode="side" opened>
-    <spr-menu></spr-menu>
+  <mat-drawer #drawer mode="side" opened>
+    <div class="menu-container">
+      <spr-menu></spr-menu>
+      <div class="user-info">
+        <span>{{sessionStorage.getItem('username')}}</span>
+      </div>
+    </div>
+
   </mat-drawer>
 
   <div class="example-sidenav-content">

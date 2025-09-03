@@ -3,6 +3,7 @@ package cn.sparrowmini.rules.model;
 
 import cn.sparrowmini.common.model.BaseUuidEntity;
 import cn.sparrowmini.common.model.TablePrefix;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
@@ -22,6 +23,9 @@ public class Dsl extends BaseUuidEntity {
     private String name;
     private String code;
     private String remark;
+
+    @Column(columnDefinition = "TEXT")
+    private String head;
 
     @Lob
     private String content;

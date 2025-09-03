@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { APP_INITIALIZER, ErrorHandler, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { environment } from 'src/environments/environment';
-import { EntiyListModule, SprTreeModule } from '@sparrowmini/common-ui-nm';
+import { EntiyListModule, GlobalErrorHandlerService, SprTreeModule } from '@sparrowmini/common-ui-nm';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { AngularMaterialModule } from './angular-material.module';
 import { CommonModule } from '@angular/common';
@@ -24,6 +24,7 @@ import { DslListComponent } from './dsl/dsl-list/dsl-list.component';
 import { DslFormComponent } from './dsl/dsl-form/dsl-form.component';
 import { DslrListComponent } from './dsl/dslr-list/dslr-list.component';
 import { DslrFormComponent } from './dsl/dslr-form/dslr-form.component';
+import { DslPreviewComponent } from './dsl/dsl-preview/dsl-preview.component';
 
 
 
@@ -39,6 +40,9 @@ function initializeKeycloak(keycloak: KeycloakService) {
         onLoad: 'login-required',
       },
       bearerExcludedUrls: ['/assets'],
+    }).then(async res => {
+      const profile: any = await keycloak.loadUserProfile();
+      sessionStorage.setItem('username', profile.username || profile.id);
     });
 }
 
@@ -51,6 +55,7 @@ function initializeKeycloak(keycloak: KeycloakService) {
     DslFormComponent,
     DslrListComponent,
     DslrFormComponent,
+    DslPreviewComponent,
   ],
   imports: [
     BrowserModule,
@@ -76,8 +81,12 @@ function initializeKeycloak(keycloak: KeycloakService) {
       multi: true,
       deps: [KeycloakService],
     },
-    {provide: COMMON_API_BASE, useValue: environment.ruleApi},
-    CommonApiService
+    { provide: COMMON_API_BASE, useValue: environment.ruleApi },
+    CommonApiService,
+    {
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandlerService,
+    },
   ],
   bootstrap: [AppComponent]
 })

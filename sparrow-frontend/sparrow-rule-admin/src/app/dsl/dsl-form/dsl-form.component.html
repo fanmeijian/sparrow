@@ -1,4 +1,11 @@
-<h5 mat-dialog-title>规则</h5>
+<div class="flex flex-row gap-2 mb-2">
+  <button mat-flat-button (click)="submit()" color="primary">保存</button>
+  <button mat-flat-button color="accent" routerLink="../dsl-list">取消</button>
+  <button mat-flat-button (click)="getDrl()" color="primary">预览</button>
+
+</div>
+<h3>模板</h3>
+
 <mat-dialog-content>
   <div [formGroup]="form">
     <mat-form-field class="mr-2">
@@ -15,17 +22,20 @@
       <mat-label>简述</mat-label>
       <textarea matInput formControlName="remark"></textarea>
     </mat-form-field>
+
+    <div>头定义</div>
+    <ngx-monaco-editor style="height: 200px;" [options]="{ language: 'java', theme: 'vs-dark' }" formControlName="head"></ngx-monaco-editor>
+
+    <div>规则模板</div>
+    <ngx-monaco-editor style="height: 400px;" [options]="editorOptions" formControlName="content"></ngx-monaco-editor>
   </div>
-  <ngx-monaco-editor style="height: 400px;" [options]="editorOptions" [(ngModel)]="code"
-    (ngModelChange)="onChange($event)"></ngx-monaco-editor>
+
+
 </mat-dialog-content>
 
-<h5>规则</h5>
-<button mat-stroked-button color="primary" (click)="addDslr()">添加</button>
-<button mat-button (click)="getDrl()">getDrl</button>
-<app-dslr-list></app-dslr-list>
+<h3>规则</h3>
+<div class="flex flex-row gap-2 mb-2">
+  <button mat-stroked-button color="primary" (click)="addDslr()">添加</button>
+</div>
 
-<mat-dialog-actions>
-  <button mat-button (click)="submit()">confirm</button>
-  <button mat-button color="accent" mat-dialog-close="">cancle</button>
-</mat-dialog-actions>
+<app-dslr-list></app-dslr-list>

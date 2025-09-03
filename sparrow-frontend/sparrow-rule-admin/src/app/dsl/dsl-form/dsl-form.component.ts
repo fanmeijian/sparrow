@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DslrFormComponent } from '../dslr-form/dslr-form.component';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { DslPreviewComponent } from '../dsl-preview/dsl-preview.component';
 
 @Component({
   selector: 'app-dsl-form',
@@ -16,11 +17,7 @@ import { environment } from 'src/environments/environment';
 })
 export class DslFormComponent {
   getDrl() {
-    this.route.queryParams.subscribe((params: any) => {
-      const dslId = params.id
-      this.http.get(`${environment.apiBase}/dsls/${dslId}/to-drl`).subscribe();
-    })
-    
+    this.dialog.open(DslPreviewComponent, {width: '80%', data: this.dsl, hasBackdrop: false})
   }
   dsl: any
   addDslr() {
@@ -31,12 +28,13 @@ export class DslFormComponent {
     id: new FormControl(null),
     name: new FormControl(null, Validators.required),
     remark: new FormControl(null),
+    head: new FormControl(null, Validators.required),
     code: new FormControl(null, Validators.required),
     content: new FormControl(null, Validators.required),
   })
 
   submit() {
-    const body = [Object.assign({}, this.form.value, { content: this.code })]
+    const body = [this.form.value]
     this.commonApi.upsert(DslClass, body).subscribe()
   }
   onChange($event: Event) {
