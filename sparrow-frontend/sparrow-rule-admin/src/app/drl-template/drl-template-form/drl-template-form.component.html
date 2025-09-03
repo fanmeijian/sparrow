@@ -1,0 +1,45 @@
+<div class="flex flex-row gap-2 mb-2">
+  <button mat-flat-button color="primary" (click)="submit()">提交</button>
+  <button mat-flat-button color="primary" routerLink="../drl-template-rule-list"
+    [queryParams]="{drlTemplateId: this.form.value.id}">规则列表</button>
+</div>
+
+<form [formGroup]="form">
+  <div class="flex gap-2">
+    <mat-form-field>
+      <mat-label>name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>code</mat-label>
+      <input matInput formControlName="code">
+    </mat-form-field>
+  </div>
+
+
+  <mat-form-field class="w-full">
+    <mat-label>remark</mat-label>
+    <textarea matInput formControlName="remark"></textarea>
+  </mat-form-field>
+
+  <h3>头部定义</h3>
+  <ngx-monaco-editor formControlName="head" style="height: 300px;"
+    [options]="{ language: 'drools', theme: 'vs-dark' }"></ngx-monaco-editor>
+
+</form>
+
+<div class="flex gap-2">
+  <button mat-stroked-button color="primary" routerLink="../drl-template-rule-form"
+    [queryParams]="{drlTemplateId: form.value.id}">添加</button>
+
+  <button mat-stroked-button color="primary" (click)="preview()">预览</button>
+</div>
+
+
+<app-drl-template-rule-list [drlTemplateId]="form.value.id"></app-drl-template-rule-list>
+
+<ng-template #previewDlg let-data>
+  <ngx-monaco-editor [ngModel]="data.data" style="height: 300px;"
+    [options]="{ language: 'drools', theme: 'vs-dark' }"></ngx-monaco-editor>
+</ng-template>

@@ -20,6 +20,7 @@ const routes: Routes = [
   { path: 'drl-list', component: DrlListComponent },
   { path: 'drl-form', component: DrlFormComponent },
   { path: 'rule', loadChildren: () => import('./rule-template/rule-template.module').then(m => m.RuleTemplateModule) },
+  { path: 'drl-template', loadChildren: () => import('./drl-template/drl-template.module').then(m => m.DrlTemplateModule) },
 ];
 
 @NgModule({

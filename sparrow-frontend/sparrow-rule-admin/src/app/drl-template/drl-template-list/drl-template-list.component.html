@@ -1,11 +1,12 @@
+<button mat-flat-button color="primary" routerLink="../drl-template-form">添加</button>
 <spr-entity-list [entityList]="data" [total]="total" [viewConfig]="[{
   name: 'name',
   field: 'name',
-  link: '../dslr-form',
+  link: '../drl-template-form',
   id: 'id'
 },{
   name: 'content',
   field: 'content',
-  link: '../dslr-form',
+  link: '',
   id: 'id'
 }]" (onPage)="onPage($event)" (onDelete)="onDelete($event)"></spr-entity-list>

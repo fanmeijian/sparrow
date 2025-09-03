@@ -1,0 +1,25 @@
+<button mat-flat-button color="primary" (click)="submit()">提交</button>
+
+<form [formGroup]="form">
+  <div class="flex gap-2">
+    <mat-form-field>
+      <mat-label>name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+
+    <mat-radio-group formControlName="enabled">
+        <mat-radio-button [value]="true">启用</mat-radio-button>
+        <mat-radio-button [value]="false">禁用</mat-radio-button>
+      </mat-radio-group>
+  </div>
+
+
+  <mat-form-field class="w-full">
+    <mat-label>remark</mat-label>
+    <textarea matInput formControlName="description"></textarea>
+  </mat-form-field>
+
+  <ngx-monaco-editor formControlName="content" style="height: calc(100vh - 400px);"
+    [options]="{ language: 'drools', theme: 'vs-dark' }"></ngx-monaco-editor>
+
+</form>

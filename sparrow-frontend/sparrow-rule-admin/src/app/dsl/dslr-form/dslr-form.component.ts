@@ -91,14 +91,27 @@ export class DslrFormComponent implements OnInit, AfterViewInit {
 
   }
   ngOnInit(): void {
-    const dslId = this.route.snapshot.queryParamMap.get('dslId')
-    this.dslr.dslId = dslId
-    this.http.get(`${environment.apiBase}/dsls/${dslId}/conditions`).subscribe((res: any) => {
-      this.conditions = res.filter((f: any) => f.section == 'CONDITION')
-      this.actions = res.filter((f: any) => f.section == 'CONSEQUENCE')
-    });
+    this.route.queryParams.subscribe((params: any) => {
+      if (params.id) {
+        this.commonApiService.get(DslrClass, params.id).subscribe((res: any) => {
+          this.dslr = res
+          const dslId = this.dslr.dslId
+          this.http.get(`${environment.apiBase}/dsls/${dslId}/conditions`).subscribe((res: any) => {
+            this.conditions = res.filter((f: any) => f.section == 'CONDITION')
+            this.actions = res.filter((f: any) => f.section == 'CONSEQUENCE')
+          });
+        })
+      } else {
+        const dslId = params.dslId
+        this.dslr.dslId = dslId
+        this.http.get(`${environment.apiBase}/dsls/${dslId}/conditions`).subscribe((res: any) => {
+          this.conditions = res.filter((f: any) => f.section == 'CONDITION')
+          this.actions = res.filter((f: any) => f.section == 'CONSEQUENCE')
+        });
+      }
 
 
+    })
   }
 
   getVariables(condition: any) {
