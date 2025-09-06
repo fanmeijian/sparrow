@@ -2,15 +2,13 @@ package cn.sparrowmini.common.listener;
 
 import cn.sparrowmini.common.model.BaseTreeV2;
 import cn.sparrowmini.common.util.EntityManagerProvider;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
 public class BaseTreeV2Listener {
 
+    @PreUpdate
     @PrePersist
     public void prePersist(BaseTreeV2 entity) {
         EntityManagerFactory emf = EntityManagerProvider.entityManagerFactory;
@@ -31,6 +29,8 @@ public class BaseTreeV2Listener {
                 }
             }
 
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
         } finally {
             if (entityManager.isOpen()) {
                 entityManager.close();
