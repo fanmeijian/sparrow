@@ -48,12 +48,16 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
     @Query("select t from #{#entityName} t join t.parentIds p where p.parentId=:parentId")
     Page<S> findByParentId(ID parentId, Pageable pageable);
 
+    @Query("select t from #{#entityName} t join t.parentIds p where p.parentId is null")
+    Page<S> findRoot(Pageable pageable);
+
+
     @Query("select count(t) from #{#entityName} t join t.parentIds p where p.parentId=:parentId")
     long countByParentId(ID parentId);
 
     default Page<S> getChildren(ID parentId, Pageable pageable) {
-        Page<S> children = this.findByParentId(parentId,
-                pageable != null && pageable.getPageSize() < 2000 ? pageable : Pageable.unpaged());
+        Pageable pageable_ = pageable != null && pageable.getPageSize() < 2000 ? pageable : Pageable.unpaged();
+        Page<S> children = parentId==null? findRoot(pageable_) : this.findByParentId(parentId,pageable_);
 
         // ====== 批量统计子节点数，避免 N+1 ======
         List<ID> ids = children.stream().map(c -> (ID) c.getId()).toList();
