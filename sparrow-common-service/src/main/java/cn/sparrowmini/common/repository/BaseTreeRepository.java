@@ -45,7 +45,12 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
 
 
     default Page<S> getChildren(ID parentId, Pageable pageable) {
-        Page<S> children = this.findByParentId(parentId, pageable.getPageSize() >= 2000 ? Pageable.unpaged(Sort.by(BaseTree_.seq.getName())) : pageable);
+        return getChildren(parentId, pageable, null);
+    }
+
+    default Page<S> getChildren(ID parentId, Pageable pageable, String filter) {
+        Pageable pageable_ = pageable.getPageSize() >= 2000 ? Pageable.unpaged(Sort.by(BaseTree_.seq.getName())) : pageable;
+        Page<S> children = filter==null? this.findByParentId(parentId,pageable_) : this.findByParentId(parentId,pageable_, filterSpecification(filter));
         children.forEach(child -> {
             long count = countByParentId((ID) child.getId());
             child.setChildCount(count);
@@ -54,6 +59,8 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
     }
 
     Page<S> findByParentId(ID parentId, Pageable pageable);
+
+    Page<S> findByParentId(ID parentId, Pageable pageable, Specification<S> spec);
 
     default <P extends BaseTreeDto> Page<P> findByParentIdProjection(ID parentId, Pageable pageable_, Class<P> projectionClass) {
         Pageable pageable = pageable_ == null || pageable_.getPageSize() >= 2000

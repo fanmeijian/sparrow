@@ -48,9 +48,9 @@ public class CommonTreeServiceV2Impl implements CommonTreeServiceV2 {
     }
 
     @Override
-    public <T extends BaseTreeV2, ID> Page<T> getChildren(ID parentId, Pageable pageable, Class<T> domainClass) {
+    public <T extends BaseTreeV2, ID> Page<T> getChildren(ID parentId, Pageable pageable, Class<T> domainClass, String filter) {
         BaseTreeV2Repository<T, ID> BaseTreeV2Repository = getByDomainClass(domainClass);
-        return BaseTreeV2Repository.getChildren(parentId,pageable);
+        return BaseTreeV2Repository.getChildren(parentId,pageable, filter);
     }
 
     @Override

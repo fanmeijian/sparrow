@@ -3,6 +3,7 @@ package cn.sparrowmini.common.repository;
 import cn.sparrowmini.common.dto.BaseTreeDto;
 import cn.sparrowmini.common.model.BaseTreeV2;
 import cn.sparrowmini.common.model.BaseTreeV2_;
+import cn.sparrowmini.common.model.BaseTree_;
 import cn.sparrowmini.common.model.BaseUuidEntity;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -58,6 +59,21 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
     default Page<S> getChildren(ID parentId, Pageable pageable) {
         Pageable pageable_ = pageable != null && pageable.getPageSize() < 2000 ? pageable : Pageable.unpaged();
         Page<S> children = parentId==null? findRoot(pageable_) : this.findByParentId(parentId,pageable_);
+
+        // ====== 批量统计子节点数，避免 N+1 ======
+        List<ID> ids = children.stream().map(c -> (ID) c.getId()).toList();
+        Map<ID, Long> counts = countByParentIds(ids);
+        children.forEach(child -> child.setChildCount(counts.getOrDefault((ID) child.getId(), 0L)));
+
+        return children;
+    }
+
+
+    default Page<S> getChildren(ID parentId, Pageable pageable, String filter) {
+        Pageable pageable_ = pageable != null && pageable.getPageSize() < 2000 ? pageable : Pageable.unpaged();
+        Page<S> children = findBy(
+                filter==null? parentIdSpecification(parentId):parentIdSpecification(parentId).and(filterSpecification(filter)),
+                query -> query.page(pageable));
 
         // ====== 批量统计子节点数，避免 N+1 ======
         List<ID> ids = children.stream().map(c -> (ID) c.getId()).toList();
@@ -183,7 +199,7 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
     default Specification<S> parentIdSpecification(ID parentId) {
         return (Root<S> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->
                 parentId == null
-                        ? cb.isEmpty(root.get(BaseTreeV2_.PARENT_IDS))
+                        ? cb.isNull(root.join(BaseTreeV2_.PARENT_IDS).get("parentId"))
                         : cb.equal(root.join(BaseTreeV2_.PARENT_IDS).get("parentId"), parentId);
     }
 }
