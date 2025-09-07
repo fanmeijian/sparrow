@@ -197,13 +197,22 @@ public class ExprToPredicateVisitor extends ExprBaseVisitor<Predicate> {
         return in;
     }
 
-    private Path<?> resolvePath(Root<?> root, String fieldPath) {
+    private Path<?> resolvePath(From<?, ?> from, String fieldPath) {
         String[] parts = fieldPath.split("\\.");
-        Path<?> path = root;
+        Path<?> path = from;
+
         for (String part : parts) {
-            path = path.get(part);
+            Class<?> javaType = path.get(part).getJavaType();
+
+            if (Collection.class.isAssignableFrom(javaType)) {
+                from = from.join(part, JoinType.INNER);
+                path = from;
+            } else {
+                path = path.get(part);
+            }
         }
         return path;
     }
+
 
 }
