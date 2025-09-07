@@ -48,7 +48,7 @@ public class CommonTreeV2Controller {
      */
     @GetMapping("/children")
     @ResponseBody
-    public <T extends BaseTreeV2, P extends BaseTreeDto> Page<?> getChildren(String parentId, Pageable pageable, String className, String projectionClassName){
+    public <T extends BaseTreeV2, P extends BaseTreeDto> Page<?> getChildren(String parentId, Pageable pageable, String className, String filter, String projectionClassName){
         Class<T> domainClass = null;
         Class<P> projectionClass = null;
         try {
@@ -60,7 +60,7 @@ public class CommonTreeV2Controller {
             throw new RuntimeException(e);
         }
         return projectionClass==null
-                ? commonTreeService.getChildren(parentId,pageable,domainClass)
+                ? commonTreeService.getChildren(parentId,pageable,domainClass,filter)
                 : commonTreeService.getChildrenProjection(parentId,pageable,domainClass, projectionClass);
     }
 
