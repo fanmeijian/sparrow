@@ -52,6 +52,12 @@ public class CommonTreeServiceImpl implements CommonTreeService {
     }
 
     @Override
+    public <T extends BaseTree, ID> Page<T> getAllChildren(ID parentId, Pageable pageable, Class<T> domainClass) {
+        BaseTreeRepository<T, ID> baseTreeRepository = getByDomainClass(domainClass);
+        return baseTreeRepository.getAllChildren(parentId,pageable);
+    }
+
+    @Override
     public <T extends BaseTree, P extends BaseTreeDto, ID> Page<P> getChildrenProjection(ID parentId, Pageable pageable, Class<T> domainClass, Class<P> projectionClass) {
         BaseTreeRepository<T, ID> baseTreeRepository = getByDomainClass(domainClass);
         return baseTreeRepository.findByParentIdProjection(parentId,pageable, projectionClass);

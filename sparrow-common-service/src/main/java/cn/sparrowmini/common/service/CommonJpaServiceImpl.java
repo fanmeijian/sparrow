@@ -100,7 +100,7 @@ public class CommonJpaServiceImpl implements CommonJpaService {
         return i;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public <T, ID> T getEntity(Class<T> clazz, ID id_) {
         Class<?> idClass = JpaUtils.getIdType(clazz);
@@ -109,7 +109,7 @@ public class CommonJpaServiceImpl implements CommonJpaService {
     }
 
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public <T> Page<T> getEntityList(Class<T> clazz, Pageable pageable, String filter) {
         TypedQuery<T> query = this.getQuery(filter, pageable, clazz);
@@ -168,6 +168,7 @@ public class CommonJpaServiceImpl implements CommonJpaService {
         return entityManager.createQuery(query);
     }
 
+    @Transactional(readOnly = true)
 	@Override
 	public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass) {
 		return DynamicProjectionHelper.findAllProjection(entityManager, clazz, pageable, filter, projectionClass);
