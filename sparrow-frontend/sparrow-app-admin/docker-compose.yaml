@@ -2,11 +2,12 @@ version: "3"
 services:
   dengbo-admin:
     image: sparrow-app-admin:1.0
+    container_name: sport-app-admin
     ports:
-      - "8036:80"
+      - "8202:80"
     environment:
-      - API_BASE=http://localhost:8300/toupiao-service
-      - PEM_BASE=http://localhost:8035/sparrow-permission-service
+      - API_BASE=http://localhost:8200
+      - PEM_BASE=http://localhost:8200
       - REALM=liyun-prd
       - CLIENT_ID=toupiao-web
       - KEYCLOAK_API_BASE=https://keycloak.linkair-tech.cn

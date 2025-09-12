@@ -7,9 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -23,14 +26,6 @@ import cn.sparrowmini.common.antlr.PredicateBuilder;
 import cn.sparrowmini.common.repository.DynamicProjectionHelper;
 import cn.sparrowmini.common.util.JpaUtils;
 import cn.sparrowmini.common.util.JsonUtils;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -126,9 +121,9 @@ public class CommonJpaServiceImpl implements CommonJpaService {
 
     @Transactional
     @Override
-    public <T, ID> List<ID> saveEntity(Class<T> clazz,List<T> entities) {
+    public <T, ID> List<ID> saveEntity(Class<T> clazz, List<T> entities) {
         List<ID> ids = new ArrayList<>();
-        entities.forEach(entity-> {
+        entities.forEach(entity -> {
             entityManager.persist(entity);
             Field pkField = JpaUtils.getIdField(clazz);
             pkField.setAccessible(true);
@@ -140,6 +135,70 @@ public class CommonJpaServiceImpl implements CommonJpaService {
         });
         return ids;
     }
+
+    @Override
+    public <T> List<?> uniqueColumn(Class<T> entityClass, String columnName, String filter) {
+        // 自动解析返回类型
+        Class<?> returnType = resolveFieldType(entityClass, columnName);
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<?> query = cb.createQuery(returnType);
+        Root<T> root = query.from(entityClass);
+
+        Path<?> path = resolvePath(root, columnName);
+
+        // 强制转换成 Path<returnType>
+        query.select((Selection) path).distinct(true)
+                .where(filter == null
+                        ? cb.conjunction()
+                        : PredicateBuilder.buildPredicate(filter, cb, root));
+
+        return entityManager.createQuery(query).getResultList();
+    }
+
+    /**
+     * 解析字段路径的最终类型
+     */
+    private Class<?> resolveFieldType(Class<?> clazz, String columnPath) {
+        String[] parts = columnPath.split("\\.");
+        Class<?> currentClass = clazz;
+        for (String part : parts) {
+            try {
+                Field field = currentClass.getDeclaredField(part);
+                currentClass = field.getType();
+            } catch (NoSuchFieldException e) {
+                throw new IllegalArgumentException("字段不存在: " + currentClass.getName() + "." + part, e);
+            }
+        }
+        return currentClass;
+    }
+
+
+    /**
+     * 支持 "a.b.c" 的路径解析
+     */
+    private Path<?> resolvePath(From<?, ?> root, String columnPath) {
+        String[] parts = columnPath.split("\\.");
+        Path<?> path = root;
+        From<?, ?> currentRoot = root;
+
+        for (String part : parts) {
+            try {
+                if (currentRoot.get(part).getModel() != null
+                        && currentRoot.get(part).getModel().getBindableJavaType()
+                        .isAnnotationPresent(Entity.class)) {
+                    currentRoot = currentRoot.join(part, JoinType.LEFT);
+                    path = currentRoot;
+                } else {
+                    path = path.get(part);
+                }
+            } catch (IllegalArgumentException e) {
+                path = path.get(part);
+            }
+        }
+        return path;
+    }
+
 
     private <T> TypedQuery<Long> getCountQuery(String filter, Class<T> domainClass) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -169,9 +228,10 @@ public class CommonJpaServiceImpl implements CommonJpaService {
     }
 
     @Transactional(readOnly = true)
-	@Override
-	public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass) {
-		return DynamicProjectionHelper.findAllProjection(entityManager, clazz, pageable, filter, projectionClass);
-	}
+    @Override
+    public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass) {
+        return DynamicProjectionHelper.findAllProjection(entityManager, clazz, pageable, filter, projectionClass);
+    }
+
 
 }

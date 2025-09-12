@@ -20,4 +20,14 @@ public interface CommonJpaService {
     public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass);
 
     public <T, ID> List<ID> saveEntity(Class<T> clazz,List<T> entities);
+
+    /**
+     * 获取独立的值
+     * @param clazz
+     * @param columnName
+     * @return
+     * @param <T>
+     * @param <ID>
+     */
+    public <T> List<?> uniqueColumn(Class<T> clazz, String columnName, String filter);
 }

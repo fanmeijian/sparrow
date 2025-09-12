@@ -116,4 +116,16 @@ public class CommonJpaController {
         }
 
     }
+
+    @GetMapping("/unique-column")
+    @ResponseBody
+    public List<?> uniqueColumn(String className,String columnName , String filter) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            return commonJpaService.uniqueColumn(clazz, columnName, filter);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 }
