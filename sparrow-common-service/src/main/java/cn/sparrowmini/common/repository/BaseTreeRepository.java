@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @NoRepositoryBean
@@ -48,8 +49,16 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
         return getChildren(parentId, pageable, null);
     }
 
-    default Page<S> getChildren(ID parentId, Pageable pageable, String filter) {
+
+
+    default Page<S> getChildren(ID parentId_, Pageable pageable, String filter) {
         Pageable pageable_ = pageable.getPageSize() >= 2000 ? Pageable.unpaged(Sort.by(BaseTree_.seq.getName())) : pageable;
+        ID parentId = parentId_;
+
+        if(parentId_ != null && existsByCode(parentId_.toString())) {
+            parentId = (ID)findByCode(parentId_.toString()).get().getId();
+        }
+
         Page<S> children = filter==null? this.findByParentId(parentId,pageable_) : this.findByParentId(parentId,pageable_, filterSpecification(filter));
         children.forEach(child -> {
             long count = countByParentId((ID) child.getId());
@@ -57,6 +66,8 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
         });
         return children;
     }
+
+    Optional<S> findByCode(String code);
 
     Page<S> findByParentId(ID parentId, Pageable pageable);
 

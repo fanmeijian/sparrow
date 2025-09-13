@@ -8,6 +8,6 @@ services:
     environment:
       - API_BASE=http://localhost:8200
       - PEM_BASE=http://localhost:8200
-      - REALM=liyun-prd
-      - CLIENT_ID=toupiao-web
+      - REALM=sportunione-prd
+      - CLIENT_ID=sport-web
       - KEYCLOAK_API_BASE=https://keycloak.linkair-tech.cn
