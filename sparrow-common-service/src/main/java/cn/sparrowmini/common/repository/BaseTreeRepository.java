@@ -174,8 +174,13 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
 
     }
 
-    default Page<S> getAllChildren(ID parentId, Pageable pageable_) {
+    default Page<S> getAllChildren(ID parentId_, Pageable pageable_) {
         Pageable pageable = pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000 ? Pageable.unpaged(Sort.by(BaseTree_.SEQ)) : pageable_;
+        ID parentId = parentId_;
+
+        if(parentId_ != null && existsByCode(parentId_.toString())) {
+            parentId = (ID)findByCode(parentId_.toString()).get().getId();
+        }
         Page<S> rootPage = findByParentId(parentId, pageable);
         List<S> root = rootPage.getContent();
         root.forEach(r -> {
