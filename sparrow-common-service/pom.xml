@@ -28,6 +28,12 @@
 	</dependencyManagement>
 
 	<dependencies>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.13.1</version>
+        </dependency>
+
 		<dependency>
 			<groupId>cn.sparrowmini</groupId>
 			<artifactId>sparrow-common</artifactId>
@@ -113,6 +119,50 @@
     </dependencies>
 	<build>
 		<plugins>
+            <!-- ANTLR4 插件：编译时生成 Lexer/Parser -->
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.13.1</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 自定义语法文件目录 -->
+                            <sourceDirectory>${project.basedir}/src/main/antlr</sourceDirectory>
+                            <outputDirectory>target/generated-sources/cn/sparrowmini/common/antlr</outputDirectory>
+                            <visitor>true</visitor> <!-- 开启生成 BaseVisitor -->
+                            <arguments>
+                                <argument>-package</argument>
+                                <argument>cn.sparrowmini.common.antlr</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>add-antlr-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>target/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -124,6 +174,7 @@
 					<compilerArgs>
 						<arg>-parameters</arg>
 					</compilerArgs>
+                    <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
 <!--					<annotationProcessorPaths>-->
 <!--						<path>-->
 <!--							<groupId>com.querydsl</groupId>-->

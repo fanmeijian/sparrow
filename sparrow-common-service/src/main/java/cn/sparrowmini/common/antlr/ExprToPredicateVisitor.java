@@ -63,7 +63,7 @@ public class ExprToPredicateVisitor extends ExprBaseVisitor<Predicate> {
             return switch (operator) {
                 case "=" -> cb.equal(path, str);
                 case "!=" -> cb.notEqual(path, str);
-                case "like" -> cb.like(path.as(String.class), "%" + str + "%");
+                case "like" -> cb.like(path.as(String.class),str);
                 default -> throw new IllegalArgumentException("Unsupported string operator: " + operator);
             };
         } else if (value instanceof LocalDate date) {
