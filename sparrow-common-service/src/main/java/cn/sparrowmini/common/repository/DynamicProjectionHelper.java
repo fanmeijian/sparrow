@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,12 +31,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import cn.sparrowmini.common.antlr.PredicateBuilder;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Selection;
 
 /**
  * 动态构建 JPA Tuple 查询，并将结果自动映射为 Projection DTO。 支持嵌套对象和集合（Collection）字段自动加载。
@@ -334,46 +329,103 @@ public class DynamicProjectionHelper {
 			Class<?> entityChildType = (Class<?>) ((ParameterizedType) domainCollectionField.getGenericType())
 					.getActualTypeArguments()[0];
 
-			Field manyToOneField = findManyToOneField(entityChildType, domainClass);
-			String parentIdName = domainIdName;
 
-			// 子表查询
-			CriteriaBuilder cb = em.getCriteriaBuilder();
-			CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-			Root<?> childRoot = cq.from(entityChildType);
+            // ----------------------------
+            // 1) @ElementCollection
+            // ----------------------------
+            if (domainCollectionField.isAnnotationPresent(ElementCollection.class)) {
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+                Root<?> parentRoot = cq.from(domainClass);
+                Join<?, ?> childJoin = parentRoot.join(domainCollectionField.getName(), JoinType.LEFT);
 
-			cq.multiselect(childRoot, childRoot.get(manyToOneField.getName()).get(parentIdName).alias(parentIdName));
-			cq.where(childRoot.get(manyToOneField.getName()).get(parentIdName).in(ids));
+                cq.multiselect(parentRoot.get(domainIdName).alias(domainIdName), childJoin);
+                cq.where(parentRoot.get(domainIdName).in(ids));
 
-			List<Tuple> childTuples = em.createQuery(cq).getResultList();
+                List<Tuple> rows = em.createQuery(cq).getResultList();
+//                Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
 
-			Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
-			for (Tuple t : childTuples) {
-				Object parentId = t.get(parentIdName);
-				Map<String, Object> childMap = objectMapper.convertValue(t.get(0), Map.class);
-				grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childMap);
-			}
+                Map<Object, List<Object>> grouped = new LinkedHashMap<>();
 
-			// 填充到父 Map
-			for (Map.Entry<Object, Map<String, Object>> entry : idToMap.entrySet()) {
-				Object id = entry.getKey();
-				Map<String, Object> parentMap = entry.getValue();
-				List<Map<String, Object>> children = grouped.getOrDefault(id, List.of());
-				parentMap.put(collectionField.getName(), children);
-			}
+                for (Tuple row : rows) {
+                    Object parentId = row.get(domainIdName);
+                    Object child = row.get(1); // 第二列是 childJoin
+                    if (child != null) {
+                        if(isJavaStandardType(entityChildType)){
+                            grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(child);
+                        }else{
+                            Map<String, Object> childMap = objectMapper.convertValue(child, Map.class);
+                            grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childMap);
+                        }
+
+                    }
+                }
+
+                for (Map.Entry<Object, Map<String, Object>> entry : idToMap.entrySet()) {
+                    entry.getValue().put(collectionField.getName(),
+                            grouped.getOrDefault(entry.getKey(), List.of()));
+                }
+            }else {
+                Field manyToOneField = findManyToOneField(entityChildType, domainClass);
+                String parentIdName = domainIdName;
+
+                // 子表查询
+                CriteriaBuilder cb = em.getCriteriaBuilder();
+                CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+                Root<?> childRoot = cq.from(entityChildType);
+
+                cq.multiselect(childRoot, childRoot.get(manyToOneField.getName()).get(parentIdName).alias(parentIdName));
+                cq.where(childRoot.get(manyToOneField.getName()).get(parentIdName).in(ids));
+
+                List<Tuple> childTuples = em.createQuery(cq).getResultList();
+
+                Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+                for (Tuple t : childTuples) {
+                    Object parentId = t.get(parentIdName);
+                    Map<String, Object> childMap = objectMapper.convertValue(t.get(0), Map.class);
+                    grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childMap);
+                }
+
+                // 填充到父 Map
+                for (Map.Entry<Object, Map<String, Object>> entry : idToMap.entrySet()) {
+                    Object id = entry.getKey();
+                    Map<String, Object> parentMap = entry.getValue();
+                    List<Map<String, Object>> children = grouped.getOrDefault(id, List.of());
+                    parentMap.put(collectionField.getName(), children);
+                }
+            }
+
+
 		}
 	}
 
 	private static Field findManyToOneField(Class<?> childType, Class<?> parentType) {
-		for (Field f : childType.getDeclaredFields()) {
-			if (f.isAnnotationPresent(ManyToOne.class) && f.getType().equals(parentType)) {
-				f.setAccessible(true);
-				return f;
-			}
-		}
+        for (Field f : childType.getDeclaredFields()) {
+
+            // 1️⃣ 原有 ManyToOne 检查
+            if (f.isAnnotationPresent(ManyToOne.class) && f.getType().equals(parentType)) {
+                f.setAccessible(true);
+                return f;
+            }
+        }
 		throw new IllegalArgumentException(
 				"Cannot find ManyToOne field in " + childType.getName() + " pointing to " + parentType.getName());
 	}
+
+    // 辅助方法：获取集合泛型类型
+    private static Class<?> getCollectionGenericType(Field field) {
+        Type type = field.getGenericType();
+        if (type instanceof ParameterizedType) {
+            Type[] typeArgs = ((ParameterizedType) type).getActualTypeArguments();
+            if (typeArgs.length == 1) {
+                Type arg = typeArgs[0];
+                if (arg instanceof Class<?>) {
+                    return (Class<?>) arg;
+                }
+            }
+        }
+        return null;
+    }
 
 	private static Class<?> extractGenericType(Field field) {
 		Type type = field.getGenericType();
@@ -385,15 +437,19 @@ public class DynamicProjectionHelper {
 		throw new IllegalArgumentException("Cannot extract generic type for field: " + field.getName());
 	}
 
+    private static boolean isJavaStandardType(Class<?> clazz) {
+        final Set<Class<?>> JAVA_TIME_TYPES = Set.of(java.time.LocalDate.class, java.time.LocalDateTime.class,
+                java.time.OffsetDateTime.class, java.time.Instant.class, java.time.ZonedDateTime.class,
+                java.time.OffsetTime.class, java.time.LocalTime.class, java.time.Duration.class,
+                java.time.Period.class);
+
+        return clazz.isPrimitive() || clazz.getName().startsWith("java.lang.") || clazz.equals(String.class)
+                || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
+                || JAVA_TIME_TYPES.contains(clazz);
+    }
+
 	private static boolean isJavaStandardType(Field field) {
         Class<?> clazz = field.getType();
-		final Set<Class<?>> JAVA_TIME_TYPES = Set.of(java.time.LocalDate.class, java.time.LocalDateTime.class,
-				java.time.OffsetDateTime.class, java.time.Instant.class, java.time.ZonedDateTime.class,
-				java.time.OffsetTime.class, java.time.LocalTime.class, java.time.Duration.class,
-				java.time.Period.class);
-
-		return clazz.isPrimitive() || clazz.getName().startsWith("java.lang.") || clazz.equals(String.class)
-				|| Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
-				|| JAVA_TIME_TYPES.contains(clazz) || field.isAnnotationPresent(Embedded.class);
+		return isJavaStandardType(clazz) || field.isAnnotationPresent(Embedded.class);
 	}
 }
