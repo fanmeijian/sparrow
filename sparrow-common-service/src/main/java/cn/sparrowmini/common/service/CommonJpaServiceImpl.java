@@ -10,6 +10,7 @@ import java.util.Map;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -101,6 +102,18 @@ public class CommonJpaServiceImpl implements CommonJpaService {
         Class<?> idClass = JpaUtils.getIdType(clazz);
         Object id = objectMapper.convertValue(id_, idClass);
         return entityManager.find(clazz, id);
+    }
+
+    @Override
+    public <T, P, ID> P getEntity(Class<T> clazz, ID id_, Class<P> projectionClass) {
+        Class<?> idClass = JpaUtils.getIdType(clazz);
+        Object id = objectMapper.convertValue(id_, idClass);
+        try {
+            entityManager.getReference(clazz,id);
+        }catch (EntityNotFoundException e){
+            throw new RuntimeException("无法找到主键：" + id.toString());
+        }
+        return DynamicProjectionHelper.findByIdProjection(entityManager,clazz,id,projectionClass);
     }
 
 

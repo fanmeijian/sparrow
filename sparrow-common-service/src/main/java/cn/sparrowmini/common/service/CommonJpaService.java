@@ -15,6 +15,8 @@ public interface CommonJpaService {
 
     public <T, ID> T getEntity(Class<T> clazz, ID id);
 
+    public <T,P, ID> P getEntity(Class<T> clazz, ID id, Class<P> projectionClass);
+
     public <T> Page<T> getEntityList(Class<T> clazz, Pageable pageable, String filter);
     
     public <T, P> Page<P> getEntityList(Class<T> clazz, Pageable pageable, String filter, Class<P> projectionClass);

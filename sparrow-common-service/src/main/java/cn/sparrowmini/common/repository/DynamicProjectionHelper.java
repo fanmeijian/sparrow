@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import cn.sparrowmini.common.util.JpaUtils;
+import cn.sparrowmini.common.util.JsonUtils;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,62 @@ import cn.sparrowmini.common.antlr.PredicateBuilder;
  */
 @Slf4j
 public class DynamicProjectionHelper {
+
+	public static <P, ID> P findByIdProjection(EntityManager em, Class<?> domainType, ID id,
+												Class<P> projectionClass) {
+
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Tuple> query = cb.createTupleQuery();
+		Root<?> root = query.from(domainType);
+
+		List<Selection<?>> selections = buildSelections(domainType, cb, root, projectionClass, "", new HashMap<>());
+		query.multiselect(selections);
+		Field idField = JpaUtils.getIdField(domainType);
+		query.where(cb.equal(root.get(idField.getName()),id));
+		TypedQuery<Tuple> typedQuery = em.createQuery(query);
+		List<Tuple> tuples = typedQuery.getResultList();
+		// ----------------------------
+		// Step 2: Tuple -> List<Map<String,Object>>
+		// ----------------------------
+		final ObjectMapper objectMapper = JsonUtils.getMapper();
+		List<Map<String, Object>> flatList = new ArrayList<>();
+		Field domainIdField = findIdField(domainType);
+		String domainIdName = domainIdField.getName();
+		for (Tuple tuple : tuples) {
+			Map<String, Object> map = new LinkedHashMap<>();
+			for (TupleElement<?> elem : tuple.getElements()) {
+				map.put(elem.getAlias(), tuple.get(elem));
+			}
+			flatList.add(map);
+		}
+
+		boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
+				.anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
+
+		try {
+			loadSingle(flatList, domainType, projectionClass, em, objectMapper, domainIdField);
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (hasCollectionField) {
+			// ----------------------------
+			// Step 3: 加载集合字段
+			// ----------------------------
+			loadCollections(flatList, domainType, projectionClass, em, objectMapper, domainIdField);
+		}
+
+		// ----------------------------
+		// Step 4: 最终转换为 DTO
+		// ----------------------------
+		List<P> result = new ArrayList<>();
+		for (Map<String, Object> m : flatList) {
+			P dto = objectMapper.convertValue(m, projectionClass);
+			result.add(dto);
+		} ;
+		return result.get(0);
+	}
 
 	public static <P> Page<P> findAllProjection(EntityManager em, Class<?> domainType, Pageable pageable, String filter,
 			Class<P> projectionClass) {
@@ -99,6 +157,7 @@ public class DynamicProjectionHelper {
 		return PageableExecutionUtils.getPage(result, pageable,
 				() -> getCountQuery(filter, domainType, em).getSingleResult());
 	}
+
 
 	// ----------------------------
 	// 构建 Tuple 查询
