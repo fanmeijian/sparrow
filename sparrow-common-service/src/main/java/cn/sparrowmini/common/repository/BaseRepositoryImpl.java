@@ -1,12 +1,14 @@
 package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.antlr.PredicateBuilder;
+import cn.sparrowmini.common.util.JsonUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,7 +46,8 @@ public class BaseRepositoryImpl<T, ID>
     public <S> Optional<S> findByIdProjection(ID id, Class<S> projectionClass) {
         String idField = idFieldName();
         Specification<T> spec = (root, query, cb) -> cb.equal(root.get(idField), id);
-        return findBy(spec, q -> q.as(projectionClass).first());
+        return findByProjection(PageRequest.of(0,1),spec,projectionClass).stream().findFirst();
+//        return findBy(spec, q -> q.as(projectionClass).first());
     }
 
 
@@ -69,19 +72,53 @@ public class BaseRepositoryImpl<T, ID>
                 .orElseThrow(() -> new IllegalStateException("No @Id field found"));
     }
 
-    public <P> TypedQuery<Tuple> buildQuery(Class<P> projectionClass, Pageable pageable, String filter) {
+
+    @Override
+    public <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass) {
+        return findByProjectionInternal(pageable, spec, null, projectionClass);
+    }
+
+    @Override
+    public <P> Page<P> findByProjection(Pageable pageable, Predicate predicate, Class<P> projectionClass) {
+        return findByProjectionInternal(pageable, null, predicate, projectionClass);
+    }
+
+    @Override
+    public <P> Page<P> findByProjection(Pageable pageable, String filter, Class<P> projectionClass) {
+        return findByProjectionInternal(pageable, null, null, projectionClass, filter);
+    }
+
+    /**
+     * 内部统一方法，处理 Specification / Predicate / filter
+     */
+    private <P> Page<P> findByProjectionInternal(Pageable pageable,
+                                                 Specification<T> spec,
+                                                 Predicate predicate,
+                                                 Class<P> projectionClass) {
+        return findByProjectionInternal(pageable, spec, predicate, projectionClass, null);
+    }
+
+    private <P> Page<P> findByProjectionInternal(Pageable pageable,
+                                                 Specification<T> spec,
+                                                 Predicate predicate,
+                                                 Class<P> projectionClass,
+                                                 String filter) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tuple> query = cb.createTupleQuery();
-        Root<?> root = query.from(domainType());
+        Root<T> root = query.from(domainType());
 
-        // 构建select投影字段
-        List<Selection<?>> selections = buildSelections(cb, root, projectionClass, "", new HashMap<>());
+        // 构建 Predicate
+        Predicate finalPredicate = predicate != null ? predicate
+                : spec != null ? spec.toPredicate(root, query, cb)
+                : filter != null ? PredicateBuilder.buildPredicate(filter, cb, root)
+                : cb.conjunction();
+
+        // 构建 select 投影字段
+        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(
+                domainType(), cb, root, projectionClass, "", new HashMap<>()
+        );
         query.multiselect(selections);
-
-        // 条件过滤
-        if (filter != null && !filter.isBlank()) {
-            query.where(PredicateBuilder.buildPredicate(filter, cb, root));
-        }
+        query.where(finalPredicate);
 
         // 排序
         Sort sort = pageable.getSort();
@@ -89,185 +126,206 @@ public class BaseRepositoryImpl<T, ID>
             query.orderBy(QueryUtils.toOrders(sort, root, cb));
         }
 
-        return em.createQuery(query);
-    }
-
-
-    private List<Selection<?>> buildSelections(CriteriaBuilder cb, From<?, ?> root,
-                                               Class<?> projectionClass, String prefix,
-                                               Map<String, From<?, ?>> joins) {
-
-        System.out.println(extractPropertyPaths(projectionClass,""));
-        List<Selection<?>> selections = new ArrayList<>();
-
-        if (projectionClass.isInterface()) {
-            for (Method method : projectionClass.getMethods()) {
-                if (method.getParameterCount() != 0) continue;
-                String methodName = method.getName();
-                if (!(methodName.startsWith("get") || methodName.startsWith("is"))) continue;
-
-                String propName = methodName.startsWith("get")
-                        ? methodName.substring(3)
-                        : methodName.substring(2);
-                propName = Character.toLowerCase(propName.charAt(0)) + propName.substring(1);
-
-                Class<?> returnType = method.getReturnType();
-
-                if (isJavaStandardType(returnType)) {
-                    selections.add(root.get(prefix + propName).alias(prefix + propName));
-                } else {
-                    // 递归处理嵌套对象
-                    // 复杂类型需要join
-                    String joinPath = prefix + propName;
-                    From<?, ?> join = joins.get(joinPath);
-                    if (join == null) {
-                        join = root.join(propName, JoinType.LEFT);
-                        joins.put(joinPath, join);
-                    }
-                    // 递归处理子属性，prefix清空因为join已经定位了路径
-                    selections.addAll(buildSelections(cb, join, returnType, "", joins));
-                }
-            }
-        } else {
-            for (Field field : domainType().getDeclaredFields()) {
-                String fieldName = field.getName();
-                Class<?> fieldType = field.getType();
-
-                if (isJavaStandardType(fieldType)) {
-                    // 简单类型直接选字段
-                    selections.add(root.get(prefix + fieldName).alias(prefix + fieldName));
-                } else {
-                    // 复杂类型需要join
-                    String joinPath = prefix + fieldName;
-                    From<?, ?> join = joins.get(joinPath);
-                    if (join == null) {
-                        join = root.join(fieldName, JoinType.LEFT);
-                        joins.put(joinPath, join);
-                    }
-                    // 递归处理子属性，prefix清空因为join已经定位了路径
-                    selections.addAll(buildSelections(cb, join, fieldType, "", joins));
-                }
-            }
-        }
-
-
-        return selections;
-    }
-
-    private static boolean isJavaStandardType(Class<?> clazz) {
-        final Set<Class<?>> JAVA_TIME_TYPES = Set.of(
-                java.time.LocalDate.class,
-                java.time.LocalDateTime.class,
-                java.time.OffsetDateTime.class,
-                java.time.Instant.class,
-                java.time.ZonedDateTime.class,
-                java.time.OffsetTime.class,
-                java.time.LocalTime.class,
-                java.time.Duration.class,
-                java.time.Period.class
-        );
-        return clazz.isPrimitive()
-                || clazz.getName().startsWith("java.lang.")
-                || clazz.equals(String.class)
-                || Number.class.isAssignableFrom(clazz)
-                || Date.class.isAssignableFrom(clazz)
-                || clazz.isEnum()
-                || JAVA_TIME_TYPES.contains(clazz);
-    }
-
-
-
-    @Override
-    public <P> Page<P> findAllProjection(Pageable pageable, String filter, Class<P> projectionClass) {
-        TypedQuery<Tuple> query = buildQuery(projectionClass, pageable, filter);
+        TypedQuery<Tuple> typedQuery = em.createQuery(query);
         if (pageable.isPaged()) {
-            query.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
-            query.setMaxResults(pageable.getPageSize());
+            typedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
+            typedQuery.setMaxResults(pageable.getPageSize());
         }
 
-        List<Tuple> tuples = query.getResultList();
+        List<Tuple> tuples = typedQuery.getResultList();
 
+        // 转换成 DTO，支持嵌套对象
         List<P> results = tuples.stream()
                 .map(tuple -> {
-                    // 把Tuple转成Map或自定义MapLike结构
                     Map<String, Object> tupleMap = new HashMap<>();
+                    Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
+
                     for (TupleElement<?> elem : tuple.getElements()) {
-                        tupleMap.put(elem.getAlias(), tuple.get(elem));
+                        String alias = elem.getAlias();
+                        Object value = tuple.get(elem);
+
+                        if (alias.contains(".")) {
+                            String[] parts = alias.split("\\.", 2);
+                            nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
+                                    .put(parts[1], value);
+                        } else {
+                            tupleMap.put(alias, value);
+                        }
                     }
-                    // 动态代理生成接口实例
-                    return projectionFactory.createProjection(projectionClass, tupleMap);
+
+                    nestedMaps.forEach(tupleMap::put);
+
+                    if (projectionClass.isInterface()) {
+                        return projectionFactory.createProjection(projectionClass, tupleMap);
+                    } else {
+                        return JsonUtils.getMapper().convertValue(tupleMap, projectionClass);
+                    }
                 })
                 .collect(Collectors.toList());
 
-        return PageableExecutionUtils.getPage(results, pageable, () -> {
-            return this.getCountQuery(filter, domainType()).getSingleResult();
-        });
-    }
-
-    private <T> TypedQuery<T> getQuery(String filter, Pageable pageable, Class<T> domainClass) {
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(domainClass);
-        Root<T> root = query.from(domainClass);
-        if (filter != null && !filter.isBlank()) {
-            query.where(PredicateBuilder.buildPredicate(filter, builder, root));
-        }
-
-        query.select(root);
-        Sort sort = pageable.getSort();
-        if (sort.isSorted()) {
-            query.orderBy(QueryUtils.toOrders(sort, root, builder));
-        }
-        return em.createQuery(query);
-    }
-
-    private <T> TypedQuery<Long> getCountQuery(String filter, Class<T> domainClass) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
+        // Count 查询
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<?> countRoot = countQuery.from(domainClass);
+        Root<T> countRoot = countQuery.from(domainType());
+        Predicate countPredicate = spec != null ? spec.toPredicate(countRoot, countQuery, cb)
+                : filter != null ? PredicateBuilder.buildPredicate(filter, cb, countRoot)
+                : predicate != null ? predicate
+                : cb.conjunction();
         countQuery.select(cb.count(countRoot));
-        if (filter != null && !filter.isBlank()) {
-            countQuery.where(PredicateBuilder.buildPredicate(filter, cb, countRoot));
-        }
-        return em.createQuery(countQuery);
+        countQuery.where(countPredicate);
+        TypedQuery<Long> countTypedQuery = em.createQuery(countQuery);
+
+        return PageableExecutionUtils.getPage(results, pageable, countTypedQuery::getSingleResult);
     }
 
-    private String[] getPropertyNames(Class<?> projectionClass) {
-        List<String> paths = extractPropertyPaths(projectionClass, "");
-        System.out.println("Projection fields: " + Arrays.toString(paths.toArray(new String[0])));
-        return paths.toArray(new String[0]);
-    }
 
-    private List<String> extractPropertyPaths(Class<?> projectionClass, String prefix) {
-        List<String> props = new ArrayList<>();
 
-        if (projectionClass.isInterface()) {
-            for (Method method : projectionClass.getMethods()) {
-                if (method.getParameterCount() != 0) continue;
-                String methodName = method.getName();
-                if (!(methodName.startsWith("get") || methodName.startsWith("is"))) continue;
-
-                String propName = methodName.startsWith("get")
-                        ? methodName.substring(3)
-                        : methodName.substring(2);
-                propName = Character.toLowerCase(propName.charAt(0)) + propName.substring(1);
-
-                Class<?> returnType = method.getReturnType();
-
-                if (isJavaStandardType(returnType)) {
-                    props.add(prefix + propName);
-                } else {
-                    // 递归处理嵌套对象
-                    props.addAll(extractPropertyPaths(returnType, prefix + propName + "."));
-                }
-            }
-        } else {
-            // DTO类，直接字段，不递归（如果你需要，也可以实现）
-            for (Field field : projectionClass.getDeclaredFields()) {
-                props.add(prefix + field.getName());
-            }
-        }
-
-        return props;
-    }
+//
+//    private <P> TypedQuery<Tuple> buildQuery(Class<P> projectionClass, Pageable pageable,@NonNull Predicate predicate) {
+//        CriteriaBuilder cb = em.getCriteriaBuilder();
+//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+//        Root<?> root = query.from(domainType());
+//
+//        return buildQuery(projectionClass,pageable,cb,root,predicate);
+//    }
+//
+//    private <P> TypedQuery<Tuple> buildQuery(Class<P> projectionClass, Pageable pageable,CriteriaBuilder cb,Root<?> root,@NonNull Predicate predicate) {
+//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+//
+//        // 构建select投影字段
+//
+//        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(domainType(), cb, root, projectionClass, "", new HashMap<>());
+//        query.multiselect(selections);
+//        query.where(predicate);
+//
+//        // 排序
+//        Sort sort = pageable.getSort();
+//        if (sort.isSorted()) {
+//            query.orderBy(QueryUtils.toOrders(sort, root, cb));
+//        }
+//
+//        return em.createQuery(query);
+//    }
+//
+//
+//    private static boolean isJavaStandardType(Class<?> clazz) {
+//        final Set<Class<?>> JAVA_TIME_TYPES = Set.of(
+//                java.time.LocalDate.class,
+//                java.time.LocalDateTime.class,
+//                java.time.OffsetDateTime.class,
+//                java.time.Instant.class,
+//                java.time.ZonedDateTime.class,
+//                java.time.OffsetTime.class,
+//                java.time.LocalTime.class,
+//                java.time.Duration.class,
+//                java.time.Period.class
+//        );
+//        return clazz.isPrimitive()
+//                || clazz.getName().startsWith("java.lang.")
+//                || clazz.equals(String.class)
+//                || Number.class.isAssignableFrom(clazz)
+//                || Date.class.isAssignableFrom(clazz)
+//                || clazz.isEnum()
+//                || JAVA_TIME_TYPES.contains(clazz);
+//    }
+//
+//    @Override
+//    public <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass){
+//        CriteriaBuilder cb = em.getCriteriaBuilder();
+//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+//        Root<T> root = query.from(domainType());
+//        return findByProjection(pageable,spec==null?cb.conjunction(): spec.toPredicate(root, query, cb),projectionClass);
+//    }
+//
+//    @Override
+//    public <P> Page<P> findByProjection(Pageable pageable, Predicate predicate, Class<P> projectionClass) {
+//
+//        TypedQuery<Tuple> query = buildQuery(projectionClass, pageable, predicate);
+//        if (pageable.isPaged()) {
+//            query.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
+//            query.setMaxResults(pageable.getPageSize());
+//        }
+//
+//        List<Tuple> tuples = query.getResultList();
+//
+//        List<P> results = tuples.stream()
+//                .map(tuple -> {
+//                    // 把Tuple转成Map或自定义MapLike结构
+//                    Map<String, Object> tupleMap = new HashMap<>();
+//                    for (TupleElement<?> elem : tuple.getElements()) {
+//                        tupleMap.put(elem.getAlias(), tuple.get(elem));
+//                    }
+//                    // 动态代理生成接口实例
+//                    if(projectionClass.isInterface()){
+//                        return projectionFactory.createProjection(projectionClass, tupleMap);
+//                    }else{
+//                        return JsonUtils.getMapper().convertValue(tupleMap,projectionClass);
+//                    }
+//
+//                })
+//                .collect(Collectors.toList());
+//
+//        return PageableExecutionUtils.getPage(results, pageable, () -> {
+//            return this.getCountQuery(predicate, domainType()).getSingleResult();
+//        });
+//    }
+//
+//    @Override
+//    public <P> Page<P> findByProjection(Pageable pageable, String filter, Class<P> projectionClass) {
+//        CriteriaBuilder cb = em.getCriteriaBuilder();
+//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+//        Root<?> root = query.from(domainType());
+//        Predicate predicate = PredicateBuilder.buildPredicate(filter,cb,root);
+//        return findByProjection(pageable,predicate,projectionClass);
+//    }
+//
+//
+//    private <T> TypedQuery<Long> getCountQuery(Predicate predicate, Class<T> domainClass) {
+//        CriteriaBuilder cb = em.getCriteriaBuilder();
+//        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+//        Root<?> countRoot = countQuery.from(domainClass);
+//        countQuery.select(cb.count(countRoot));
+//        countQuery.where(predicate==null?cb.conjunction(): predicate);
+//        return em.createQuery(countQuery);
+//    }
+//
+//
+//    private String[] getPropertyNames(Class<?> projectionClass) {
+//        List<String> paths = extractPropertyPaths(projectionClass, "");
+//        System.out.println("Projection fields: " + Arrays.toString(paths.toArray(new String[0])));
+//        return paths.toArray(new String[0]);
+//    }
+//
+//    private List<String> extractPropertyPaths(Class<?> projectionClass, String prefix) {
+//        List<String> props = new ArrayList<>();
+//
+//        if (projectionClass.isInterface()) {
+//            for (Method method : projectionClass.getMethods()) {
+//                if (method.getParameterCount() != 0) continue;
+//                String methodName = method.getName();
+//                if (!(methodName.startsWith("get") || methodName.startsWith("is"))) continue;
+//
+//                String propName = methodName.startsWith("get")
+//                        ? methodName.substring(3)
+//                        : methodName.substring(2);
+//                propName = Character.toLowerCase(propName.charAt(0)) + propName.substring(1);
+//
+//                Class<?> returnType = method.getReturnType();
+//
+//                if (isJavaStandardType(returnType)) {
+//                    props.add(prefix + propName);
+//                } else {
+//                    // 递归处理嵌套对象
+//                    props.addAll(extractPropertyPaths(returnType, prefix + propName + "."));
+//                }
+//            }
+//        } else {
+//            // DTO类，直接字段，不递归（如果你需要，也可以实现）
+//            for (Field field : projectionClass.getDeclaredFields()) {
+//                props.add(prefix + field.getName());
+//            }
+//        }
+//
+//        return props;
+//    }
 
 }

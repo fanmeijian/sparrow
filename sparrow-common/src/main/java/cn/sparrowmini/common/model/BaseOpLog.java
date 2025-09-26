@@ -28,6 +28,11 @@ public abstract class BaseOpLog {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private String modifiedBy;
 
+	@JsonProperty("isAuthor")
+	public boolean isAuthor(){
+		return CurrentUser.get().equals(createdBy);
+	}
+
 	@PrePersist
 	private void preSave(){
 		this.createdBy = CurrentUser.get();

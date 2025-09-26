@@ -1,6 +1,8 @@
 package cn.sparrowmini.common.repository;
 
+import cn.sparrowmini.common.CurrentUser;
 import cn.sparrowmini.common.antlr.PredicateBuilder;
+import cn.sparrowmini.common.model.BaseOpLog_;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +45,16 @@ public interface BaseRepository<T, ID>
      */
     <S> Optional<S> findByIdProjection(ID id, Class<S> projectionClass);
 
+    <U> Page<U> findByProjection(Pageable pageable, String filter, Class<U> projectionClass);
+
+    <P> Page<P> findByProjection(Pageable pageable, Predicate predicate, Class<P> projectionClass);
+
+    <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass);
+
+    default Specification<T> isAuthor(){
+        return specificationEqual(BaseOpLog_.CREATED_BY, CurrentUser.get());
+    }
+
     /**
      * 根据条件返回projectClass的列表
      * 没有用jpa的findBy, 是因为jpa的findBy还是会先查出来所有的字段。
@@ -60,6 +72,8 @@ public interface BaseRepository<T, ID>
                 query -> query.as(projectionClass).page(pageable)
         );
     }
+
+
 //    <P> Page<P> findAllProjection(Pageable pageable, String filter, Class<P> projectionClass);
 
 
@@ -118,6 +132,24 @@ public interface BaseRepository<T, ID>
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
                 return PredicateBuilder.buildPredicate(filter, criteriaBuilder, root);
+            }
+        };
+    }
+
+    default Specification<T> specificationIn(String field, Collection<?> collection) {
+        return new Specification<T>() {
+            @Override
+            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+                return root.get(field).in(collection);
+            }
+        };
+    }
+
+    default Specification<T> specificationEqual(String field, Object value) {
+        return new Specification<T>() {
+            @Override
+            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+                return criteriaBuilder.equal(root.get(field),value);
             }
         };
     }
