@@ -257,21 +257,29 @@ public class DynamicProjectionHelper {
         return selections;
     }
 
+	// -------------------------
+// buildSelectionsV2 改造版
+// -------------------------
 	public static List<Selection<?>> buildSelectionsV2(
-			Class<?> entityType, CriteriaBuilder cb, From<?, ?> from,
-			Class<?> projectionType, String prefix, Map<String, From<?, ?>> joins) {
+			Class<?> entityType,
+			CriteriaBuilder cb,
+			From<?, ?> from,
+			Class<?> projectionType,
+			String prefix,
+			Map<String, From<?, ?>> joins) {
 
 		List<Selection<?>> selections = new ArrayList<>();
 
 		// 添加实体 ID
 		Field idField = findIdField(entityType);
-		String idName = idField.getName();
-		String alias = prefix.isEmpty() ? idName : prefix + "." + idName;
-		selections.add(from.get(idField.getName()).alias(alias));
+		if (idField != null) {
+			String idName = idField.getName();
+			String alias = prefix.isEmpty() ? idName : prefix + "." + idName;
+			selections.add(from.get(idName).alias(alias));
+		}
 
 		for (Field projField : projectionType.getDeclaredFields()) {
 			String name = projField.getName();
-
 			if (idField != null && name.equals(idField.getName())) continue;
 
 			Field domainField = getField(entityType, name);
@@ -287,28 +295,43 @@ public class DynamicProjectionHelper {
 				Class<?> elementType = getCollectionGenericClass(domainField);
 				String joinPath = makeAlias(prefix, name);
 				From<?, ?> join = joins.computeIfAbsent(joinPath, k -> from.join(name, JoinType.LEFT));
+
 				// 集合的投影递归处理
-				selections.addAll(buildSelections(
-						elementType, cb, join,
-						getCollectionElementProjectionClass(projField), joinPath, joins
+				selections.addAll(buildSelectionsV2(
+						elementType,
+						cb,
+						join,
+						getCollectionElementProjectionClass(projField, elementType),
+						joinPath,
+						joins
 				));
 				continue;
 			}
 
+			// ---------------------------
 			// 嵌入类型
+			// ---------------------------
 			if (isEmbedded(domainField) && !isAssociation(domainField)) {
 				selections.add(from.get(name).alias(fieldAlias));
 			}
+			// ---------------------------
 			// 关联实体
+			// ---------------------------
 			else if (isAssociation(domainField)) {
 				String joinPath = makeAlias(prefix, name);
 				From<?, ?> join = joins.computeIfAbsent(joinPath, k -> from.join(name, JoinType.LEFT));
-				selections.addAll(buildSelections(
-						domainFieldType, cb, join,
-						projField.getType(), joinPath, joins
+				selections.addAll(buildSelectionsV2(
+						domainFieldType,
+						cb,
+						join,
+						projField.getType(),
+						joinPath,
+						joins
 				));
 			}
+			// ---------------------------
 			// 普通标量字段
+			// ---------------------------
 			else if (isJavaStandardType(projField) || isJavaStandardType(domainField)) {
 				selections.add(from.get(name).alias(fieldAlias));
 			} else {
@@ -317,6 +340,58 @@ public class DynamicProjectionHelper {
 		}
 
 		return selections;
+	}
+
+	/**
+	 * 动态获取集合元素 DTO 类
+	 */
+	private static Class<?> getCollectionElementProjectionClass(Field projField, Class<?> elementType) {
+		// 如果 DTO 的集合泛型是接口或具体类，直接返回
+		if (projField.getGenericType() instanceof ParameterizedType pt) {
+			Type[] args = pt.getActualTypeArguments();
+			if (args.length == 1) {
+				Type t = args[0];
+				if (t instanceof Class<?> clazz) return clazz;
+			}
+		}
+		return elementType;
+	}
+
+	// -----------------------------
+// 根据泛型或 DTO 类型获取集合元素 Projection
+// -----------------------------
+	private static Class<?> getProjectionClass(Field collectionField, Class<?> elementType) {
+		Type genericType = collectionField.getGenericType();
+		if (genericType instanceof ParameterizedType paramType) {
+			Type[] typeArgs = paramType.getActualTypeArguments();
+			if (typeArgs.length == 1) {
+				Type argType = typeArgs[0];
+				if (argType instanceof Class<?> clazz) {
+					return clazz;
+				}
+			}
+		}
+		// fallback：返回元素类型本身
+		return elementType;
+	}
+
+	// -----------------------------
+// 获取集合元素类型
+// -----------------------------
+	private static Class<?> getCollectionElementType(Field f) {
+		Type genericType = f.getGenericType();
+		if (genericType instanceof ParameterizedType paramType) {
+			Type[] typeArgs = paramType.getActualTypeArguments();
+			if (typeArgs.length == 1) {
+				Type elementType = typeArgs[0];
+				if (elementType instanceof Class<?> clazz) {
+					return clazz;
+				} else if (elementType instanceof ParameterizedType pt) {
+					return (Class<?>) pt.getRawType();
+				}
+			}
+		}
+		return Object.class;
 	}
 
 	/**
@@ -538,6 +613,105 @@ public class DynamicProjectionHelper {
                     parentMap.put(collectionField.getName(), children);
                 }
             }
+
+
+		}
+	}
+
+	public static void loadCollectionsV2(List<Map<String, Object>> flatList, Class<?> domainClass,
+										Class<?> projectionClass, EntityManager em, Field domainIdField) {
+		ObjectMapper objectMapper = JsonUtils.getMapper();
+		String domainIdName = domainIdField.getName();
+		List<Object> ids = new ArrayList<>();
+
+		//保存主表的索引，key为主表id，value为主表对象
+		Map<Object, Map<String, Object>> idToMap = new LinkedHashMap<>();
+
+		for (Map<String, Object> m : flatList) {
+			Object id = m.get(domainIdName);
+			ids.add(id);
+			idToMap.put(id, m);
+		}
+
+		for (Field collectionField : projectionClass.getDeclaredFields()) {
+
+			if (!Collection.class.isAssignableFrom(collectionField.getType()))
+				continue;
+
+			Class<?> dtoChildType = extractGenericType(collectionField);
+			Field domainCollectionField = Arrays.stream(domainClass.getDeclaredFields())
+					.filter(f -> f.getName().equals(collectionField.getName())).findFirst()
+					.orElseThrow(() -> new IllegalArgumentException(
+							"Cannot find domain collection field for " + collectionField.getName()));
+
+			Class<?> entityChildType = (Class<?>) ((ParameterizedType) domainCollectionField.getGenericType())
+					.getActualTypeArguments()[0];
+
+
+			// ----------------------------
+			// 1) @ElementCollection
+			// ----------------------------
+			if (domainCollectionField.isAnnotationPresent(ElementCollection.class)) {
+				CriteriaBuilder cb = em.getCriteriaBuilder();
+				CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+				Root<?> parentRoot = cq.from(domainClass);
+				Join<?, ?> childJoin = parentRoot.join(domainCollectionField.getName(), JoinType.LEFT);
+
+				cq.multiselect(parentRoot.get(domainIdName).alias(domainIdName), childJoin);
+				cq.where(parentRoot.get(domainIdName).in(ids));
+
+				List<Tuple> rows = em.createQuery(cq).getResultList();
+//                Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+
+				Map<Object, List<Object>> grouped = new LinkedHashMap<>();
+
+				for (Tuple row : rows) {
+					Object parentId = row.get(domainIdName);
+					Object child = row.get(1); // 第二列是 childJoin
+					if (child != null) {
+						if(isJavaStandardType(entityChildType)){
+							grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(child);
+						}else{
+							Map<String, Object> childMap = objectMapper.convertValue(child, Map.class);
+							grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childMap);
+						}
+
+					}
+				}
+
+				for (Map.Entry<Object, Map<String, Object>> entry : idToMap.entrySet()) {
+					entry.getValue().put(collectionField.getName(),
+							grouped.getOrDefault(entry.getKey(), List.of()));
+				}
+			}else {
+				Field manyToOneField = findManyToOneField(entityChildType, domainClass);
+				String parentIdName = domainIdName;
+
+				// 子表查询
+				CriteriaBuilder cb = em.getCriteriaBuilder();
+				CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+				Root<?> childRoot = cq.from(entityChildType);
+
+				cq.multiselect(childRoot, childRoot.get(manyToOneField.getName()).get(parentIdName).alias(parentIdName));
+				cq.where(childRoot.get(manyToOneField.getName()).get(parentIdName).in(ids));
+
+				List<Tuple> childTuples = em.createQuery(cq).getResultList();
+
+				Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+				for (Tuple t : childTuples) {
+					Object parentId = t.get(parentIdName);
+					Map<String, Object> childMap = objectMapper.convertValue(t.get(0), Map.class);
+					grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(childMap);
+				}
+
+				// 填充到父 Map
+				for (Map.Entry<Object, Map<String, Object>> entry : idToMap.entrySet()) {
+					Object id = entry.getKey();
+					Map<String, Object> parentMap = entry.getValue();
+					List<Map<String, Object>> children = grouped.getOrDefault(id, List.of());
+					parentMap.put(collectionField.getName(), children);
+				}
+			}
 
 
 		}

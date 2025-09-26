@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.lang.NonNull;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 @NoRepositoryBean
@@ -168,4 +169,7 @@ public interface BaseRepository<T, ID>
 
     @NonNull
     String idFieldName();
+
+    @NonNull
+    Field idField();
 }

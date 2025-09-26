@@ -2,15 +2,13 @@ package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.antlr.PredicateBuilder;
 import cn.sparrowmini.common.util.JsonUtils;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TupleElement;
-import jakarta.persistence.TypedQuery;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.reflections.ReflectionUtils;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -22,7 +20,10 @@ import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BaseRepositoryImpl<T, ID>
@@ -72,6 +73,17 @@ public class BaseRepositoryImpl<T, ID>
                 .orElseThrow(() -> new IllegalStateException("No @Id field found"));
     }
 
+    @Override
+    @NonNull
+    public Field idField() {
+        final Class<T> entityClass = domainType();
+        for (Field f : ReflectionUtils.getAllFields(entityClass)) {
+            if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(EmbeddedId.class)) {
+                return f;
+            }
+        }
+        throw new RuntimeException("找不到ID字段: " + entityClass.getName());
+    }
 
     @Override
     public <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass) {
@@ -98,6 +110,9 @@ public class BaseRepositoryImpl<T, ID>
         return findByProjectionInternal(pageable, spec, predicate, projectionClass, null);
     }
 
+    /**
+     * 主方法：分页查询 + 动态 DTO 投影 + 集合递归
+     */
     private <P> Page<P> findByProjectionInternal(Pageable pageable,
                                                  Specification<T> spec,
                                                  Predicate predicate,
@@ -114,7 +129,7 @@ public class BaseRepositoryImpl<T, ID>
                 : cb.conjunction();
 
         // 构建 select 投影字段
-        List<Selection<?>> selections = DynamicProjectionHelper.buildSelectionsV2(
+        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(
                 domainType(), cb, root, projectionClass, "", new HashMap<>()
         );
         query.multiselect(selections);
@@ -133,69 +148,53 @@ public class BaseRepositoryImpl<T, ID>
         }
 
         List<Tuple> tuples = typedQuery.getResultList();
+        final List<P> finalResult = new ArrayList<>();
+        // 转换成 DTO，支持嵌套对象，这个为主表的对象，不含子集合的查询，但是对于非集合，则直接join出来了
+        List<Map<String,Object>> results = tuples.stream()
+                .map(tuple -> {
+                    Map<String, Object> tupleMap = new HashMap<>();
+                    Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
 
-        // -------------------------
-        // 聚合主表 + 嵌套对象 + 集合
-        // -------------------------
-        Map<Object, P> aggregated = new LinkedHashMap<>();
-        String idField = "id"; // 主表 ID 字段名，根据情况修改
+                    for (TupleElement<?> elem : tuple.getElements()) {
+                        String alias = elem.getAlias();
+                        Object value = tuple.get(elem);
 
-        for (Tuple tuple : tuples) {
-            Object mainId = tuple.get(idField);
-            P dto = aggregated.computeIfAbsent(mainId, k -> {
-                Map<String, Object> baseMap = new HashMap<>();
-                tuple.getElements().forEach(e -> {
-                    String alias = e.getAlias();
-                    if (!alias.contains(".")) {
-                        baseMap.put(alias, tuple.get(e));
-                    }
-                });
-                if (projectionClass.isInterface()) {
-                    return projectionFactory.createProjection(projectionClass, baseMap);
-                } else {
-                    return JsonUtils.getMapper().convertValue(baseMap, projectionClass);
-                }
-            });
-
-            // 处理嵌套对象
-            Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
-            tuple.getElements().forEach(e -> {
-                String alias = e.getAlias();
-                Object value = tuple.get(e);
-                if (alias.contains(".")) {
-                    String[] parts = alias.split("\\.", 2);
-                    nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
-                            .put(parts[1], value);
-                }
-            });
-
-            nestedMaps.forEach((prop, map) -> {
-                try {
-                    Field f = projectionClass.getDeclaredField(prop);
-                    f.setAccessible(true);
-                    Object nestedValue;
-                    if (Collection.class.isAssignableFrom(f.getType())) {
-                        Collection<Object> coll = (Collection<Object>) f.get(dto);
-                        if (coll == null) {
-                            coll = new LinkedHashSet<>();
-                            f.set(dto, coll);
+                        if (alias.contains(".")) {
+                            String[] parts = alias.split("\\.", 2);
+                            nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
+                                    .put(parts[1], value);
+                        } else {
+                            tupleMap.put(alias, value);
                         }
-                        Object element = JsonUtils.getMapper().convertValue(map, getCollectionGenericClass(f));
-                        coll.add(element);
-                    } else {
-                        nestedValue = JsonUtils.getMapper().convertValue(map, f.getType());
-                        f.set(dto, nestedValue);
                     }
-                } catch (NoSuchFieldException | IllegalAccessException ignored) {
-                }
-            });
+
+                    nestedMaps.forEach(tupleMap::put);
+                    if(projectionClass.isInterface()){
+                        finalResult.add(projectionFactory.createProjection(projectionClass, tupleMap));
+                    }
+                    return tupleMap;
+                })
+                .collect(Collectors.toList());
+
+        //递归处理含有子集合的数据
+        if(!projectionClass.isInterface()){
+            boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
+                    .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
+
+            if (hasCollectionField) {
+                // ----------------------------
+                // Step 3: 加载集合字段
+                // ----------------------------
+                DynamicProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
+            }
+            ObjectMapper mapper = JsonUtils.getMapper();
+            JavaType type = mapper.getTypeFactory().constructCollectionType(List.class, projectionClass);
+            List<P> list = mapper.convertValue(results, type);
+            finalResult.addAll(list);
         }
 
-        List<P> results = new ArrayList<>(aggregated.values());
 
-        // -------------------------
         // Count 查询
-        // -------------------------
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<T> countRoot = countQuery.from(domainType());
         Predicate countPredicate = spec != null ? spec.toPredicate(countRoot, countQuery, cb)
@@ -206,21 +205,162 @@ public class BaseRepositoryImpl<T, ID>
         countQuery.where(countPredicate);
         TypedQuery<Long> countTypedQuery = em.createQuery(countQuery);
 
-        return PageableExecutionUtils.getPage(results, pageable, countTypedQuery::getSingleResult);
+        return PageableExecutionUtils.getPage(finalResult, pageable, countTypedQuery::getSingleResult);
     }
 
-    // -------------------------
-// 工具方法：获取集合泛型
-// -------------------------
-    @SuppressWarnings("unchecked")
-    private static Class<?> getCollectionGenericClass(Field field) {
-        try {
-            return (Class<?>) ((java.lang.reflect.ParameterizedType) field.getGenericType())
-                    .getActualTypeArguments()[0];
-        } catch (Exception e) {
-            throw new IllegalStateException("无法获取集合泛型类型: " + field.getName(), e);
+
+
+    /**
+     * 递归填充集合关联字段
+     */
+    private <E> void populateCollectionField(Map<Object, E> parentEntities, Field collectionField,
+                                             Map<Class<?>, Map<Object, List<?>>> cache) {
+        Class<?> elementType = getCollectionGenericClass(collectionField);
+        if (parentEntities.isEmpty()) return;
+
+        List<Object> parentIds = parentEntities.keySet().stream().toList();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<?> query = cb.createQuery(elementType);
+        Root<?> root = query.from(elementType);
+
+        Field parentRefField = findParentReferenceField(elementType, collectionField.getDeclaringClass());
+        query.where(root.get(parentRefField.getName()).in(parentIds));
+        List<?> children = em.createQuery(query).getResultList();
+
+//        Map<Object, List<?>> grouped = children.stream()
+//                .collect(Collectors.groupingBy(c -> getFieldValue(c, parentRefField), LinkedHashMap::new, Collectors.toList()));
+        var grouped = children.stream()
+                .collect(Collectors.groupingBy(
+                        c -> getFieldValue(c, parentRefField),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        // 递归子集合
+        for (Field f : elementType.getDeclaredFields()) {
+            if (Collection.class.isAssignableFrom(f.getType()) && isAssociation(f)) {
+                populateCollectionField(grouped, f, cache);
+            }
         }
     }
+
+    /**
+     * 通过反射获取字段值，支持复合ID
+     */
+    private Object getFieldValue(Object entity, Field field) {
+        try {
+            field.setAccessible(true);
+            Object val = field.get(entity);
+            if (val == null) return null;
+
+            // 复合ID
+            if (isCompositeId(val.getClass())) {
+                Map<String, Object> map = new LinkedHashMap<>();
+                for (Field sub : val.getClass().getDeclaredFields()) {
+                    sub.setAccessible(true);
+                    map.put(sub.getName(), sub.get(val));
+                }
+                // 转为字符串 key
+                return map.toString();
+            }
+
+            // 如果是实体对象，则取其 ID 字段
+            if (isEntity(val.getClass())) {
+                Field idField = findIdField(val.getClass());
+                return getFieldValue(val, idField);
+            }
+
+            return val;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isEntity(Class<?> clazz) {
+        return clazz.isAnnotationPresent(Entity.class);
+    }
+
+    private boolean isCompositeId(Class<?> clazz) {
+        return Arrays.stream(clazz.getDeclaredFields())
+                .anyMatch(f -> !f.getName().equals("serialVersionUID"));
+    }
+
+    /**
+     * 查找实体主键字段
+     */
+    private Field findIdField(Class<?> entityClass) {
+       for (Field f : ReflectionUtils.getAllFields(entityClass)) {
+            if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(EmbeddedId.class)) {
+                return f;
+            }
+        }
+        throw new RuntimeException("找不到ID字段: " + entityClass.getName());
+    }
+
+    /**
+     * 获取集合泛型类型
+     */
+    private Class<?> getCollectionGenericClass(Field f) {
+        Type genericType = f.getGenericType();
+        if (genericType instanceof ParameterizedType pt) {
+            Type[] args = pt.getActualTypeArguments();
+            if (args.length == 1) {
+                return (Class<?>) args[0];
+            }
+        }
+        return Object.class;
+    }
+
+    /**
+     * 动态推断 DTO 集合元素类型
+     */
+    private Class<?> getCollectionElementProjectionClass(Field f) {
+        // 尝试使用注解或命名规则，若找不到则默认 Object.class
+        // 可根据需要扩展，比如 @DtoClass 注解
+        return getCollectionGenericClass(f);
+    }
+
+    /**
+     * 判断是否关联字段（@ManyToOne / @OneToMany / @OneToOne / @ManyToMany）
+     */
+    private boolean isAssociation(Field f) {
+        return f.isAnnotationPresent(OneToMany.class)
+                || f.isAnnotationPresent(ManyToOne.class)
+                || f.isAnnotationPresent(OneToOne.class)
+                || f.isAnnotationPresent(ManyToMany.class);
+    }
+
+    /**
+     * 查找子表关联回父表的字段
+     */
+    private Field findParentReferenceField(Class<?> childClass, Class<?> parentClass) {
+        for (Field f : childClass.getDeclaredFields()) {
+            if (f.getType().equals(parentClass) && isAssociation(f)) {
+                return f;
+            }
+        }
+        throw new RuntimeException("找不到子表回父表的关联字段: " + childClass.getName());
+    }
+
+    // -----------------------------
+// 泛型反射动态获取集合元素类型
+// -----------------------------
+    private Class<?> getCollectionElementType(Field f) {
+        Type genericType = f.getGenericType();
+        if (genericType instanceof ParameterizedType paramType) {
+            Type[] typeArgs = paramType.getActualTypeArguments();
+            if (typeArgs.length == 1) {
+                Type elementType = typeArgs[0];
+                if (elementType instanceof Class<?> clazz) {
+                    return clazz;
+                } else if (elementType instanceof ParameterizedType pt) {
+                    return (Class<?>) pt.getRawType(); // 支持嵌套泛型
+                }
+            }
+        }
+        return Object.class;
+    }
+
 
 
 
