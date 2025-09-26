@@ -263,7 +263,7 @@ public class DynamicProjectionHelper {
 
 		List<Selection<?>> selections = new ArrayList<>();
 
-		// 仅当当前 from 对应的是实体时，才考虑添加它的 id
+		// 添加实体 ID
 		Field idField = findIdField(entityType);
 		String idName = idField.getName();
 		String alias = prefix.isEmpty() ? idName : prefix + "." + idName;
@@ -272,49 +272,70 @@ public class DynamicProjectionHelper {
 		for (Field projField : projectionType.getDeclaredFields()) {
 			String name = projField.getName();
 
-			// 如果已经通过上面的 id 处理覆盖了，就跳过
-			if (idField != null && name.equals(idField.getName())) {
-				continue;
-			}
+			if (idField != null && name.equals(idField.getName())) continue;
 
-			// 在实体上找同名的 domain 字段（为了知道它是关联、嵌入还是普通列）
 			Field domainField = getField(entityType, name);
-			if(domainField==null){
-				continue;
-			}
+			if (domainField == null) continue;
 
-			Class<?> domainFieldType = (domainField != null) ? domainField.getType() : null;
-
-			// 集合跳过（你的原逻辑）
-			if (domainFieldType != null && Collection.class.isAssignableFrom(domainFieldType)) {
-				continue;
-			}
-
+			Class<?> domainFieldType = domainField.getType();
 			String fieldAlias = makeAlias(prefix, name);
 
-			if (domainField != null && isEmbedded(domainField) && !isAssociation(domainField)) {
-				// 嵌入类型：不能 join，但JPA可以直接处理
+			// ---------------------------
+			// 集合字段处理
+			// ---------------------------
+			if (Collection.class.isAssignableFrom(domainFieldType)) {
+				Class<?> elementType = getCollectionGenericClass(domainField);
+				String joinPath = makeAlias(prefix, name);
+				From<?, ?> join = joins.computeIfAbsent(joinPath, k -> from.join(name, JoinType.LEFT));
+				// 集合的投影递归处理
+				selections.addAll(buildSelections(
+						elementType, cb, join,
+						getCollectionElementProjectionClass(projField), joinPath, joins
+				));
+				continue;
+			}
+
+			// 嵌入类型
+			if (isEmbedded(domainField) && !isAssociation(domainField)) {
 				selections.add(from.get(name).alias(fieldAlias));
-			} else if (domainField != null && isAssociation(domainField)) {
-				// 关联实体：LEFT JOIN 然后递归（注意把 entityType 换成关联实体类型）
+			}
+			// 关联实体
+			else if (isAssociation(domainField)) {
 				String joinPath = makeAlias(prefix, name);
 				From<?, ?> join = joins.computeIfAbsent(joinPath, k -> from.join(name, JoinType.LEFT));
 				selections.addAll(buildSelections(
 						domainFieldType, cb, join,
-						projField.getType(), joinPath, joins));
+						projField.getType(), joinPath, joins
+				));
+			}
+			// 普通标量字段
+			else if (isJavaStandardType(projField) || isJavaStandardType(domainField)) {
+				selections.add(from.get(name).alias(fieldAlias));
 			} else {
-				// 普通标量字段，或实体里找不到对应字段但 projection 是标量 —— 直接取 get(name)
-				if (isJavaStandardType(projField) || (domainField != null && isJavaStandardType(domainField))) {
-					selections.add(from.get(name).alias(fieldAlias));
-				} else {
-					// 容错：如果既不是标量也不是已知关联/嵌入，避免误 join/误 get 带来异常
-					// 你也可以在这里记录一下日志便于排查
-					log.info("不处理的字段 {}", name);
-				}
+				log.info("不处理的字段 {}", name);
 			}
 		}
 
 		return selections;
+	}
+
+	/**
+	 * 获取集合字段的泛型
+	 */
+	private static Class<?> getCollectionGenericClass(Field field) {
+		try {
+			return (Class<?>) ((java.lang.reflect.ParameterizedType) field.getGenericType())
+					.getActualTypeArguments()[0];
+		} catch (Exception e) {
+			throw new IllegalStateException("无法获取集合泛型类型: " + field.getName(), e);
+		}
+	}
+
+	/**
+	 * 获取集合元素的投影类，如果 DTO 里是 Set<TouPiaoOptionDto>，返回 TouPiaoOptionDto.class
+	 */
+	private static Class<?> getCollectionElementProjectionClass(Field projField) {
+		return getCollectionGenericClass(projField);
 	}
 
     private static Field getField(Class<?> type, String name) {

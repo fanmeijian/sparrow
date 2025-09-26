@@ -114,7 +114,7 @@ public class BaseRepositoryImpl<T, ID>
                 : cb.conjunction();
 
         // 构建 select 投影字段
-        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(
+        List<Selection<?>> selections = DynamicProjectionHelper.buildSelectionsV2(
                 domainType(), cb, root, projectionClass, "", new HashMap<>()
         );
         query.multiselect(selections);
@@ -134,36 +134,68 @@ public class BaseRepositoryImpl<T, ID>
 
         List<Tuple> tuples = typedQuery.getResultList();
 
-        // 转换成 DTO，支持嵌套对象
-        List<P> results = tuples.stream()
-                .map(tuple -> {
-                    Map<String, Object> tupleMap = new HashMap<>();
-                    Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
+        // -------------------------
+        // 聚合主表 + 嵌套对象 + 集合
+        // -------------------------
+        Map<Object, P> aggregated = new LinkedHashMap<>();
+        String idField = "id"; // 主表 ID 字段名，根据情况修改
 
-                    for (TupleElement<?> elem : tuple.getElements()) {
-                        String alias = elem.getAlias();
-                        Object value = tuple.get(elem);
+        for (Tuple tuple : tuples) {
+            Object mainId = tuple.get(idField);
+            P dto = aggregated.computeIfAbsent(mainId, k -> {
+                Map<String, Object> baseMap = new HashMap<>();
+                tuple.getElements().forEach(e -> {
+                    String alias = e.getAlias();
+                    if (!alias.contains(".")) {
+                        baseMap.put(alias, tuple.get(e));
+                    }
+                });
+                if (projectionClass.isInterface()) {
+                    return projectionFactory.createProjection(projectionClass, baseMap);
+                } else {
+                    return JsonUtils.getMapper().convertValue(baseMap, projectionClass);
+                }
+            });
 
-                        if (alias.contains(".")) {
-                            String[] parts = alias.split("\\.", 2);
-                            nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
-                                    .put(parts[1], value);
-                        } else {
-                            tupleMap.put(alias, value);
+            // 处理嵌套对象
+            Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
+            tuple.getElements().forEach(e -> {
+                String alias = e.getAlias();
+                Object value = tuple.get(e);
+                if (alias.contains(".")) {
+                    String[] parts = alias.split("\\.", 2);
+                    nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
+                            .put(parts[1], value);
+                }
+            });
+
+            nestedMaps.forEach((prop, map) -> {
+                try {
+                    Field f = projectionClass.getDeclaredField(prop);
+                    f.setAccessible(true);
+                    Object nestedValue;
+                    if (Collection.class.isAssignableFrom(f.getType())) {
+                        Collection<Object> coll = (Collection<Object>) f.get(dto);
+                        if (coll == null) {
+                            coll = new LinkedHashSet<>();
+                            f.set(dto, coll);
                         }
-                    }
-
-                    nestedMaps.forEach(tupleMap::put);
-
-                    if (projectionClass.isInterface()) {
-                        return projectionFactory.createProjection(projectionClass, tupleMap);
+                        Object element = JsonUtils.getMapper().convertValue(map, getCollectionGenericClass(f));
+                        coll.add(element);
                     } else {
-                        return JsonUtils.getMapper().convertValue(tupleMap, projectionClass);
+                        nestedValue = JsonUtils.getMapper().convertValue(map, f.getType());
+                        f.set(dto, nestedValue);
                     }
-                })
-                .collect(Collectors.toList());
+                } catch (NoSuchFieldException | IllegalAccessException ignored) {
+                }
+            });
+        }
 
+        List<P> results = new ArrayList<>(aggregated.values());
+
+        // -------------------------
         // Count 查询
+        // -------------------------
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<T> countRoot = countQuery.from(domainType());
         Predicate countPredicate = spec != null ? spec.toPredicate(countRoot, countQuery, cb)
@@ -175,6 +207,19 @@ public class BaseRepositoryImpl<T, ID>
         TypedQuery<Long> countTypedQuery = em.createQuery(countQuery);
 
         return PageableExecutionUtils.getPage(results, pageable, countTypedQuery::getSingleResult);
+    }
+
+    // -------------------------
+// 工具方法：获取集合泛型
+// -------------------------
+    @SuppressWarnings("unchecked")
+    private static Class<?> getCollectionGenericClass(Field field) {
+        try {
+            return (Class<?>) ((java.lang.reflect.ParameterizedType) field.getGenericType())
+                    .getActualTypeArguments()[0];
+        } catch (Exception e) {
+            throw new IllegalStateException("无法获取集合泛型类型: " + field.getName(), e);
+        }
     }
 
 
