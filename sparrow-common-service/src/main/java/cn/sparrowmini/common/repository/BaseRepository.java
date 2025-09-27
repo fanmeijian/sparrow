@@ -6,10 +6,7 @@ import cn.sparrowmini.common.model.BaseOpLog_;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.domain.Page;
@@ -52,7 +49,7 @@ public interface BaseRepository<T, ID>
 
     <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass);
 
-    default Specification<T> isAuthor(){
+    default Specification<T> isAuthor() {
         return specificationEqual(BaseOpLog_.CREATED_BY, CurrentUser.get());
     }
 
@@ -110,7 +107,7 @@ public interface BaseRepository<T, ID>
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException("Patch更新失败" + e.getOriginalMessage(), e);
                     }
-                }else{
+                } else {
                     T newEntity = mapper.convertValue(entityMap, domainType());
                     entities.add(newEntity);
                 }
@@ -138,20 +135,25 @@ public interface BaseRepository<T, ID>
     }
 
     default Specification<T> specificationIn(String field, Collection<?> collection) {
-        return new Specification<T>() {
-            @Override
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                return root.get(field).in(collection);
+        return (root, query, cb) -> {
+            Path<?> path = root;
+            // 支持 a.b.c 形式的路径
+            for (String part : field.split("\\.")) {
+                path = path.get(part);
             }
+            return path.in(collection);
         };
     }
 
+
     default Specification<T> specificationEqual(String field, Object value) {
-        return new Specification<T>() {
-            @Override
-            public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                return criteriaBuilder.equal(root.get(field),value);
+        return (root, query, cb) -> {
+            Path<?> path = root;
+            // 支持 a.b.c 形式的路径
+            for (String part : field.split("\\.")) {
+                path = path.get(part);
             }
+            return cb.equal(path, value);
         };
     }
 

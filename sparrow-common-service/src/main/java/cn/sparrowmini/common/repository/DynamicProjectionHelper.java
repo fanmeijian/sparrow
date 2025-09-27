@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.repository;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -213,7 +214,7 @@ public class DynamicProjectionHelper {
             String name = projField.getName();
 
             // 如果已经通过上面的 id 处理覆盖了，就跳过
-            if (idField != null && name.equals(idField.getName())) {
+            if (name.equals(idField.getName())) {
                 continue;
             }
 
@@ -223,19 +224,19 @@ public class DynamicProjectionHelper {
 				continue;
 			}
 
-            Class<?> domainFieldType = (domainField != null) ? domainField.getType() : null;
+            Class<?> domainFieldType = domainField.getType();
 
             // 集合跳过（你的原逻辑）
-            if (domainFieldType != null && Collection.class.isAssignableFrom(domainFieldType)) {
+            if (Collection.class.isAssignableFrom(domainFieldType)) {
                 continue;
             }
 
             String fieldAlias = makeAlias(prefix, name);
 
-            if (domainField != null && isEmbedded(domainField) && !isAssociation(domainField)) {
+            if (isEmbedded(domainField) && !isAssociation(domainField)) {
                 // 嵌入类型：不能 join，但JPA可以直接处理
                 selections.add(from.get(name).alias(fieldAlias));
-            } else if (domainField != null && isAssociation(domainField)) {
+            } else if (isAssociation(domainField)) {
                 // 关联实体：LEFT JOIN 然后递归（注意把 entityType 换成关联实体类型）
                 String joinPath = makeAlias(prefix, name);
                 From<?, ?> join = joins.computeIfAbsent(joinPath, k -> from.join(name, JoinType.LEFT));
@@ -244,7 +245,7 @@ public class DynamicProjectionHelper {
                         projField.getType(), joinPath, joins));
             } else {
                 // 普通标量字段，或实体里找不到对应字段但 projection 是标量 —— 直接取 get(name)
-                if (isJavaStandardType(projField) || (domainField != null && isJavaStandardType(domainField))) {
+                if ( isValidField(domainField) && ( isJavaStandardType(projField) || isJavaStandardType(domainField))) {
                     selections.add(from.get(name).alias(fieldAlias));
                 } else {
                     // 容错：如果既不是标量也不是已知关联/嵌入，避免误 join/误 get 带来异常
@@ -257,6 +258,28 @@ public class DynamicProjectionHelper {
         return selections;
     }
 
+    /**
+     * 不为NULL，且不是TRANSIENT，也不是FINAL STATIC
+     * @param field
+     * @return
+     */
+    private static boolean isValidField(Field field) {
+        if(field == null){
+            return false;
+        }
+
+        if(field.isAnnotationPresent(Transient.class)){
+            return false;
+        }
+
+
+        int modifiers = field.getModifiers();
+        if(Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)){
+            return false;
+        }
+
+        return true;
+    }
 	// -------------------------
 // buildSelectionsV2 改造版
 // -------------------------
