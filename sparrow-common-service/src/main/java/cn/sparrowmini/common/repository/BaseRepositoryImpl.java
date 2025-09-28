@@ -1,7 +1,9 @@
 package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.antlr.PredicateBuilder;
+import cn.sparrowmini.common.model.BaseState;
 import cn.sparrowmini.common.util.JsonUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -89,6 +92,7 @@ public class BaseRepositoryImpl<T, ID>
     public <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass) {
         return findByProjectionInternal(pageable, spec, null, projectionClass);
     }
+
 
     @Override
     public <P> Page<P> findByProjection(Pageable pageable, Predicate predicate, Class<P> projectionClass) {
@@ -361,156 +365,118 @@ public class BaseRepositoryImpl<T, ID>
         return Object.class;
     }
 
+    @Override
+    public List<ID> upsert(List<Map<String, Object>> entitiesMap) {
+        ObjectMapper mapper = JsonUtils.getMapper();
+        List<T> entities = new ArrayList<>();
+
+        entitiesMap.forEach(entityMap -> {
+            String idFieldName = idFieldName();
+            Object idRaw = entityMap.get(idFieldName);
+            Class<ID> idClass = idType();
+            T entity;
+
+            if (idRaw != null) {
+                ID id = mapper.convertValue(idRaw, idClass);
+                if (existsById(id)) {
+                    Map<String, Object> patchCopy = new HashMap<>(entityMap);
+                    patchCopy.remove(idFieldName);
+                    entity = getReferenceById(id);
+                    try {
+                        mapper.readerForUpdating(entity)
+                                .readValue(mapper.writeValueAsString(patchCopy));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException("Patch更新失败 " + e.getOriginalMessage(), e);
+                    }
+                } else {
+                    entity = mapper.convertValue(entityMap, domainType());
+                }
+            } else {
+                entity = mapper.convertValue(entityMap, domainType());
+            }
+
+            // 🔑 递归处理关联
+            handleRelations(entity, entityMap, mapper);
+
+            entities.add(entity);
+        });
+
+        saveAll(entities);
+        return entities.stream().map(this::getId).toList();
+    }
 
 
 
-//
-//    private <P> TypedQuery<Tuple> buildQuery(Class<P> projectionClass, Pageable pageable,@NonNull Predicate predicate) {
-//        CriteriaBuilder cb = em.getCriteriaBuilder();
-//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
-//        Root<?> root = query.from(domainType());
-//
-//        return buildQuery(projectionClass,pageable,cb,root,predicate);
-//    }
-//
-//    private <P> TypedQuery<Tuple> buildQuery(Class<P> projectionClass, Pageable pageable,CriteriaBuilder cb,Root<?> root,@NonNull Predicate predicate) {
-//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
-//
-//        // 构建select投影字段
-//
-//        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(domainType(), cb, root, projectionClass, "", new HashMap<>());
-//        query.multiselect(selections);
-//        query.where(predicate);
-//
-//        // 排序
-//        Sort sort = pageable.getSort();
-//        if (sort.isSorted()) {
-//            query.orderBy(QueryUtils.toOrders(sort, root, cb));
-//        }
-//
-//        return em.createQuery(query);
-//    }
-//
-//
-//    private static boolean isJavaStandardType(Class<?> clazz) {
-//        final Set<Class<?>> JAVA_TIME_TYPES = Set.of(
-//                java.time.LocalDate.class,
-//                java.time.LocalDateTime.class,
-//                java.time.OffsetDateTime.class,
-//                java.time.Instant.class,
-//                java.time.ZonedDateTime.class,
-//                java.time.OffsetTime.class,
-//                java.time.LocalTime.class,
-//                java.time.Duration.class,
-//                java.time.Period.class
-//        );
-//        return clazz.isPrimitive()
-//                || clazz.getName().startsWith("java.lang.")
-//                || clazz.equals(String.class)
-//                || Number.class.isAssignableFrom(clazz)
-//                || Date.class.isAssignableFrom(clazz)
-//                || clazz.isEnum()
-//                || JAVA_TIME_TYPES.contains(clazz);
-//    }
-//
-//    @Override
-//    public <P> Page<P> findByProjection(Pageable pageable, Specification<T> spec, Class<P> projectionClass){
-//        CriteriaBuilder cb = em.getCriteriaBuilder();
-//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
-//        Root<T> root = query.from(domainType());
-//        return findByProjection(pageable,spec==null?cb.conjunction(): spec.toPredicate(root, query, cb),projectionClass);
-//    }
-//
-//    @Override
-//    public <P> Page<P> findByProjection(Pageable pageable, Predicate predicate, Class<P> projectionClass) {
-//
-//        TypedQuery<Tuple> query = buildQuery(projectionClass, pageable, predicate);
-//        if (pageable.isPaged()) {
-//            query.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
-//            query.setMaxResults(pageable.getPageSize());
-//        }
-//
-//        List<Tuple> tuples = query.getResultList();
-//
-//        List<P> results = tuples.stream()
-//                .map(tuple -> {
-//                    // 把Tuple转成Map或自定义MapLike结构
-//                    Map<String, Object> tupleMap = new HashMap<>();
-//                    for (TupleElement<?> elem : tuple.getElements()) {
-//                        tupleMap.put(elem.getAlias(), tuple.get(elem));
-//                    }
-//                    // 动态代理生成接口实例
-//                    if(projectionClass.isInterface()){
-//                        return projectionFactory.createProjection(projectionClass, tupleMap);
-//                    }else{
-//                        return JsonUtils.getMapper().convertValue(tupleMap,projectionClass);
-//                    }
-//
-//                })
-//                .collect(Collectors.toList());
-//
-//        return PageableExecutionUtils.getPage(results, pageable, () -> {
-//            return this.getCountQuery(predicate, domainType()).getSingleResult();
-//        });
-//    }
-//
-//    @Override
-//    public <P> Page<P> findByProjection(Pageable pageable, String filter, Class<P> projectionClass) {
-//        CriteriaBuilder cb = em.getCriteriaBuilder();
-//        CriteriaQuery<Tuple> query = cb.createTupleQuery();
-//        Root<?> root = query.from(domainType());
-//        Predicate predicate = PredicateBuilder.buildPredicate(filter,cb,root);
-//        return findByProjection(pageable,predicate,projectionClass);
-//    }
-//
-//
-//    private <T> TypedQuery<Long> getCountQuery(Predicate predicate, Class<T> domainClass) {
-//        CriteriaBuilder cb = em.getCriteriaBuilder();
-//        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-//        Root<?> countRoot = countQuery.from(domainClass);
-//        countQuery.select(cb.count(countRoot));
-//        countQuery.where(predicate==null?cb.conjunction(): predicate);
-//        return em.createQuery(countQuery);
-//    }
-//
-//
-//    private String[] getPropertyNames(Class<?> projectionClass) {
-//        List<String> paths = extractPropertyPaths(projectionClass, "");
-//        System.out.println("Projection fields: " + Arrays.toString(paths.toArray(new String[0])));
-//        return paths.toArray(new String[0]);
-//    }
-//
-//    private List<String> extractPropertyPaths(Class<?> projectionClass, String prefix) {
-//        List<String> props = new ArrayList<>();
-//
-//        if (projectionClass.isInterface()) {
-//            for (Method method : projectionClass.getMethods()) {
-//                if (method.getParameterCount() != 0) continue;
-//                String methodName = method.getName();
-//                if (!(methodName.startsWith("get") || methodName.startsWith("is"))) continue;
-//
-//                String propName = methodName.startsWith("get")
-//                        ? methodName.substring(3)
-//                        : methodName.substring(2);
-//                propName = Character.toLowerCase(propName.charAt(0)) + propName.substring(1);
-//
-//                Class<?> returnType = method.getReturnType();
-//
-//                if (isJavaStandardType(returnType)) {
-//                    props.add(prefix + propName);
-//                } else {
-//                    // 递归处理嵌套对象
-//                    props.addAll(extractPropertyPaths(returnType, prefix + propName + "."));
-//                }
-//            }
-//        } else {
-//            // DTO类，直接字段，不递归（如果你需要，也可以实现）
-//            for (Field field : projectionClass.getDeclaredFields()) {
-//                props.add(prefix + field.getName());
-//            }
-//        }
-//
-//        return props;
-//    }
+    /**
+     * 递归处理关联字段
+     */
+    private void handleRelations(Object entity, Map<String, Object> entityMap, ObjectMapper mapper) {
+        for (Field field : entity.getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(OneToMany.class)) {
+                Object raw = entityMap.get(field.getName());
+                if (raw instanceof Collection<?> rawChildren) {
+                    ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+                    Class<?> childType = (Class<?>) genericType.getActualTypeArguments()[0];
+
+                    Collection<Object> children = new ArrayList<>();
+                    for (Object childMap : rawChildren) {
+                        if (!(childMap instanceof Map)) continue;
+                        Object child = mapper.convertValue(childMap, childType);
+
+                        // 设置反向关系
+                        OneToMany oneToMany = field.getAnnotation(OneToMany.class);
+                        if (!oneToMany.mappedBy().isEmpty()) {
+                            try {
+                                Field backRef = childType.getDeclaredField(oneToMany.mappedBy());
+                                backRef.setAccessible(true);
+                                backRef.set(child, entity);
+                            } catch (NoSuchFieldException | IllegalAccessException e) {
+                                throw new RuntimeException("设置反向关联失败", e);
+                            }
+                        }
+                        children.add(child);
+                    }
+
+                    try {
+                        field.setAccessible(true);
+                        if (Set.class.isAssignableFrom(field.getType())) {
+                            field.set(entity, new HashSet<>(children));
+                        } else {
+                            field.set(entity, children);
+                        }
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else if (field.isAnnotationPresent(OneToOne.class) || field.isAnnotationPresent(ManyToOne.class)) {
+                Object raw = entityMap.get(field.getName());
+                if (raw instanceof Map<?, ?> rawChild) {
+                    Class<?> childType = field.getType();
+                    Object child = mapper.convertValue(rawChild, childType);
+
+                    try {
+                        field.setAccessible(true);
+                        field.set(entity, child);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+    }
+
+    protected Map<ID, T> getReferenceBy(Specification<T> spec) {
+        Map<ID, T> refs = new HashMap<>();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<ID> cq = cb.createQuery(idType());
+        Root<T> root = cq.from(domainClass);
+
+        cq.select(root.get(idFieldName()));
+        cq.where(spec.toPredicate(root, cq, cb));
+
+        List<ID> ids = em.createQuery(cq).getResultList();
+        ids.forEach(id->refs.put(id,em.getReference(domainClass, id)));
+        return refs;
+    }
 
 }
