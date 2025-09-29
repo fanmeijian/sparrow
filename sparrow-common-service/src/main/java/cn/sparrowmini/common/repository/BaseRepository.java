@@ -99,6 +99,7 @@ public interface BaseRepository<T, ID>
         return findAllProjection(pageable, null, projectionClass);
     }
 
+    @Transactional
     List<ID> upsert(List<Map<String, Object>> entitiesMap);
 
     default Specification<T> filterSpecification(String filter) {
