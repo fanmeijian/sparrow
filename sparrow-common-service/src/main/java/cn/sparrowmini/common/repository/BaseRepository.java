@@ -3,6 +3,7 @@ package cn.sparrowmini.common.repository;
 import cn.sparrowmini.common.CurrentUser;
 import cn.sparrowmini.common.antlr.PredicateBuilder;
 import cn.sparrowmini.common.model.BaseOpLog_;
+import cn.sparrowmini.common.model.BaseState;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -53,6 +55,16 @@ public interface BaseRepository<T, ID>
         return specificationEqual(BaseOpLog_.CREATED_BY, CurrentUser.get());
     }
 
+    @Transactional
+    default void updateStat(String stat, List<ID> ids){
+        List<T> refs = ids.stream().map(id-> {
+             T ref = getReferenceById(id);
+             ((BaseState)ref).setStat(stat);
+             return ref;
+         }).toList();
+        saveAll(refs);
+    }
+
     /**
      * 根据条件返回projectClass的列表
      * 没有用jpa的findBy, 是因为jpa的findBy还是会先查出来所有的字段。
@@ -87,43 +99,8 @@ public interface BaseRepository<T, ID>
         return findAllProjection(pageable, null, projectionClass);
     }
 
-    default List<ID> upsert(List<Map<String, Object>> entitiesMap) {
-        List<T> entities = new ArrayList<>();
-        entitiesMap.forEach(entityMap -> {
-            ObjectMapper mapper = JsonUtils.getMapper();
-            String idFieldName = idFieldName();
-            Object idRaw = entityMap.get(idFieldName);
-            Class<ID> idClass = idType();
-            if (idRaw != null) {
-                ID id = mapper.convertValue(idRaw, idClass);
-                if (existsById(id)) {
-                    Map<String, Object> patchCopy = new HashMap<>(entityMap);
-                    patchCopy.remove(idFieldName);
-                    T referenceById = getReferenceById(id);
-                    try {
-                        mapper.readerForUpdating(referenceById)
-                                .readValue(mapper.writeValueAsString(patchCopy));
-                        entities.add(referenceById);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException("Patch更新失败" + e.getOriginalMessage(), e);
-                    }
-                } else {
-                    T newEntity = mapper.convertValue(entityMap, domainType());
-                    entities.add(newEntity);
-                }
-
-            } else {
-                T newEntity = mapper.convertValue(entityMap, domainType());
-                entities.add(newEntity);
-            }
-
-        });
-
-        saveAll(entities);
-        return entities.stream().map(this::getId).toList();
-
-    }
-
+    @Transactional
+    List<ID> upsert(List<Map<String, Object>> entitiesMap);
 
     default Specification<T> filterSpecification(String filter) {
         return new Specification<T>() {
