@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  bpmApi: `http://localhost:8090`,
-  // bpmApi: `https://api2.linkair-tech.cn/dengbo-bpm`,
+  // bpmApi: `http://localhost:8090`,
+  bpmApi: `https://api2.linkair-tech.cn/dengbo-bpm`,
   keycloak: {
     authServerUrl: 'https://keycloak.linkair-tech.cn',
     realm: 'dengbo',

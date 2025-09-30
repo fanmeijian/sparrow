@@ -1,3 +1,5 @@
+
+
 <mat-tab-group>
   <mat-tab label="基本信息">
     {{process.status}} {{process.processInstanceId}} {{process.processName}} {{process.start|date: 'short'}}
@@ -140,6 +142,7 @@
   </mat-tab>
   <mat-tab label="流程变量">
     <div class="mat-tab">
+      <button mat-button color="primary" (click)="updateVaraible()">更新变量</button>
       <app-json-viewer [json]="processVariables"></app-json-viewer>
     </div>
   </mat-tab>

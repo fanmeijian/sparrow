@@ -5,6 +5,8 @@ import { ProcessAndTaskDefinitionsService, ProcessInstanceAdministrationService,
 import { combineLatest, map, ObservableInput, of, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import _ from 'lodash'
+import { MatDialog } from '@angular/material/dialog';
+import { ProcessVariableFormComponent } from '../process-variable-form/process-variable-form.component';
 
 @Component({
   selector: 'app-process-instance',
@@ -13,12 +15,27 @@ import _ from 'lodash'
   providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService]
 })
 export class ProcessInstanceComponent implements OnInit {
+onChange($event: any) {
+throw new Error('Method not implemented.');
+}
+editorOptions: any;
+code: any;
+  updateVaraible() {
+    this.dialog.open(ProcessVariableFormComponent, {
+      width: '100%',
+      data: {
+        processInstanceId: this.processInstanceId,
+        variables: this.processVariables,
+        containerId: this.process.externalId
+      }
+    });
+  }
 
-  displayedColumns = ['id','name','actions']
+  displayedColumns = ['id', 'name', 'actions']
   retrigger(nodeInstance: any) {
     const $retrigger = this.processInstancesAdminService.retriggerNodeInstance(nodeInstance.externalId, nodeInstance.processInstanceId, nodeInstance.nodeInstanceId);
     const $cancelNodes = this.cancelNode(nodeInstance)
-    combineLatest({$cancelNodes, $retrigger}).subscribe((res) => {
+    combineLatest({ $cancelNodes, $retrigger }).subscribe((res) => {
 
     })
   }
@@ -112,8 +129,8 @@ export class ProcessInstanceComponent implements OnInit {
       // switchMap(m => this.processInstancesAdminService.triggerNode(containerId, processInstanceId, nodeInstanceId))
     ).subscribe()
     const $triggerNode = this.processInstancesAdminService.triggerNode(containerId, processInstanceId, node.id)
-    combineLatest({$ativeNodes, $triggerNode}).subscribe((res) => {
-      
+    combineLatest({ $ativeNodes, $triggerNode }).subscribe((res) => {
+
     })
   }
 
@@ -151,6 +168,7 @@ export class ProcessInstanceComponent implements OnInit {
     private processDefinitionService: ProcessAndTaskDefinitionsService,
     private taskInstanceService: TaskInstancesService,
     private taskInstanceAdminService: TaskInstanceAdministrationService,
+    private dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
@@ -167,7 +185,7 @@ export class ProcessInstanceComponent implements OnInit {
           "processId": this.process['processId'],
           "deploymentId": containerId
         }
-      }).subscribe((res)=>{
+      }).subscribe((res) => {
         this.processVariables = res
       })
       // this.processInstancesAdminService.getNodes(process.externalId, process.processInstanceId).subscribe((res: any) => {

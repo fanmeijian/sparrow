@@ -38,6 +38,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jbpm.services.api.ProcessService;
+import org.jbpm.services.api.model.ProcessInstanceDesc;
+import org.jbpm.services.api.model.NodeInstanceDesc;
+import org.jbpm.services.api.commands.ReopenProcessInstanceCommand;
+import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.manager.RuntimeEngine;
+import org.kie.api.runtime.manager.RuntimeManager;
+import org.kie.api.runtime.manager.context.EmptyContext;
+
 @Service
 public class ProcessInstanceServiceImpl implements ProcessInstanceService {
 
@@ -126,4 +135,15 @@ public class ProcessInstanceServiceImpl implements ProcessInstanceService {
         });
 
     }
+
+    @Override
+    public void reopenProcessInstance(Long processInstanceId, Long nodeInstanceId) {
+        ReopenProcessInstanceCommand cmd = new ReopenProcessInstanceCommand();
+        cmd.setProcessInstanceId(completedId);
+        cmd.setNodeId("UserTask_Review"); // 指定某个节点 ID
+        ksession.execute(cmd);
+
+    }
+
+
 }

@@ -34,6 +34,8 @@ import { ProcessInstanceImageComponent } from './process/process-instance-image/
 import { JsonViewerComponent } from './json-viewer/json-viewer.component';
 import { ProcessGlobalComponent } from './process/process-global/process-global.component';
 import { BASE_PATH, CommonApiModule, CommonApiService } from '@sparrowmini/common-api';
+import { ProcessVariableFormComponent } from './process/process-variable-form/process-variable-form.component';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 
 @NgModule({
   declarations: [
@@ -53,7 +55,8 @@ import { BASE_PATH, CommonApiModule, CommonApiService } from '@sparrowmini/commo
     ProcessDeployedListComponent,
     ProcessInstanceImageComponent,
     JsonViewerComponent,
-    ProcessGlobalComponent
+    ProcessGlobalComponent,
+    ProcessVariableFormComponent
   ],
   imports: [
     BrowserModule,
@@ -67,6 +70,7 @@ import { BASE_PATH, CommonApiModule, CommonApiService } from '@sparrowmini/commo
     ReactiveFormsModule,
     JbpmApiModule,
     CommonApiModule,
+    MonacoEditorModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
