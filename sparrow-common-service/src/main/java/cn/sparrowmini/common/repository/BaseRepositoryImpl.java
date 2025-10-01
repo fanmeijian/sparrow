@@ -396,11 +396,13 @@ public class BaseRepositoryImpl<T, ID>
                     //不存在
                     entity = mapper.convertValue(entityMap, domainType());
                     //如果id不是自动生成的，则需要手动设置id
-                    if(!idClass.isAnnotationPresent(GeneratedValue.class)){
+                    Field idField = idField();
+                    if (!idField.isAnnotationPresent(GeneratedValue.class)) {
                         try {
-                            idField().set(entity,id);
+                            idField.setAccessible(true);
+                            idField.set(entity, id);
                         } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
+                            throw new RuntimeException("无法设置ID字段", e);
                         }
                     }
                 }
