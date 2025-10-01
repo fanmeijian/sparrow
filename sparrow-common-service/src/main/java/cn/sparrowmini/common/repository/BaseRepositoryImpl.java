@@ -3,6 +3,8 @@ package cn.sparrowmini.common.repository;
 import cn.sparrowmini.common.antlr.PredicateBuilder;
 import cn.sparrowmini.common.model.BaseState;
 import cn.sparrowmini.common.util.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
@@ -366,8 +368,11 @@ public class BaseRepositoryImpl<T, ID>
     }
 
     @Override
+    @Transactional
     public List<ID> upsert(List<Map<String, Object>> entitiesMap) {
         ObjectMapper mapper = JsonUtils.getMapper();
+        // 允许 null 覆盖
+        mapper.setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.SET));
         List<T> entities = new ArrayList<>();
 
         entitiesMap.forEach(entityMap -> {
@@ -383,13 +388,21 @@ public class BaseRepositoryImpl<T, ID>
                     patchCopy.remove(idFieldName);
                     entity = getReferenceById(id);
                     try {
-                        mapper.readerForUpdating(entity)
-                                .readValue(mapper.writeValueAsString(patchCopy));
+                        mapper.updateValue(entity, patchCopy);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException("Patch更新失败 " + e.getOriginalMessage(), e);
                     }
                 } else {
+                    //不存在
                     entity = mapper.convertValue(entityMap, domainType());
+                    //如果id不是自动生成的，则需要手动设置id
+                    if(!idClass.isAnnotationPresent(GeneratedValue.class)){
+                        try {
+                            idField().set(entity,id);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
             } else {
                 entity = mapper.convertValue(entityMap, domainType());
