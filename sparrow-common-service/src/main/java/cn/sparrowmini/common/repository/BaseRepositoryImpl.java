@@ -23,10 +23,9 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -381,7 +380,7 @@ public class BaseRepositoryImpl<T, ID>
             Class<ID> idClass = idType();
             T entity;
 
-            if (idRaw != null) {
+            if (idRaw != null && !idRaw.toString().isBlank()) {
                 ID id = mapper.convertValue(idRaw, idClass);
                 if (existsById(id)) {
                     Map<String, Object> patchCopy = new HashMap<>(entityMap);
@@ -399,9 +398,12 @@ public class BaseRepositoryImpl<T, ID>
                     Field idField = idField();
                     if (!idField.isAnnotationPresent(GeneratedValue.class)) {
                         try {
-                            idField.setAccessible(true);
-                            idField.set(entity, id);
-                        } catch (IllegalAccessException e) {
+                            PropertyDescriptor pd = new PropertyDescriptor(idField.getName(), entity.getClass());
+                            Method setter = pd.getWriteMethod();
+                            if (setter != null) {
+                                setter.invoke(entity, id);
+                            }
+                        } catch (IllegalAccessException | IntrospectionException | InvocationTargetException e) {
                             throw new RuntimeException("无法设置ID字段", e);
                         }
                     }
