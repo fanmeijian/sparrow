@@ -105,7 +105,7 @@ public interface BaseRepository<T, ID>
         return new Specification<T>() {
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                return PredicateBuilder.buildPredicate(filter, criteriaBuilder, root);
+                return filter!=null && !filter.isEmpty()? PredicateBuilder.buildPredicate(filter, criteriaBuilder, root): criteriaBuilder.conjunction();
             }
         };
     }
