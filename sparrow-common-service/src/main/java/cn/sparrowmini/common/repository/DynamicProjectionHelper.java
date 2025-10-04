@@ -21,6 +21,7 @@ import cn.sparrowmini.common.util.JsonUtils;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
+import org.reflections.ReflectionUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -741,7 +742,7 @@ public class DynamicProjectionHelper {
 	}
 
 	private static Field findManyToOneField(Class<?> childType, Class<?> parentType) {
-        for (Field f : childType.getDeclaredFields()) {
+        for (Field f : ReflectionUtils.getAllFields(childType)) {
 
             // 1️⃣ 原有 ManyToOne 检查
             if (f.isAnnotationPresent(ManyToOne.class) && f.getType().equals(parentType)) {
