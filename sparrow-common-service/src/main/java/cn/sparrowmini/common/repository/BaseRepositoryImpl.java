@@ -134,9 +134,12 @@ public class BaseRepositoryImpl<T, ID>
                 : cb.conjunction();
 
         // 构建 select 投影字段
-        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(
-                domainType(), cb, root, projectionClass, "", new HashMap<>()
-        );
+//        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(
+//                domainType(), cb, root, projectionClass, "", new HashMap<>()
+//        );
+
+        List<Selection<?>> selections = ProjectionHelper.buildSelections(
+                "", root, cb, domainClass,projectionClass);
         query.multiselect(selections);
         query.where(finalPredicate);
 
@@ -190,7 +193,8 @@ public class BaseRepositoryImpl<T, ID>
                 // ----------------------------
                 // Step 3: 加载集合字段
                 // ----------------------------
-                DynamicProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
+//                DynamicProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
+                ProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
             }
             ObjectMapper mapper = JsonUtils.getMapper();
             JavaType type = mapper.getTypeFactory().constructCollectionType(List.class, projectionClass);
