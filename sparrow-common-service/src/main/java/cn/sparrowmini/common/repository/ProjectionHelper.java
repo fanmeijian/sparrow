@@ -1,8 +1,10 @@
 package cn.sparrowmini.common.repository;
 
 
+import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 支持循环递归构建SELECTION
@@ -51,8 +54,8 @@ public class ProjectionHelper {
                 if (field.isAnnotationPresent(Transient.class)) return;
 
                 // 排除 Jackson 忽略字段
-                if (field.isAnnotationPresent(JsonIgnore.class) ||
-                        field.isAnnotationPresent(JsonBackReference.class)) return;
+//                if (field.isAnnotationPresent(JsonIgnore.class) ||
+//                        field.isAnnotationPresent(JsonBackReference.class)) return;
 
                 // 如果字段不是 public，也不是通过注解标记的持久化字段，可以额外排除
                 if (!Modifier.isPublic(mods)
@@ -105,10 +108,6 @@ public class ProjectionHelper {
         for (Field projField : projectionClass.getDeclaredFields()) {
             if (!isValidField(projField)) continue;
             if (isCollectionField(projField.getType())) continue;
-            if (projField.isAnnotationPresent(JsonIgnore.class) ||
-                    projField.isAnnotationPresent(JsonBackReference.class)) {
-                continue; // 不参与选择
-            }
 
 
             String projFieldName = projField.getName();
@@ -126,6 +125,10 @@ public class ProjectionHelper {
                 Class<?> joinClass = domainField.getType();
 
                 // 递归展开子类字段
+//                if (domainField.isAnnotationPresent(JsonIgnore.class) ||
+//                        domainField.isAnnotationPresent(JsonBackReference.class)) {
+//                    continue; // 不递归
+//                }
                 selections.addAll(buildSelections(alias, join, cb, joinClass, projField.getType()));
             }
             // ---------------------------
@@ -315,38 +318,59 @@ public class ProjectionHelper {
 
             // 集合元素类型（如 OrderItem.class）
             Class<?> elementType = getCollectionElementType(domainField);
+            Class<?> elementProjectType = getCollectionGenericClass(projField);
 
             // 外键字段（假设用 ManyToOne 映射回父类）
             String parentRefField = getParentReferenceField(elementType, domainClass);
+            Field parentIdField=findIdField(domainClass);
             if (parentRefField == null) continue;
 
             // ---------------------------
             // Step 1: 收集父 ID 列表
             // ---------------------------
+
+            parentResults.forEach(parentResult -> {
+                parentResult.put(domainIdField.getName(),buildIdValue(parentResult.get(domainIdField.getName()),parentIdField.getType()));
+            });
+
             List<Object> parentIds = parentResults.stream()
                     .map(m -> m.get(domainIdField.getName()))
                     .filter(Objects::nonNull)
                     .distinct()
                     .collect(Collectors.toList());
 
+
+//            List<Object> parentIds = parentResults.stream()
+//                    .map(m -> m.get(domainIdField.getName()))
+//                    .filter(Objects::nonNull)
+//                    .distinct()
+//                    .collect(Collectors.toList());
+
             if (parentIds.isEmpty()) continue;
 
             // ---------------------------
             // Step 2: 查询子集合
             // ---------------------------
-            List<Tuple> childTuples = fetchChildTuples(em, elementType, parentRefField, parentIds);
+            List<Tuple> childTuples = fetchChildTuples(em, elementType, parentRefField, parentIds,elementProjectType);
 
             // ---------------------------
             // Step 3: 按父 ID 分组
             // ---------------------------
-            Map<Object, List<Map<String, Object>>> grouped = groupByParentId(childTuples, parentRefField);
+            Map<Object, List<Map<String, Object>>> grouped = groupByParentId(childTuples, parentRefField, parentIds);
 
             // ---------------------------
             // Step 4: 填充到父结果
             // ---------------------------
             for (Map<String, Object> parentMap : parentResults) {
                 Object parentId = parentMap.get(domainIdField.getName());
-                List<Map<String, Object>> children = grouped.getOrDefault(parentId, Collections.emptyList());
+//                List<Map<String, Object>> children = null;
+//                try {
+//                    children = grouped.getOrDefault(JsonUtils.getMapper().writeValueAsString(parentId), Collections.emptyList());
+//                } catch (JsonProcessingException e) {
+//                    throw new RuntimeException(e);
+//                }
+
+                List<Map<String, Object>> children = grouped.get(parentId);
                 parentMap.put(collectionName, children);
             }
 
@@ -365,22 +389,83 @@ public class ProjectionHelper {
         }
     }
 
+    private static boolean equals(Object obj1, Object obj2){
+        Field[] fields1 = obj1.getClass().getDeclaredFields();
+        List<Boolean> r = new ArrayList<>();
+        for (Field field : fields1) {
+            field.setAccessible(true);
+            try {
+//                log.info("ob1 k {} v {}", field.getName(), field.get(obj1));
+//                log.info("ob2 k {} v {}", field.getName(), field.get(obj2));
+//                log.info("ob2 k {} v {}", field.getName(), field.get(obj2));
+                boolean fieldEqua = field.get(obj1).equals(field.get(obj2));
+                if(fieldEqua){
+                    log.info("fieldEqua k {} v1 {} v2{}", field.getName(), field.get(obj1), field.get(obj2));
+                }
+                r.add(fieldEqua);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        boolean result = r.stream().allMatch(a->a==true);
+        if(result){
+            log.info("result{} obj1 {} obj2 {}",result, obj1, obj2);
+        }
+
+        return result;
+    }
+
+    private static Object buildIdValue(Object id, Class<?> idClass) {
+        return JsonUtils.getMapper().convertValue(id, idClass);
+    }
 
     private static List<Tuple> fetchChildTuples(
             EntityManager em,
             Class<?> elementType,
             String parentRefField,
-            List<Object> parentIds) {
+            List<Object> parentIds,
+            Class<?> elementProjectType) {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tuple> cq = cb.createTupleQuery();
         Root<?> root = cq.from(elementType);
+        //符合组件
+        Path<?> path = root;
+        String[] segments = parentRefField.split("\\.");
+        for (String s : segments) {
+            path = path.get(s);
+        }
 
         // 选择子类所有非集合字段
-        List<Selection<?>> selections = buildSelections("", root, cb, elementType, elementType);
-
+        List<Selection<?>> selections = buildSelections("", root, cb, elementType, elementProjectType);
+        selections.add(path.alias(parentRefField));
         cq.multiselect(selections);
-        cq.where(root.get(parentRefField).in(parentIds));
+        final Path<?> path_=path;
+
+
+        List<Predicate> predicates = new ArrayList<>();
+        if(!parentIds.isEmpty() && !isJavaStandardType(parentIds.get(0).getClass())) {
+            Class<?> parentIdType = parentIds.get(0).getClass();
+            Field[] fields = parentIdType.getDeclaredFields();
+            for (Object searchId : parentIds) {
+                List<Predicate> andPredicates = new ArrayList<>();
+                for (Field field : fields) {
+                    field.setAccessible(true);
+                    try {
+                        andPredicates.add(cb.equal(path_.get(field.getName()), field.get(searchId)));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
+                predicates.add(andGroup);
+            }
+
+            cq.where(cb.or(predicates.toArray(new Predicate[0])));
+        }else{
+            cq.where(path_.in(parentIds));
+        }
 
         return em.createQuery(cq).getResultList();
     }
@@ -388,7 +473,8 @@ public class ProjectionHelper {
 
     private static Map<Object, List<Map<String, Object>>> groupByParentId(
             List<Tuple> childTuples,
-            String parentRefField) {
+            String parentRefField,
+            List<Object> parentIds) {
 
         Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
 
@@ -401,8 +487,10 @@ public class ProjectionHelper {
                     t.getElements().forEach(element -> {
                         map.put(element.getAlias(),t.get(element.getAlias()));
                     });
+            parentIds.stream().filter(f->equals(f,parentId)).findFirst().ifPresent(child->{
+                grouped.computeIfAbsent(child, k -> new ArrayList<>()).add(map);
+            });
 
-            grouped.computeIfAbsent(parentId, k -> new ArrayList<>()).add(map);
         }
 
 
@@ -419,11 +507,21 @@ public class ProjectionHelper {
         for (Field f : childType.getDeclaredFields()) {
             if (f.getType().equals(parentType)) {
                 Field idField = findIdField(parentType);
-                return String.join(".",f.getName(),  idField.getName());
+                return String.join(".",f.getName(), idField.getName());
+//                if(f.isAnnotationPresent(JoinColumn.class)) {
+//                    return f.getAnnotation(JoinColumn.class).name();
+//                }
+//                JoinColumns joinColumns = f.getAnnotation(JoinColumns.class);
+//                if(joinColumns != null){
+//                  List<String> columns= Arrays.stream(joinColumns.value()).map(JoinColumn::name).toList();
+//                  return String.join(",", columns);
+//                }
             }
         }
         return null;
     }
+
+
 
     private static Object extractParentId(Tuple tuple, String parentField) {
         if (tuple == null || parentField == null) return null;
