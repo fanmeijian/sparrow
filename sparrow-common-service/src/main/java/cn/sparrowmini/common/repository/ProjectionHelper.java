@@ -104,7 +104,7 @@ public class ProjectionHelper {
             Class<?> projectionClass) {
 
         List<Selection<?>> selections = new ArrayList<>();
-
+        Set<String> aliasSet= new HashSet<>();
         for (Field projField : projectionClass.getDeclaredFields()) {
             if (!isValidField(projField)) continue;
             if (isCollectionField(projField.getType())) continue;
@@ -116,14 +116,15 @@ public class ProjectionHelper {
 
             String domainFieldName = domainField.getName();
             String alias = prefix.isEmpty() ? projFieldName : prefix + "." + projFieldName;
-
+            aliasSet.add(alias);
+            log.info("投影 {} alias {} ", projectionClass.getName(),alias);
             // ---------------------------
             // 关联实体（递归处理）
             // ---------------------------
             if (isAssociation(domainField)) {
                 Join<?, ?> join = tryGetOrCreateJoin(from, domainFieldName);
                 Class<?> joinClass = domainField.getType();
-
+                log.info("递归展开子类 {}", domainFieldName );
                 // 递归展开子类字段
 //                if (domainField.isAnnotationPresent(JsonIgnore.class) ||
 //                        domainField.isAnnotationPresent(JsonBackReference.class)) {
@@ -166,6 +167,147 @@ public class ProjectionHelper {
     }
 
 
+
+    public static void loadCollectionsV2(
+            List<Map<String, Object>> parentResults,
+            Class<?> domainClass,
+            Class<?> projectionClass,
+            EntityManager em,
+            Field domainIdField) {
+
+        for (Field projField : projectionClass.getDeclaredFields()) {
+            if (!isCollectionField(projField.getType())) continue;
+
+            String collectionName = projField.getName();
+            Field domainField = getDomainField(domainClass, collectionName);
+            if (domainField == null) continue;
+            log.info("处理集合字段 {}", domainField.getName());
+            // 集合元素类型（如 OrderItem.class）
+            Class<?> elementType = getCollectionElementType(domainField);
+            Class<?> elementProjectType = getCollectionGenericClass(projField);
+
+            // 外键字段（假设用 ManyToOne 映射回父类）
+            String parentRefField = getParentReferenceField(elementType, domainClass);
+            Field parentIdField=findIdField(domainClass);
+            if (parentRefField == null) continue;
+
+            // ---------------------------
+            // Step 1: 收集父 ID 列表
+            // ---------------------------
+
+            parentResults.forEach(parentResult -> {
+                parentResult.put(domainIdField.getName(),buildIdValue(parentResult.get(domainIdField.getName()),parentIdField.getType()));
+            });
+
+            List<Object> parentIds = parentResults.stream()
+                    .map(m -> m.get(domainIdField.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+
+//            List<Object> parentIds = parentResults.stream()
+//                    .map(m -> m.get(domainIdField.getName()))
+//                    .filter(Objects::nonNull)
+//                    .distinct()
+//                    .collect(Collectors.toList());
+
+            if (parentIds.isEmpty()) continue;
+
+            // ---------------------------
+            // Step 2: 查询子集合
+            // ---------------------------
+            List<Tuple> childTuples = fetchChildTuples(em, elementType, parentRefField, parentIds,elementProjectType);
+
+            // ---------------------------
+            // Step 3: 按父 ID 分组
+            // ---------------------------
+            Map<Object, List<Map<String, Object>>> grouped = groupByParentId(childTuples, parentRefField, parentIds);
+
+            // ---------------------------
+            // Step 4: 填充到父结果
+            // ---------------------------
+            for (Map<String, Object> parentMap : parentResults) {
+                Object parentId = parentMap.get(domainIdField.getName());
+//                List<Map<String, Object>> children = null;
+//                try {
+//                    children = grouped.getOrDefault(JsonUtils.getMapper().writeValueAsString(parentId), Collections.emptyList());
+//                } catch (JsonProcessingException e) {
+//                    throw new RuntimeException(e);
+//                }
+
+                List<Map<String, Object>> children = grouped.get(parentId);
+                parentMap.put(collectionName, children);
+            }
+
+            // ---------------------------
+            // Step 5: 递归处理子集合
+            // ---------------------------
+            if (hasNestedCollections(elementType)) {
+                loadCollectionsV2(
+                        grouped.values().stream().flatMap(List::stream).collect(Collectors.toList()),
+                        elementType,
+                        getCollectionElementType(projField),
+                        em,
+                        findIdField(elementType)
+                );
+            }
+        }
+    }
+
+
+    private static List<Tuple> fetchChildTuples(
+            EntityManager em,
+            Class<?> elementType,
+            String parentRefField,
+            List<Object> parentIds,
+            Class<?> elementProjectType) {
+
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+        Root<?> root = cq.from(elementType);
+        //符合组件
+        Path<?> path = root;
+        String[] segments = parentRefField.split("\\.");
+        for (String s : segments) {
+            path = path.get(s);
+        }
+
+        // 选择子类所有非集合字段
+        List<Selection<?>> selections = buildSelections("", root, cb, elementType, elementProjectType);
+        if(selections.stream().noneMatch(s->s.getAlias().equals(parentRefField))){
+            selections.add(path.alias(parentRefField));
+        }
+
+        cq.multiselect(selections);
+        final Path<?> path_=path;
+
+
+        List<Predicate> predicates = new ArrayList<>();
+        if(!parentIds.isEmpty() && !isJavaStandardType(parentIds.get(0).getClass())) {
+            Class<?> parentIdType = parentIds.get(0).getClass();
+            Field[] fields = parentIdType.getDeclaredFields();
+            for (Object searchId : parentIds) {
+                List<Predicate> andPredicates = new ArrayList<>();
+                for (Field field : fields) {
+                    ReflectionUtils.makeAccessible(field);
+                    try {
+                        andPredicates.add(cb.equal(path_.get(field.getName()), field.get(searchId)));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
+                predicates.add(andGroup);
+            }
+
+            cq.where(cb.or(predicates.toArray(new Predicate[0])));
+        }else{
+            cq.where(path_.in(parentIds));
+        }
+
+        return em.createQuery(cq).getResultList();
+    }
 
 
 
@@ -224,7 +366,7 @@ public class ProjectionHelper {
 
     private static boolean isAssociation(Field f) {
         return f.isAnnotationPresent(ManyToOne.class)
-                || f.isAnnotationPresent(OneToOne.class);
+                || f.isAnnotationPresent(OneToOne.class) || f.isAnnotationPresent(OneToMany.class);
     }
 
     private static boolean isEmbedded(Field f) {
@@ -302,173 +444,35 @@ public class ProjectionHelper {
 
 
 
-    public static void loadCollectionsV2(
-            List<Map<String, Object>> parentResults,
-            Class<?> domainClass,
-            Class<?> projectionClass,
-            EntityManager em,
-            Field domainIdField) {
 
-        for (Field projField : projectionClass.getDeclaredFields()) {
-            if (!isCollectionField(projField.getType())) continue;
+    private static boolean equals(Object obj1, Object obj2) {
+        if (obj1 == obj2) return true;
+        if (obj1 == null || obj2 == null) return false;
+        if (!obj1.getClass().equals(obj2.getClass())) return false;
 
-            String collectionName = projField.getName();
-            Field domainField = getDomainField(domainClass, collectionName);
-            if (domainField == null) continue;
+        Field[] fields = obj1.getClass().getDeclaredFields();
 
-            // 集合元素类型（如 OrderItem.class）
-            Class<?> elementType = getCollectionElementType(domainField);
-            Class<?> elementProjectType = getCollectionGenericClass(projField);
-
-            // 外键字段（假设用 ManyToOne 映射回父类）
-            String parentRefField = getParentReferenceField(elementType, domainClass);
-            Field parentIdField=findIdField(domainClass);
-            if (parentRefField == null) continue;
-
-            // ---------------------------
-            // Step 1: 收集父 ID 列表
-            // ---------------------------
-
-            parentResults.forEach(parentResult -> {
-                parentResult.put(domainIdField.getName(),buildIdValue(parentResult.get(domainIdField.getName()),parentIdField.getType()));
-            });
-
-            List<Object> parentIds = parentResults.stream()
-                    .map(m -> m.get(domainIdField.getName()))
-                    .filter(Objects::nonNull)
-                    .distinct()
-                    .collect(Collectors.toList());
-
-
-//            List<Object> parentIds = parentResults.stream()
-//                    .map(m -> m.get(domainIdField.getName()))
-//                    .filter(Objects::nonNull)
-//                    .distinct()
-//                    .collect(Collectors.toList());
-
-            if (parentIds.isEmpty()) continue;
-
-            // ---------------------------
-            // Step 2: 查询子集合
-            // ---------------------------
-            List<Tuple> childTuples = fetchChildTuples(em, elementType, parentRefField, parentIds,elementProjectType);
-
-            // ---------------------------
-            // Step 3: 按父 ID 分组
-            // ---------------------------
-            Map<Object, List<Map<String, Object>>> grouped = groupByParentId(childTuples, parentRefField, parentIds);
-
-            // ---------------------------
-            // Step 4: 填充到父结果
-            // ---------------------------
-            for (Map<String, Object> parentMap : parentResults) {
-                Object parentId = parentMap.get(domainIdField.getName());
-//                List<Map<String, Object>> children = null;
-//                try {
-//                    children = grouped.getOrDefault(JsonUtils.getMapper().writeValueAsString(parentId), Collections.emptyList());
-//                } catch (JsonProcessingException e) {
-//                    throw new RuntimeException(e);
-//                }
-
-                List<Map<String, Object>> children = grouped.get(parentId);
-                parentMap.put(collectionName, children);
+        for (Field field : fields) {
+            log.info("field {} class {}", field.getName(), obj1.getClass().getName());
+            // 跳过静态字段
+            if (Modifier.isStatic(field.getModifiers())) continue;
+            // 避免尝试访问 JDK 内部类的字段
+            ReflectionUtils.makeAccessible(field);
+            Object v1 = ReflectionUtils.getField(field, obj1);
+            Object v2 = ReflectionUtils.getField(field, obj2);
+            if (!Objects.equals(v1, v2)) {
+                return false;
             }
 
-            // ---------------------------
-            // Step 5: 递归处理子集合
-            // ---------------------------
-            if (hasNestedCollections(elementType)) {
-                loadCollectionsV2(
-                        grouped.values().stream().flatMap(List::stream).collect(Collectors.toList()),
-                        elementType,
-                        getCollectionElementType(projField),
-                        em,
-                        findIdField(elementType)
-                );
-            }
-        }
-    }
-
-    private static boolean equals(Object obj1, Object obj2){
-        Field[] fields1 = obj1.getClass().getDeclaredFields();
-        List<Boolean> r = new ArrayList<>();
-        for (Field field : fields1) {
-            field.setAccessible(true);
-            try {
-//                log.info("ob1 k {} v {}", field.getName(), field.get(obj1));
-//                log.info("ob2 k {} v {}", field.getName(), field.get(obj2));
-//                log.info("ob2 k {} v {}", field.getName(), field.get(obj2));
-                boolean fieldEqua = field.get(obj1).equals(field.get(obj2));
-                if(fieldEqua){
-                    log.info("fieldEqua k {} v1 {} v2{}", field.getName(), field.get(obj1), field.get(obj2));
-                }
-                r.add(fieldEqua);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
         }
 
-        boolean result = r.stream().allMatch(a->a==true);
-        if(result){
-            log.info("result{} obj1 {} obj2 {}",result, obj1, obj2);
-        }
-
-        return result;
+        return false;
     }
 
     private static Object buildIdValue(Object id, Class<?> idClass) {
         return JsonUtils.getMapper().convertValue(id, idClass);
     }
 
-    private static List<Tuple> fetchChildTuples(
-            EntityManager em,
-            Class<?> elementType,
-            String parentRefField,
-            List<Object> parentIds,
-            Class<?> elementProjectType) {
-
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-        Root<?> root = cq.from(elementType);
-        //符合组件
-        Path<?> path = root;
-        String[] segments = parentRefField.split("\\.");
-        for (String s : segments) {
-            path = path.get(s);
-        }
-
-        // 选择子类所有非集合字段
-        List<Selection<?>> selections = buildSelections("", root, cb, elementType, elementProjectType);
-        selections.add(path.alias(parentRefField));
-        cq.multiselect(selections);
-        final Path<?> path_=path;
-
-
-        List<Predicate> predicates = new ArrayList<>();
-        if(!parentIds.isEmpty() && !isJavaStandardType(parentIds.get(0).getClass())) {
-            Class<?> parentIdType = parentIds.get(0).getClass();
-            Field[] fields = parentIdType.getDeclaredFields();
-            for (Object searchId : parentIds) {
-                List<Predicate> andPredicates = new ArrayList<>();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    try {
-                        andPredicates.add(cb.equal(path_.get(field.getName()), field.get(searchId)));
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
-                predicates.add(andGroup);
-            }
-
-            cq.where(cb.or(predicates.toArray(new Predicate[0])));
-        }else{
-            cq.where(path_.in(parentIds));
-        }
-
-        return em.createQuery(cq).getResultList();
-    }
 
 
     private static Map<Object, List<Map<String, Object>>> groupByParentId(
@@ -478,17 +482,35 @@ public class ProjectionHelper {
 
         Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
 
-        for (Tuple t : childTuples) {
-            if (t == null) continue;
-            Object parentId = extractParentId(t, parentRefField);
+        for (Tuple tuple : childTuples) {
+            if (tuple == null) continue;
+            Object parentId = extractParentId(tuple, parentRefField);
             if (parentId == null) continue;
 
-            Map<String, Object> map = new HashMap<>();
-                    t.getElements().forEach(element -> {
-                        map.put(element.getAlias(),t.get(element.getAlias()));
-                    });
-            parentIds.stream().filter(f->equals(f,parentId)).findFirst().ifPresent(child->{
-                grouped.computeIfAbsent(child, k -> new ArrayList<>()).add(map);
+            Map<String, Object> tupleMap = new HashMap<>();
+            Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
+
+            for (TupleElement<?> elem : tuple.getElements()) {
+                String alias = elem.getAlias();
+                Object value = tuple.get(elem);
+
+                if (alias.contains(".")) {
+                    String[] parts = alias.split("\\.", 2);
+                    nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
+                            .put(parts[1], value);
+                } else {
+                    tupleMap.put(alias, value);
+                }
+            }
+
+            nestedMaps.forEach(tupleMap::put);
+
+//            Map<String, Object> map = new HashMap<>();
+//                    tuple.getElements().forEach(element -> {
+//                        map.put(element.getAlias(),tuple.get(element.getAlias()));
+//                    });
+            parentIds.stream().filter(f->isJavaStandardType(f.getClass())?f.equals(parentId): equals(f,parentId)).findFirst().ifPresent(parentId_->{
+                grouped.computeIfAbsent(parentId_, k -> new ArrayList<>()).add(tupleMap);
             });
 
         }
