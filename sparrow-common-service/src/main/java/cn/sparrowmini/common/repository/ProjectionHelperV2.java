@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class ProjectionHelperV2 {
-   private static EntityManager entityManager;
+    private static EntityManager entityManager;
 
     /**
      * 所有非集合字段都可以一次性全部获取出来
      */
-    public static List<Selection<?>> buildEntitySelection(Root<?> root,Class<?> entityClass, Class<?> projectClass){
+    public static List<Selection<?>> buildEntitySelection(Root<?> root, Class<?> entityClass, Class<?> projectClass) {
         Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
         Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
         Collection<Field> entityFields = entityFieldsMap.values();
@@ -30,19 +30,19 @@ public class ProjectionHelperV2 {
 //        Root<?> root = tupleQuery.from(entityClass);
 
         //一次性构建所有的selection
-        for(Field projectField: projectFields){
-            if(ProjectionHelperUtil.isCollectionField(projectField.getType())) continue;
+        for (Field projectField : projectFields) {
+            if (ProjectionHelperUtil.isCollectionField(projectField.getType())) continue;
 
             String projectFieldName = projectField.getName();
             Field entityField = entityFieldsMap.get(projectFieldName);
-            if(entityField==null) continue;
+            if (entityField == null) continue;
 
             String entityFieldName = entityField.getName();
             Class<?> entityFieldClass = entityField.getType();
             Class<?> projectFieldClass = projectField.getType();
 
             //标准字段
-            if(ProjectionHelperUtil.isJavaStandardType(projectField)){
+            if (ProjectionHelperUtil.isJavaStandardType(projectField)) {
                 selections.add(root.get(entityFieldName).alias(entityFieldName));
             }
 
@@ -50,20 +50,20 @@ public class ProjectionHelperV2 {
             //embedded字段
             if (ProjectionHelperUtil.isEmbedded(entityField)) {
                 //要递归
-                log.info("递归嵌入字段 {} {} {}",entityField.getName(),entityFieldClass.getName(), projectFieldClass.getName());
+                log.info("递归嵌入字段 {} {} {}", entityField.getName(), entityFieldClass.getName(), projectFieldClass.getName());
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
                 selections.addAll(buildEmbeddedSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
             }
 
             //toOne字段
-            if(ProjectionHelperUtil.isAssociationOne(entityField)){
+            if (ProjectionHelperUtil.isAssociationOne(entityField)) {
                 //toOne字段要找到@JoinColumn的name属性，从而获取真正的字段
                 JoinColumn joinColumn = entityField.getAnnotation(JoinColumn.class);
                 String joinColumnName = joinColumn.name();
 
                 //递归处理
                 //要递归
-                log.info("递归关联字段 {} {} {}",entityField.getName(),entityFieldClass.getName(), projectFieldClass.getName());
+                log.info("递归关联字段 {} {} {}", entityField.getName(), entityFieldClass.getName(), projectFieldClass.getName());
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
                 selections.addAll(buildSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
             }
@@ -71,9 +71,105 @@ public class ProjectionHelperV2 {
         return selections;
     }
 
-    public static void projectCollection(List<Map<String,Object>> entityList,Class<?> parentEntityClass, Class<?> parentProjectClass, EntityManager em,String prefix){
+    /**
+     * 获取实体类信息，去除集合的字段
+     *
+     * @param parentIds
+     * @param parentEntityClass
+     * @param entityClass
+     * @param projectClass
+     * @param em
+     * @return
+     */
+    public static List<Tuple> projectEntity(Collection<Object> parentIds, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em) {
 
-        log.info("获取子集合 {} 父类 {} 父DTO {} 父id长度 {} ",String.join(".",prefix,collectionFieldName), parentEntityClass.getName(), parentProjectClass.getName(),parentEntitiesById.size());
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+        Root<?> root = cq.from(entityClass);
+
+
+        //获取子集合类的所有非集合的投影字段
+        List<Selection<?>> selections = buildEntitySelection(root, entityClass, projectClass);
+        Field parentRefField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentEntityClass);
+        Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
+        Class<?> parentIdClass = parentIdField.getType();
+        final Path<?> parentPath = root.get(parentRefField.getName());
+        if (selections.stream().noneMatch(s -> s.getAlias().startsWith(parentRefField.getName() + "."))) {
+            selections.add(parentPath.get(parentIdField.getName()).alias(parentRefField.getName() + "." + parentIdField.getName()));
+        }
+        cq.multiselect(selections);
+        Predicate predicate = buildPredicate(parentIds, entityClass, parentEntityClass, root, em);
+        cq.where(predicate);
+        return em.createQuery(cq).getResultList();
+    }
+
+    public static void projectCollectionV2(Map<Object, Map<String, Object>> parentEntitiesByIdMap, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em, String fieldNameInParent) {
+        //根据父id，先获取到自己的所有非集合对象
+        Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
+        Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
+        Map<String, Field> parentEntityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(parentEntityClass);
+
+        Collection<Field> entityFields = entityFieldsMap.values();
+        Collection<Field> projectFields = projectFieldsMap.values();
+        Collection<Object> parentIds = parentEntitiesByIdMap.keySet();
+
+        boolean isCollectionFieldOfParent = ProjectionHelperUtil.isCollectionField(parentEntityFieldsMap.get(fieldNameInParent).getType());
+        //获取到自己的id集合
+        Map<Object, Map<String, Object>> childEntitiesByIdMap = Map.of();
+        Collection<Object> childIds = new HashSet<>();
+        //只有自己是父的集合的时候，才需要到数据库根据父id，查询出来project，如果不是集合，则在父类中已经通过join查询出来了，直接获取他的列表值即可
+        if (isCollectionFieldOfParent) {
+            List<Tuple> childTuples = projectEntity(parentIds, parentEntityClass, entityClass, projectClass, em);
+            List<Map<String, Object>> collectionEntities = ProjectionHelperUtil.tuplesToMap(childTuples);
+            childEntitiesByIdMap = keyById(collectionEntities, entityClass);
+            childIds = childEntitiesByIdMap.keySet();
+            String parentRefFieldName = ProjectionHelperUtil.getParentReferenceField(entityClass, parentEntityClass);
+            Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities, parentRefFieldName, parentIds);
+            //放回大树
+            mergeToParent(groupedCollections, parentEntitiesByIdMap, parentIds, parentEntityFieldsMap.get(fieldNameInParent));
+        } else {
+            List<Map<String, Object>> childEntities = getAllByKey(parentEntitiesByIdMap.values(), fieldNameInParent);//JsonPath.read(parentEntitiesByIdMap.values(),String.join(".","$[*]",fieldNameInParent));
+            childEntitiesByIdMap = keyById(childEntities, entityClass);
+        }
+
+
+        //再递归所有的子集合对象
+        for (Field projectField : projectFields) {
+            String projectFieldName = projectField.getName();
+            Class<?> projectFieldClass = projectField.getType();
+            Field entityField = entityFieldsMap.get(projectFieldName);
+            if (entityField == null) continue;
+
+            if (ProjectionHelperUtil.isCollectionField(entityField.getType())) {
+                Class<?> collectionEntityClass = ProjectionHelperUtil.getCollectionGenericClass(entityField);
+                Class<?> collectionProjectClass = ProjectionHelperUtil.getCollectionGenericClass(projectField);
+                log.info("递归子集合 {}", projectFieldName);
+                projectCollectionV2(childEntitiesByIdMap, entityClass, collectionEntityClass, collectionProjectClass, em, projectFieldName);
+            } else if (ProjectionHelperUtil.isAssociationOne(entityField)) {
+                log.info("递归关联实体 {}", projectFieldName);
+                projectCollectionV2(childEntitiesByIdMap, entityClass, entityField.getType(), projectFieldClass, em, projectFieldName);
+            }
+        }
+    }
+
+    static Map<Object, Map<String, Object>> keyById(List<Map<String, Object>> entityList, Class<?> entityClass) {
+        Field idField = ProjectionHelperUtil.findIdField(entityClass);
+        Map<Object, Map<String, Object>> map = new HashMap<>();
+        entityList.forEach(f -> {
+            Object id = f.get(idField.getName());
+            map.put(id, f);
+        });
+        return map;
+    }
+
+    static List<Map<String, Object>> getAllByKey(Collection<Map<String, Object>> entityList, String fieldName) {
+        return entityList.stream().map(entity -> (Map<String, Object>) entity.get(fieldName)).filter(Objects::nonNull).toList();
+    }
+
+
+    public static void projectCollection(Map<Object, Map<String, Object>> parentEntitiesById, Class<?> parentEntityClass, Class<?> parentProjectClass, String collectionFieldName, EntityManager em, String prefix) {
+        Set<Object> parentIds = parentEntitiesById.keySet();
+        log.info("获取子集合 {} 父类 {} 父DTO {} 父id长度 {} ", String.join(".", prefix, collectionFieldName), parentEntityClass.getName(), parentProjectClass.getName(), parentEntitiesById.size());
         Map<String, Field> parentEntityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(parentEntityClass);
         Map<String, Field> parentProjectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(parentProjectClass);
         Collection<Field> parentEntityFields = parentEntityFieldsMap.values();
@@ -91,29 +187,23 @@ public class ProjectionHelperV2 {
 
 
         //获取子集合类的所有非集合的投影字段
-        List<Selection<?>> selections = buildEntitySelection(root,collectionEntityClass,collectionProjectClass);
-        Field parentRefField = ProjectionHelperUtil.getReferenceParentField(collectionEntityClass,parentEntityClass);
+        List<Selection<?>> selections = buildEntitySelection(root, collectionEntityClass, collectionProjectClass);
+        Field parentRefField = ProjectionHelperUtil.getReferenceParentField(collectionEntityClass, parentEntityClass);
         Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
         Class<?> parentIdClass = parentIdField.getType();
         final Path<?> parentPath = root.get(parentRefField.getName());
         if (selections.stream().noneMatch(s -> s.getAlias().startsWith(parentRefField.getName() + "."))) {
-            selections.add(parentPath.get(parentIdField.getName()).alias(parentRefField.getName() + "." +parentIdField.getName()));
+            selections.add(parentPath.get(parentIdField.getName()).alias(parentRefField.getName() + "." + parentIdField.getName()));
         }
 
         cq.multiselect(selections);
-
-        String idPath = String.join(".", prefix,parentRefField.getName());
-        JsonPath.read(map, )
-
-        Set<Object> parentIds = parentEntitiesById.keySet();
-
-        Predicate predicate = buildPredicate(parentIds,collectionEntityClass,parentEntityClass,root,em);
+        Predicate predicate = buildPredicate(parentIds, collectionEntityClass, parentEntityClass, root, em);
         cq.where(predicate);
         List<Tuple> childTuples = em.createQuery(cq).getResultList();
         List<Map<String, Object>> collectionEntities = ProjectionHelperUtil.tuplesToMap(childTuples);
-        String parentRefFieldName = ProjectionHelperUtil.getParentReferenceField(collectionEntityClass,parentEntityClass);
-        Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities,parentRefFieldName,parentIds);
-        mergeToParent(groupedCollections,parentEntitiesById, parentIds,collectionEntityField);
+        String parentRefFieldName = ProjectionHelperUtil.getParentReferenceField(collectionEntityClass, parentEntityClass);
+        Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities, parentRefFieldName, parentIds);
+        mergeToParent(groupedCollections, parentEntitiesById, parentIds, collectionEntityField);
 
         Map<String, Field> collectionEntityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(collectionEntityClass);
         Collection<Field> collectionEntityFields = collectionEntityFieldsMap.values();
@@ -125,61 +215,62 @@ public class ProjectionHelperV2 {
 
 
         //从collection class里面递归子集合的集合
-        for(Field projectField: collectionProjectFields) {
+        for (Field projectField : collectionProjectFields) {
             Field collectionEntitySubField = collectionEntityFieldsMap.get(projectField.getName());
-            if(collectionEntitySubField==null) continue;
-//            if(ProjectionHelperUtil.isAssociationOne(collectionEntitySubField)){
-//                //递归关联字段下面有没有包含子集合
-//                Class<?> toOneEntityClass = collectionEntityFieldsMap.get(projectField.getName()).getType();
-//                Field toOneEntityIdField = ProjectionHelperUtil.findIdField(toOneEntityClass);
-//                String toOneEntityIdFieldName = toOneEntityIdField.getName();
-//
-//                Map<Object, Map<String, Object>> toOneEntitiesById = new HashMap<>();
-//
-//                parentEntitiesById.values().forEach(f->{
-//                    toOneEntitiesById.put(f.get(toOneEntityIdFieldName), f);
-//                });
-//                projectToOneCollection(toOneEntitiesById,toOneEntityClass, projectField.getType(), em);
-//            }
+            if (collectionEntitySubField == null) continue;
+            if (ProjectionHelperUtil.isAssociationOne(collectionEntitySubField)) {
+                //递归关联字段下面有没有包含子集合
+                Class<?> toOneEntityClass = collectionEntityFieldsMap.get(projectField.getName()).getType();
+                Field toOneEntityIdField = ProjectionHelperUtil.findIdField(toOneEntityClass);
+                String toOneEntityIdFieldName = toOneEntityIdField.getName();
+
+                Map<Object, Map<String, Object>> toOneEntitiesById = new HashMap<>();
+
+                parentEntitiesById.values().forEach(f -> {
+                    toOneEntitiesById.put(f.get(toOneEntityIdFieldName), f);
+                });
+                projectToOneCollection(toOneEntitiesById, toOneEntityClass, projectField.getType(), em);
+            }
 
             if (!ProjectionHelperUtil.isCollectionField(projectField.getType())) {
                 continue;
-            };
+            }
+            ;
             String projectFieldName = projectField.getName();
-            log.info("递归子集合 {} 父实体类 {} 父投影类 {}",String.join(".",prefix,collectionFieldName,projectField.getName()), collectionEntityClass.getName(), collectionProjectClass.getName());
+            log.info("递归子集合 {} 父实体类 {} 父投影类 {}", String.join(".", prefix, collectionFieldName, projectField.getName()), collectionEntityClass.getName(), collectionProjectClass.getName());
 
             //递归获取集合
             Map<Object, Map<String, Object>> parentById = new HashMap<>();
-            collectionEntities.forEach(f->parentById.put(f.get(collectionIdFieldName),f));
-            projectCollection(parentById,collectionEntityClass, collectionProjectClass, projectFieldName, em, String.join(".",prefix,collectionFieldName,projectField.getName()));
+            collectionEntities.forEach(f -> parentById.put(f.get(collectionIdFieldName), f));
+            projectCollection(parentById, collectionEntityClass, collectionProjectClass, projectFieldName, em, String.join(".", prefix, collectionFieldName, projectField.getName()));
         }
     }
 
 
-    private static void projectToOneCollection(Map<Object, Map<String, Object>> parentEntitiesById,Class<?> entityClass, Class<?> projectClass, EntityManager em){
+    private static void projectToOneCollection(Map<Object, Map<String, Object>> parentEntitiesById, Class<?> entityClass, Class<?> projectClass, EntityManager em) {
         Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
         Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
         log.info("递归子集合的关联字段 {} {}", entityClass.getName(), projectClass.getName());
-        for(Field projectField: projectFieldsMap.values()) {
+        for (Field projectField : projectFieldsMap.values()) {
             String projectFieldName = projectField.getName();
             Class<?> projectFieldClass = projectField.getType();
             Field entityField = entityFieldsMap.get(projectFieldName);
-            if(entityField==null) continue;
+            if (entityField == null) continue;
             Class<?> entityFieldClass = entityField.getType();
 
-            if(ProjectionHelperUtil.isAssociationOne(entityField)){
+            if (ProjectionHelperUtil.isAssociationOne(entityField)) {
                 //递归关联字段下面有没有包含子集合
                 //按关联的对象重新收集父类
                 Map<Object, Map<String, Object>> toOneEntitiesById = new HashMap<>();
                 Field toOneEntityIdField = ProjectionHelperUtil.findIdField(entityFieldClass);
                 String toOneEntityIdFieldName = toOneEntityIdField.getName();
-                parentEntitiesById.values().forEach(f->{
+                parentEntitiesById.values().forEach(f -> {
                     toOneEntitiesById.put(f.get(toOneEntityIdFieldName), f);
                 });
-                projectToOneCollection(toOneEntitiesById,entityFieldClass, projectFieldClass, em);
+                projectToOneCollection(toOneEntitiesById, entityFieldClass, projectFieldClass, em);
             }
 
-            if(ProjectionHelperUtil.isCollectionField(projectFieldClass)){
+            if (ProjectionHelperUtil.isCollectionField(projectFieldClass)) {
                 log.info("递归到一的字段 {} {}", projectField.getName(), projectClass.getName());
                 Class<?> collectionEntityClass = ProjectionHelperUtil.getCollectionGenericClass(entityField);
                 Class<?> collectionProjectClass = ProjectionHelperUtil.getCollectionGenericClass(projectField);
@@ -189,13 +280,14 @@ public class ProjectionHelperV2 {
     }
 
     //构建集合的查询条件
-    private static Predicate buildPredicate(Collection<Object> parentIds, Class<?> entityClass,Class<?> parentClass,Root<?> root,EntityManager em){
+    private static Predicate buildPredicate(Collection<Object> parentIds, Class<?> entityClass, Class<?> parentClass, Root<?> root, EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
-        Field parentIdField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentClass);
-//        log.info("获取子集合  父ID集合长度 {} , 父类 {}  ", parentIds.size(), parentIdField.getType().getName());
+        Field parentField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentClass);
+        Field parentIdField = ProjectionHelperUtil.findIdField(parentField.getType());
+        log.info("构建查询条件 父id列表大小 {} 实体类 {} 父类 {} 实体类在父类的字段名 {} 父类id {}", parentIds.size(), entityClass.getName(), parentClass.getName(), parentField.getName(), parentIdField.getName());
         final Class<?> parentIdClass = parentIdField.getType();
-        final Path<?> parentPath = root.get(parentIdField.getName());
+        final Path<?> parentPath = root.get(parentField.getName());
         if (parentIdClass.isAnnotationPresent(EmbeddedId.class)) {
 
             List<Predicate> predicates = new ArrayList<>();
@@ -212,25 +304,39 @@ public class ProjectionHelperV2 {
                 Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
                 predicates.add(andGroup);
             }
-
-           return cb.or(predicates.toArray(new Predicate[0]));
+            describePredicate(predicates);
+            return cb.or(predicates.toArray(new Predicate[0]));
 
         } else {
             //不是embeddedId的话，就获取其id字段来匹配
-            final Path<?> parentIdPath = parentPath.get(ProjectionHelperUtil.findIdField(parentClass).getName());
-            final Field parentIdField_ = ProjectionHelperUtil.findIdField(parentClass);
-            final String alias = String.join(".", parentIdField.getName(), parentIdField_.getName());
+            final Path<?> parentIdPath = parentPath.get(parentIdField.getName());
+//            final Field parentIdField_ = ProjectionHelperUtil.findIdField(parentClass);
+//            final String alias = String.join(".", parentIdField.getName(), parentIdField_.getName());
+            log.info("parentIdPath {}", parentIdPath.getAlias());
             return parentIdPath.in(parentIds);
         }
 
 
     }
 
+    private static void describePredicate(List<Predicate> predicates) {
+        predicates.forEach(predicate -> {
+            if (predicate.getExpressions() != null && !predicate.getExpressions().isEmpty()) {
+                String sss = predicate.getOperator() + " " +
+                        predicate.getExpressions().stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining(", "));
+                log.info("条件 {}", sss);
+                ;
+            }
+        });
+
+    }
 
     private static List<Selection<?>> buildSelection(String prefix,
-                                                             From<?, ?> from,
-                                                             Class<?> domainClass,
-                                                             Class<?> projectClass) {
+                                                     From<?, ?> from,
+                                                     Class<?> domainClass,
+                                                     Class<?> projectClass) {
 
         //基础字段和embedded字段
         Map<String, Field> domainFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(domainClass);
@@ -240,19 +346,19 @@ public class ProjectionHelperV2 {
 
         for (Field projectField : projectFields) {
             Class<?> projectFieldClass = projectField.getType();
-            if(ProjectionHelperUtil.isCollectionField(projectFieldClass)) continue;
+            if (ProjectionHelperUtil.isCollectionField(projectFieldClass)) continue;
 
             String projectFieldName = projectField.getName();
             Field domainField = domainFieldsMap.get(projectFieldName);
-            if(domainField==null) continue;
+            if (domainField == null) continue;
 
             String domainFieldName = domainField.getName();
             String alias = prefix.isEmpty() ? domainFieldName : prefix + "." + domainFieldName;
             //embedded的字段，直接递归select，安全
 
-            if(ProjectionHelperUtil.isJavaStandardType(domainField)){
+            if (ProjectionHelperUtil.isJavaStandardType(domainField)) {
                 selections.add(from.get(domainFieldName).alias(alias));
-            }else{
+            } else {
                 log.info("递归嵌入 {}", domainFieldName);
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(from, domainFieldName);
                 Class<?> joinClass = domainField.getType();
@@ -267,22 +373,24 @@ public class ProjectionHelperV2 {
 
     /**
      * 处理基础字段，按照当前实体的id来匹配，实际上这个直接selection获取到了
-     * @param domainList 当前实体列表，key为实体的id, value为实体的值
-     * @param domainClass 当前实体的类
+     *
+     * @param domainList   当前实体列表，key为实体的id, value为实体的值
+     * @param domainClass  当前实体的类
      * @param projectClass 当前实体的投影类
      */
-    public static void projectPrimitive(Map<Object, Map<String,Object>> domainList,Class<?> domainClass, Class<?> projectClass){
+    public static void projectPrimitive(Map<Object, Map<String, Object>> domainList, Class<?> domainClass, Class<?> projectClass) {
 
     }
 
 
     /**
      * 处理嵌入字段，按照当前实体的id来匹配，实际上这个直接selection获取到了，要递归
-     * @param domainList 当前实体列表，key为实体的id, value为实体的值
-     * @param domainClass 当前实体的类
+     *
+     * @param domainList   当前实体列表，key为实体的id, value为实体的值
+     * @param domainClass  当前实体的类
      * @param projectClass 当前实体的投影类
      */
-    public static void projectEmbedded(Map<Object, Map<String,Object>> domainList,Class<?> domainClass, Class<?> projectClass){
+    public static void projectEmbedded(Map<Object, Map<String, Object>> domainList, Class<?> domainClass, Class<?> projectClass) {
 
     }
 
@@ -290,10 +398,10 @@ public class ProjectionHelperV2 {
     /**
      * 处理to one 的关联字段
      */
-    public static void projectToOne(Map<Object, Map<String,Object>> domainList,Class<?> domainClass, Class<?> projectClass){
+    public static void projectToOne(Map<Object, Map<String, Object>> domainList, Class<?> domainClass, Class<?> projectClass) {
         Collection<Field> toOneFields = new HashSet<>();
         //toOne字段要找到@JoinColumn的name属性，从而获取真正的字段
-        for(Field toOneField: toOneFields){
+        for (Field toOneField : toOneFields) {
 
         }
     }
@@ -302,7 +410,7 @@ public class ProjectionHelperV2 {
     /**
      * 处理集合字段
      */
-    public static void projectToMany(){
+    public static void projectToMany() {
 
     }
 
@@ -383,7 +491,7 @@ public class ProjectionHelperV2 {
             String projectFieldName = projectField.getName();
             Class<?> projectFieldClass = projectField.getType();
             Field domainField = domainFieldsMap.get(projectFieldName);
-            if(domainField==null) continue;
+            if (domainField == null) continue;
             String domainFieldName = domainField.getName();
             Class<?> domainFieldClass = domainField.getType();
 
@@ -410,7 +518,7 @@ public class ProjectionHelperV2 {
             //关联字段
             if (ProjectionHelperUtil.isAssociationOne(domainField)) {
                 //要递归
-                projectEntity(domainFieldClass,projectFieldClass,parentList,domainClass,projectField,em);
+                projectEntity(domainFieldClass, projectFieldClass, parentList, domainClass, projectField, em);
             }
         }
 
@@ -430,7 +538,7 @@ public class ProjectionHelperV2 {
         //递归
 
         Field domainIdField = ProjectionHelperUtil.findIdField(domainClass);
-        loadCollectionsV2(tuplesMap, domainClass,  projectClass,domainIdField, em);
+        loadCollectionsV2(tuplesMap, domainClass, projectClass, domainIdField, em);
 
 //        boolean hasCollectionField = Arrays.stream(projectClass.getDeclaredFields())
 //                .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
@@ -603,17 +711,17 @@ public class ProjectionHelperV2 {
             String projectFieldName = projectField.getName();
             Class<?> projectFieldClass = projectField.getType();
             Field domainField = domainFieldsMap.get(projectFieldName);
-            if(domainField==null) continue;
+            if (domainField == null) continue;
             String domainFieldName = domainField.getName();
             String alias = prefix.isEmpty() ? projectFieldName : prefix + "." + projectFieldName;
             //embedded的字段，直接递归select，安全
 
-            if(ProjectionHelperUtil.isEmbeddedId(domainField)){
+            if (ProjectionHelperUtil.isEmbeddedId(domainField)) {
                 log.info("递归嵌入 {}", domainFieldName);
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(from, domainFieldName);
                 Class<?> joinClass = domainField.getType();
                 selections.addAll(buildEmbeddedSelection(alias, join, joinClass, projectFieldClass));
-            }else{
+            } else {
                 selections.add(from.get(domainFieldName).alias(alias));
             }
 
@@ -763,10 +871,9 @@ public class ProjectionHelperV2 {
 
 
     /**
-     *
-     * @param parentIds 关联父类的id列表
-     * @param parentClass 关联的父类
-     * @param domainClass 子集合的实体类
+     * @param parentIds    关联父类的id列表
+     * @param parentClass  关联的父类
+     * @param domainClass  子集合的实体类
      * @param projectClass 子集合实体类的投影类
      * @param em
      * @return

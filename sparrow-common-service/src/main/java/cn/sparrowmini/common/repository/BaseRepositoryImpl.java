@@ -9,8 +9,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.ReflectionUtils;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,6 +32,10 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.sparrowmini.common.repository.ProjectionHelperV2.keyById;
+import static cn.sparrowmini.common.repository.ProjectionHelperV2.projectCollectionV2;
+
+@Slf4j
 public class BaseRepositoryImpl<T, ID>
         extends SimpleJpaRepository<T, ID>
         implements BaseRepository<T, ID> {
@@ -191,6 +197,33 @@ public class BaseRepositoryImpl<T, ID>
         //递归处理含有子集合的数据
         if(!projectionClass.isInterface()){
 
+            Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(domainClass);
+            Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectionClass);
+
+            Collection<Field> entityFields = entityFieldsMap.values();
+            Collection<Field> projectFields = projectFieldsMap.values();
+            final Map<Object, Map<String, Object>> rootEntitiesByIdMap = keyById(results,domainClass);
+            for(Field projectField: projectionClass.getDeclaredFields()){
+                String projectFieldName = projectField.getName();
+                Class<?> projectFieldClass = projectField.getType();
+                Field entityField = entityFieldsMap.get(projectFieldName);
+                if(entityField==null) continue;
+                if(ProjectionHelperUtil.isCollectionField(projectFieldClass)){
+                    Class<?> collectionEntityClass = ProjectionHelperUtil.getCollectionGenericClass(entityField);
+                    Class<?> collectionProjectClass = ProjectionHelperUtil.getCollectionGenericClass(projectField);
+                    log.info("递归子集合1 {}", projectFieldName);
+                    projectCollectionV2(rootEntitiesByIdMap, domainClass ,collectionEntityClass, collectionProjectClass,em, projectFieldName);
+                }
+
+                if(ProjectionHelperUtil.isAssociationOne(entityField)){
+                    log.info("递归关联实体1 {}", projectFieldName);
+                    Class<?> toOneEntityClass = entityField.getType();
+                    List<Map<String, Object>> childEntities = JsonPath.read(results,String.join(".","$[*]",projectFieldName));
+                    final Map<Object, Map<String, Object>> childEntitiesByIdMap = keyById(childEntities,toOneEntityClass);
+                    projectCollectionV2(childEntitiesByIdMap, domainClass ,toOneEntityClass, projectFieldClass,em, projectFieldName);
+                }
+            }
+
 //            ProjectionHelperV2.loadCollections(results, domainType(), projectionClass,idField(), em);
 //            ProjectionHelperV2.loadCollectionsV2(results, domainType(), projectionClass,idField(), em);
 
@@ -217,7 +250,7 @@ public class BaseRepositoryImpl<T, ID>
 //            }
 
 
-            ProjectionHelperV2.projectCollection(results,domainType(),projectionClass,em,"$");
+//            ProjectionHelperV2.projectCollection(results,domainType(),projectionClass,em,"$");
 
 
             ObjectMapper mapper = JsonUtils.getMapper();
