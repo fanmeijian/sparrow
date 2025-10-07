@@ -1,20 +1,20 @@
 package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.antlr.PredicateBuilder;
-import cn.sparrowmini.common.model.BaseState;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.ReflectionUtils;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -29,7 +29,6 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.sparrowmini.common.repository.ProjectionHelperV2.keyById;
@@ -168,31 +167,6 @@ public class BaseRepositoryImpl<T, ID>
         // 转换成 DTO，支持嵌套对象，这个为主表的对象，不含子集合的查询，但是对于非集合，则直接join出来了
         List<Map<String,Object>> results = ProjectionHelperUtil.tuplesToMap(tuples);
 
-//        List<Map<String,Object>> results = tuples.stream()
-//                .map(tuple -> {
-//                    Map<String, Object> tupleMap = new HashMap<>();
-//                    Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
-//
-//                    for (TupleElement<?> elem : tuple.getElements()) {
-//                        String alias = elem.getAlias();
-//                        Object value = tuple.get(elem);
-//
-//                        if (alias.contains(".")) {
-//                            String[] parts = alias.split("\\.", 2);
-//                            nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
-//                                    .put(parts[1], value);
-//                        } else {
-//                            tupleMap.put(alias, value);
-//                        }
-//                    }
-//
-//                    nestedMaps.forEach(tupleMap::put);
-//                    if(projectionClass.isInterface()){
-//                        finalResult.add(projectionFactory.createProjection(projectionClass, tupleMap));
-//                    }
-//                    return tupleMap;
-//                })
-//                .collect(Collectors.toList());
 
         //递归处理含有子集合的数据
         if(!projectionClass.isInterface()){
@@ -209,49 +183,24 @@ public class BaseRepositoryImpl<T, ID>
                 Field entityField = entityFieldsMap.get(projectFieldName);
                 if(entityField==null) continue;
                 if(ProjectionHelperUtil.isCollectionField(projectFieldClass)){
+                    //并且字段得是实体类型
                     Class<?> collectionEntityClass = ProjectionHelperUtil.getCollectionGenericClass(entityField);
                     Class<?> collectionProjectClass = ProjectionHelperUtil.getCollectionGenericClass(projectField);
-                    log.info("递归子集合1 {}", projectFieldName);
+                    if(ProjectionHelperUtil.isJavaStandardType(collectionProjectClass)){
+                        continue;
+                    }
+                    log.info("递归子集合1 字段名 {} 字段类型 {} 投影类型 {}, {}", projectFieldName, domainClass.getName(), collectionEntityClass.getName(), collectionProjectClass.getName());
                     projectCollectionV2(rootEntitiesByIdMap, domainClass ,collectionEntityClass, collectionProjectClass,em, projectFieldName);
                 }
 
                 if(ProjectionHelperUtil.isAssociationOne(entityField)){
                     log.info("递归关联实体1 {}", projectFieldName);
                     Class<?> toOneEntityClass = entityField.getType();
-                    List<Map<String, Object>> childEntities = JsonPath.read(results,String.join(".","$[*]",projectFieldName));
+                    List<Map<String, Object>> childEntities = ProjectionHelperV2.getAllByKey(results,projectFieldName);
                     final Map<Object, Map<String, Object>> childEntitiesByIdMap = keyById(childEntities,toOneEntityClass);
                     projectCollectionV2(childEntitiesByIdMap, domainClass ,toOneEntityClass, projectFieldClass,em, projectFieldName);
                 }
             }
-
-//            ProjectionHelperV2.loadCollections(results, domainType(), projectionClass,idField(), em);
-//            ProjectionHelperV2.loadCollectionsV2(results, domainType(), projectionClass,idField(), em);
-
-//            boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
-//                    .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
-
-//            if (hasCollectionField) {
-//                // ----------------------------
-//                // Step 3: 加载集合字段
-//                // ----------------------------
-////                DynamicProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
-//                ProjectionHelperV2.loadCollections(results, domainType(), projectionClass,idField(), em);
-//            }
-
-
-
-//            Map<Object, Map<String,Object>> parentByIdMap = new HashMap<>();
-//
-//            results.forEach(f->parentByIdMap.put(f.get(idFieldName()),f));
-//            for(Field collectionField: projectionClass.getDeclaredFields()){
-//                if(!ProjectionHelperUtil.isCollectionField(collectionField.getType())) continue;
-//
-//                ProjectionHelperV2.projectCollection(parentByIdMap,domainType(),projectionClass,collectionField.getName(),em,domainType().getSimpleName());
-//            }
-
-
-//            ProjectionHelperV2.projectCollection(results,domainType(),projectionClass,em,"$");
-
 
             ObjectMapper mapper = JsonUtils.getMapper();
             JavaType type = mapper.getTypeFactory().constructCollectionType(List.class, projectionClass);

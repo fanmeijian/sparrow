@@ -1,6 +1,6 @@
 package cn.sparrowmini.common.repository;
 
-import com.jayway.jsonpath.JsonPath;
+import cn.sparrowmini.common.util.JsonUtils;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
@@ -288,8 +288,8 @@ public class ProjectionHelperV2 {
         log.info("构建查询条件 父id列表大小 {} 实体类 {} 父类 {} 实体类在父类的字段名 {} 父类id {}", parentIds.size(), entityClass.getName(), parentClass.getName(), parentField.getName(), parentIdField.getName());
         final Class<?> parentIdClass = parentIdField.getType();
         final Path<?> parentPath = root.get(parentField.getName());
-        if (parentIdClass.isAnnotationPresent(EmbeddedId.class)) {
-
+        if (parentIdField.isAnnotationPresent(EmbeddedId.class)) {
+            Path<?> idPath = parentPath.get(parentIdField.getName());
             List<Predicate> predicates = new ArrayList<>();
 
             for (Object searchId : parentIds) {
@@ -298,13 +298,13 @@ public class ProjectionHelperV2 {
                 List<Predicate> andPredicates = new ArrayList<>();
 
                 parentId.forEach((k, v) -> {
-                    andPredicates.add(cb.equal(parentPath.get(k), v));
+                    andPredicates.add(cb.equal(idPath.get(k), v));
                 });
 
                 Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
                 predicates.add(andGroup);
             }
-            describePredicate(predicates);
+//            describePredicate(predicates);
             return cb.or(predicates.toArray(new Predicate[0]));
 
         } else {
@@ -600,6 +600,14 @@ public class ProjectionHelperV2 {
         if (childList == null || childList.isEmpty() || parentIds == null || parentIds.isEmpty()) {
             return Collections.emptyMap();
         }
+//        Map<Object, List<Map<String, Object>>> result = new HashMap<>();
+//        parentIds.forEach(parentId -> {
+//             result.computeIfAbsent(parentId, k -> new ArrayList<>());
+//             if(parentId.equals(parentIdPath)) {
+//                 result.get(parentId).add(new HashMap<>());
+//             }
+//
+//        });
 
         // 1️⃣ 按childList实际值分组
         Map<Object, List<Map<String, Object>>> grouped = childList.stream()
@@ -607,7 +615,7 @@ public class ProjectionHelperV2 {
                 .collect(Collectors.groupingBy(
                         map -> {
                             try {
-                                return JsonPath.read(map, String.join(".", "$", parentIdPath));
+                                return readJsonPath(map,parentIdPath);
                             } catch (Exception e) {
                                 return null;
                             }
@@ -619,7 +627,7 @@ public class ProjectionHelperV2 {
         Map<Object, List<Map<String, Object>>> result = new LinkedHashMap<>();
         for (Object parentId : parentIds) {
             List<Map<String, Object>> matched = grouped.entrySet().stream()
-                    .filter(e -> Objects.equals(e.getKey(), parentId))
+                    .filter(e -> Objects.equals(JsonUtils.getMapper().convertValue(e.getKey(), Map.class), parentId))
                     .findFirst()
                     .map(Map.Entry::getValue)
                     .orElse(Collections.emptyList());
@@ -627,6 +635,50 @@ public class ProjectionHelperV2 {
         }
 
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object readJsonPath(Object data, String path) {
+        if (data == null || path == null || path.isEmpty()) {
+            return null;
+        }
+
+        String[] tokens = path.split("\\.");
+
+        Object current = data;
+        for (String token : tokens) {
+            if (current == null) return null;
+
+            // 支持 array 下标访问，比如 b[0]
+            int idxStart = token.indexOf('[');
+            if (idxStart != -1 && token.endsWith("]")) {
+                String key = token.substring(0, idxStart);
+                int index = Integer.parseInt(token.substring(idxStart + 1, token.length() - 1));
+
+                if (current instanceof Map) {
+                    current = ((Map<String, Object>) current).get(key);
+                }
+
+                if (current instanceof List) {
+                    List<?> list = (List<?>) current;
+                    if (index >= 0 && index < list.size()) {
+                        current = list.get(index);
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            } else {
+                if (current instanceof Map) {
+                    current = ((Map<String, Object>) current).get(token);
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        return current;
     }
 
 
