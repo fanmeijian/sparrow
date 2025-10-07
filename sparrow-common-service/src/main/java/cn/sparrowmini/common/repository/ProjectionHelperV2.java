@@ -1,6 +1,8 @@
 package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.util.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
@@ -132,7 +134,11 @@ public class ProjectionHelperV2 {
             childEntitiesByIdMap = keyById(childEntities, entityClass);
         }
 
-
+        //如果是@JsonIgonore或者jsonBackRefernce，就不再递归
+        Field fieldInParent = parentEntityFieldsMap.get(fieldNameInParent);
+        if(fieldInParent.isAnnotationPresent(JsonIgnore.class)||fieldInParent.isAnnotationPresent(JsonBackReference.class)){
+            return;
+        }
         //再递归所有的子集合对象
         for (Field projectField : projectFields) {
             String projectFieldName = projectField.getName();
@@ -627,7 +633,14 @@ public class ProjectionHelperV2 {
         Map<Object, List<Map<String, Object>>> result = new LinkedHashMap<>();
         for (Object parentId : parentIds) {
             List<Map<String, Object>> matched = grouped.entrySet().stream()
-                    .filter(e -> Objects.equals(JsonUtils.getMapper().convertValue(e.getKey(), Map.class), parentId))
+                    .filter(e -> {
+                        if(ProjectionHelperUtil.isJavaStandardType(e.getKey().getClass())){
+                            return Objects.equals(e.getKey(),parentId);
+                        }else{
+                            return Objects.equals(JsonUtils.getMapper().convertValue(e.getKey(), Map.class), parentId);
+                        }
+
+                    })
                     .findFirst()
                     .map(Map.Entry::getValue)
                     .orElse(Collections.emptyList());
