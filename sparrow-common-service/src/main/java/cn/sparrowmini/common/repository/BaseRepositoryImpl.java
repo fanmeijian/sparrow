@@ -29,10 +29,9 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static cn.sparrowmini.common.repository.ProjectionHelperV2.keyById;
-import static cn.sparrowmini.common.repository.ProjectionHelperV2.projectCollectionV2;
+import static cn.sparrowmini.common.repository.ProjectionHelper.keyById;
+import static cn.sparrowmini.common.repository.ProjectionHelper.projectCollectionV2;
 
 @Slf4j
 public class BaseRepositoryImpl<T, ID>
@@ -139,13 +138,7 @@ public class BaseRepositoryImpl<T, ID>
                 : cb.conjunction();
 
         // 构建 select 投影字段
-//        List<Selection<?>> selections = DynamicProjectionHelper.buildSelections(
-//                domainType(), cb, root, projectionClass, "", new HashMap<>()
-//        );
-
-//        List<Selection<?>> selections = ProjectionHelperV2.buildSelections(
-//                "", root, cb, domainClass,projectionClass);
-        List<Selection<?>> selections = ProjectionHelperV2.buildEntitySelection(
+        List<Selection<?>> selections = ProjectionHelper.buildEntitySelection(
                 root, domainClass,projectionClass);
         query.multiselect(selections);
         query.where(finalPredicate);
@@ -196,7 +189,7 @@ public class BaseRepositoryImpl<T, ID>
                 if(ProjectionHelperUtil.isAssociationOne(entityField)){
                     log.info("递归关联实体1 {}", projectFieldName);
                     Class<?> toOneEntityClass = entityField.getType();
-                    List<Map<String, Object>> childEntities = ProjectionHelperV2.getAllByKey(results,projectFieldName);
+                    List<Map<String, Object>> childEntities = ProjectionHelper.getAllByKey(results,projectFieldName);
                     final Map<Object, Map<String, Object>> childEntitiesByIdMap = keyById(childEntities,toOneEntityClass);
                     projectCollectionV2(childEntitiesByIdMap, domainClass ,toOneEntityClass, projectFieldClass,em, projectFieldName);
                 }
@@ -223,158 +216,6 @@ public class BaseRepositoryImpl<T, ID>
         return PageableExecutionUtils.getPage(finalResult, pageable, countTypedQuery::getSingleResult);
     }
 
-
-
-    /**
-     * 递归填充集合关联字段
-     */
-    private <E> void populateCollectionField(Map<Object, E> parentEntities, Field collectionField,
-                                             Map<Class<?>, Map<Object, List<?>>> cache) {
-        Class<?> elementType = getCollectionGenericClass(collectionField);
-        if (parentEntities.isEmpty()) return;
-
-        List<Object> parentIds = parentEntities.keySet().stream().toList();
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<?> query = cb.createQuery(elementType);
-        Root<?> root = query.from(elementType);
-
-        Field parentRefField = findParentReferenceField(elementType, collectionField.getDeclaringClass());
-        query.where(root.get(parentRefField.getName()).in(parentIds));
-        List<?> children = em.createQuery(query).getResultList();
-
-//        Map<Object, List<?>> grouped = children.stream()
-//                .collect(Collectors.groupingBy(c -> getFieldValue(c, parentRefField), LinkedHashMap::new, Collectors.toList()));
-        var grouped = children.stream()
-                .collect(Collectors.groupingBy(
-                        c -> getFieldValue(c, parentRefField),
-                        LinkedHashMap::new,
-                        Collectors.toList()
-                ));
-
-        // 递归子集合
-        for (Field f : elementType.getDeclaredFields()) {
-            if (Collection.class.isAssignableFrom(f.getType()) && isAssociation(f)) {
-                populateCollectionField(grouped, f, cache);
-            }
-        }
-    }
-
-    /**
-     * 通过反射获取字段值，支持复合ID
-     */
-    private Object getFieldValue(Object entity, Field field) {
-        try {
-            field.setAccessible(true);
-            Object val = field.get(entity);
-            if (val == null) return null;
-
-            // 复合ID
-            if (isCompositeId(val.getClass())) {
-                Map<String, Object> map = new LinkedHashMap<>();
-                for (Field sub : val.getClass().getDeclaredFields()) {
-                    sub.setAccessible(true);
-                    map.put(sub.getName(), sub.get(val));
-                }
-                // 转为字符串 key
-                return map.toString();
-            }
-
-            // 如果是实体对象，则取其 ID 字段
-            if (isEntity(val.getClass())) {
-                Field idField = findIdField(val.getClass());
-                return getFieldValue(val, idField);
-            }
-
-            return val;
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private boolean isEntity(Class<?> clazz) {
-        return clazz.isAnnotationPresent(Entity.class);
-    }
-
-    private boolean isCompositeId(Class<?> clazz) {
-        return Arrays.stream(clazz.getDeclaredFields())
-                .anyMatch(f -> !f.getName().equals("serialVersionUID"));
-    }
-
-    /**
-     * 查找实体主键字段
-     */
-    private Field findIdField(Class<?> entityClass) {
-       for (Field f : ReflectionUtils.getAllFields(entityClass)) {
-            if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(EmbeddedId.class)) {
-                return f;
-            }
-        }
-        throw new RuntimeException("找不到ID字段: " + entityClass.getName());
-    }
-
-    /**
-     * 获取集合泛型类型
-     */
-    private Class<?> getCollectionGenericClass(Field f) {
-        Type genericType = f.getGenericType();
-        if (genericType instanceof ParameterizedType pt) {
-            Type[] args = pt.getActualTypeArguments();
-            if (args.length == 1) {
-                return (Class<?>) args[0];
-            }
-        }
-        return Object.class;
-    }
-
-    /**
-     * 动态推断 DTO 集合元素类型
-     */
-    private Class<?> getCollectionElementProjectionClass(Field f) {
-        // 尝试使用注解或命名规则，若找不到则默认 Object.class
-        // 可根据需要扩展，比如 @DtoClass 注解
-        return getCollectionGenericClass(f);
-    }
-
-    /**
-     * 判断是否关联字段（@ManyToOne / @OneToMany / @OneToOne / @ManyToMany）
-     */
-    private boolean isAssociation(Field f) {
-        return f.isAnnotationPresent(OneToMany.class)
-                || f.isAnnotationPresent(ManyToOne.class)
-                || f.isAnnotationPresent(OneToOne.class)
-                || f.isAnnotationPresent(ManyToMany.class);
-    }
-
-    /**
-     * 查找子表关联回父表的字段
-     */
-    private Field findParentReferenceField(Class<?> childClass, Class<?> parentClass) {
-        for (Field f : childClass.getDeclaredFields()) {
-            if (f.getType().equals(parentClass) && isAssociation(f)) {
-                return f;
-            }
-        }
-        throw new RuntimeException("找不到子表回父表的关联字段: " + childClass.getName());
-    }
-
-    // -----------------------------
-// 泛型反射动态获取集合元素类型
-// -----------------------------
-    private Class<?> getCollectionElementType(Field f) {
-        Type genericType = f.getGenericType();
-        if (genericType instanceof ParameterizedType paramType) {
-            Type[] typeArgs = paramType.getActualTypeArguments();
-            if (typeArgs.length == 1) {
-                Type elementType = typeArgs[0];
-                if (elementType instanceof Class<?> clazz) {
-                    return clazz;
-                } else if (elementType instanceof ParameterizedType pt) {
-                    return (Class<?>) pt.getRawType(); // 支持嵌套泛型
-                }
-            }
-        }
-        return Object.class;
-    }
 
     @Override
     @Transactional

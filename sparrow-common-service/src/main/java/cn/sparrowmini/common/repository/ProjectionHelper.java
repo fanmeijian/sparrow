@@ -1,643 +1,390 @@
 package cn.sparrowmini.common.repository;
 
-
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ReflectionUtils;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-/**
- * 支持循环递归构建SELECTION
- */
 @Slf4j
 public class ProjectionHelper {
 
-
-
-
     /**
-     * 缓存所有实体类的字段
+     * 所有非集合字段都可以一次性全部获取出来
      */
-    private static final Map<Class<?>, Map<String, Field>> domainFields = new ConcurrentHashMap<>();
-
-
-    private static Map<String, Field> getDomainFieldsMap(Class<?> clazz) {
-        domainFields.computeIfAbsent(clazz, k -> {
-            Map<String, Field> map = new HashMap<>();
-//            ReflectionUtils.getAllFields(domainClass).forEach(field -> {
-//                map.put(field.getName(), field);
-//            });
-
-            ReflectionUtils.doWithFields(clazz, field -> {
-                int mods = field.getModifiers();
-
-                // 排除 static、transient
-                if (Modifier.isStatic(mods) || Modifier.isTransient(mods)) return;
-
-                // 排除 JPA Transient
-                if (field.isAnnotationPresent(Transient.class)) return;
-
-                // 排除 Jackson 忽略字段
-//                if (field.isAnnotationPresent(JsonIgnore.class) ||
-//                        field.isAnnotationPresent(JsonBackReference.class)) return;
-
-                // 如果字段不是 public，也不是通过注解标记的持久化字段，可以额外排除
-                if (!Modifier.isPublic(mods)
-                        && !field.isAnnotationPresent(Column.class)
-                        && !field.isAnnotationPresent(JoinColumn.class)
-                        && !field.isAnnotationPresent(OneToMany.class)
-                        && !field.isAnnotationPresent(ManyToOne.class)
-                        && !field.isAnnotationPresent(OneToOne.class)
-                        && !field.isAnnotationPresent(Embedded.class)
-                        && !field.isAnnotationPresent(ElementCollection.class)
-                ) {
-                    // 可选：排除没有 getter 且非 JPA 注解的字段
-                    try {
-                        String getterName = "get" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
-                        clazz.getMethod(getterName);
-                    } catch (NoSuchMethodException e) {
-                        return;
-                    }
-                }
-                map.put(field.getName(), field);
-            });
-
-            return map;
-        });
-        return domainFields.get(clazz);
-    }
-
-    private static Field getDomainField(Class<?> domainClass, String fieldName) {
-        return getDomainFieldsMap(domainClass).get(fieldName);
-    }
-
-    public static Map<String, List<Selection<?>>> getSelections(Class<?> domainClass, Class<?> projectClass) {
-        return Map.of();
-    }
-
-    /**
-     * key为字段名，根为类名例如实体类为Order 里面有products集合字段，则根的KEY为Order,集合字段root.products
-     *
-     * @return
-     */
-    public static List<Selection<?>> buildSelections(
-            String prefix,
-            From<?, ?> from,
-            CriteriaBuilder cb,
-            Class<?> domainClass,
-            Class<?> projectionClass) {
-
+    protected static List<Selection<?>> buildEntitySelection(Root<?> root, Class<?> entityClass, Class<?> projectClass) {
+        Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
+        Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
+        Collection<Field> entityFields = entityFieldsMap.values();
+        Collection<Field> projectFields = projectFieldsMap.values();
         List<Selection<?>> selections = new ArrayList<>();
-        Set<String> aliasSet= new HashSet<>();
-        for (Field projField : projectionClass.getDeclaredFields()) {
-            if (!isValidField(projField)) continue;
-            if (isCollectionField(projField.getType())) continue;
 
+        //一次性构建所有的selection
+        for (Field projectField : projectFields) {
+            if (ProjectionHelperUtil.isCollectionField(projectField.getType())) continue;
 
-            String projFieldName = projField.getName();
-            Field domainField = getDomainField(domainClass, projFieldName);
-            if (domainField == null) continue;
+            String projectFieldName = projectField.getName();
+            Field entityField = entityFieldsMap.get(projectFieldName);
+            if (entityField == null) continue;
 
-            String domainFieldName = domainField.getName();
-            String alias = prefix.isEmpty() ? projFieldName : prefix + "." + projFieldName;
-            aliasSet.add(alias);
-            log.info("投影 {} alias {} ", projectionClass.getName(),alias);
-            // ---------------------------
-            // 关联实体（递归处理）
-            // ---------------------------
-            if (isAssociation(domainField)) {
-                Join<?, ?> join = tryGetOrCreateJoin(from, domainFieldName);
-                Class<?> joinClass = domainField.getType();
-                log.info("递归展开子类 {}", domainFieldName );
-                // 递归展开子类字段
-//                if (domainField.isAnnotationPresent(JsonIgnore.class) ||
-//                        domainField.isAnnotationPresent(JsonBackReference.class)) {
-//                    continue; // 不递归
-//                }
-                selections.addAll(buildSelections(alias, join, cb, joinClass, projField.getType()));
+            String entityFieldName = entityField.getName();
+            Class<?> entityFieldClass = entityField.getType();
+            Class<?> projectFieldClass = projectField.getType();
+
+            //标准字段
+            if (ProjectionHelperUtil.isJavaStandardType(projectField)) {
+                selections.add(root.get(entityFieldName).alias(entityFieldName));
             }
-            // ---------------------------
-            // 嵌入类型
-            // ---------------------------
-            else if (isEmbedded(domainField)) {
-                Path<?> path = from.get(domainFieldName);
-                for (Field subField : domainField.getType().getDeclaredFields()) {
-                    if (!isValidField(subField)) continue;
-                    String subAlias = alias + "." + subField.getName();
-                    selections.add(path.get(subField.getName()).alias(subAlias));
-                }
+
+            //嵌入字段
+            //embedded字段
+            if (ProjectionHelperUtil.isEmbedded(entityField)) {
+                //要递归
+                log.info("递归嵌入字段 {} {} {}", entityField.getName(), entityFieldClass.getName(), projectFieldClass.getName());
+                Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
+                selections.addAll(buildEmbeddedSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
             }
-            // ---------------------------
-            // 标量字段
-            // ---------------------------
-            else if (isJavaStandardType(projField) || isJavaStandardType(domainField)) {
-                selections.add(from.get(domainFieldName).alias(alias));
-            } else {
-                log.info("跳过不处理字段: {}", domainFieldName);
+
+            //toOne字段
+            if (ProjectionHelperUtil.isAssociationOne(entityField)) {
+                //toOne字段要找到@JoinColumn的name属性，从而获取真正的字段
+                JoinColumn joinColumn = entityField.getAnnotation(JoinColumn.class);
+                String joinColumnName = joinColumn.name();
+
+                //递归处理
+                //要递归
+                log.info("递归关联字段 {} {} {}", entityField.getName(), entityFieldClass.getName(), projectFieldClass.getName());
+                Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
+                selections.addAll(buildSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
             }
         }
-
         return selections;
     }
 
-    private static Join<?, ?> tryGetOrCreateJoin(From<?, ?> from, String fieldName) {
-        // 避免重复 join
-        for (Join<?, ?> join : from.getJoins()) {
-            if (join.getAttribute().getName().equals(fieldName)) {
-                return join;
-            }
-        }
-        return from.join(fieldName, JoinType.LEFT);
-    }
-
-
-
-    public static void loadCollectionsV2(
-            List<Map<String, Object>> parentResults,
-            Class<?> domainClass,
-            Class<?> projectionClass,
-            EntityManager em,
-            Field domainIdField) {
-
-        for (Field projField : projectionClass.getDeclaredFields()) {
-            if (!isCollectionField(projField.getType())) continue;
-
-            String collectionName = projField.getName();
-            Field domainField = getDomainField(domainClass, collectionName);
-            if (domainField == null) continue;
-            log.info("处理集合字段 {}", domainField.getName());
-            // 集合元素类型（如 OrderItem.class）
-            Class<?> elementType = getCollectionElementType(domainField);
-            Class<?> elementProjectType = getCollectionGenericClass(projField);
-
-            // 外键字段（假设用 ManyToOne 映射回父类）
-            String parentRefField = getParentReferenceField(elementType, domainClass);
-            Field parentIdField=findIdField(domainClass);
-            if (parentRefField == null) continue;
-
-            // ---------------------------
-            // Step 1: 收集父 ID 列表
-            // ---------------------------
-
-            parentResults.forEach(parentResult -> {
-                parentResult.put(domainIdField.getName(),buildIdValue(parentResult.get(domainIdField.getName()),parentIdField.getType()));
-            });
-
-            List<Object> parentIds = parentResults.stream()
-                    .map(m -> m.get(domainIdField.getName()))
-                    .filter(Objects::nonNull)
-                    .distinct()
-                    .collect(Collectors.toList());
-
-
-//            List<Object> parentIds = parentResults.stream()
-//                    .map(m -> m.get(domainIdField.getName()))
-//                    .filter(Objects::nonNull)
-//                    .distinct()
-//                    .collect(Collectors.toList());
-
-            if (parentIds.isEmpty()) continue;
-
-            // ---------------------------
-            // Step 2: 查询子集合
-            // ---------------------------
-            List<Tuple> childTuples = fetchChildTuples(em, elementType, parentRefField, parentIds,elementProjectType);
-
-            // ---------------------------
-            // Step 3: 按父 ID 分组
-            // ---------------------------
-            Map<Object, List<Map<String, Object>>> grouped = groupByParentId(childTuples, parentRefField, parentIds);
-
-            // ---------------------------
-            // Step 4: 填充到父结果
-            // ---------------------------
-            for (Map<String, Object> parentMap : parentResults) {
-                Object parentId = parentMap.get(domainIdField.getName());
-//                List<Map<String, Object>> children = null;
-//                try {
-//                    children = grouped.getOrDefault(JsonUtils.getMapper().writeValueAsString(parentId), Collections.emptyList());
-//                } catch (JsonProcessingException e) {
-//                    throw new RuntimeException(e);
-//                }
-
-                List<Map<String, Object>> children = grouped.get(parentId);
-                parentMap.put(collectionName, children);
-
-                // Step 5: 递归处理子集合
-// ---------------------------
-                if (children != null && !children.isEmpty()) {
-                    for (Map<String, Object> childMap : children) {
-                        for (Field projSubField : elementProjectType.getDeclaredFields()) {
-                            if (!isValidField(projSubField)) continue;
-                            if (!isCollectionField(projSubField.getType())) {
-                                // 普通对象字段，检查是否包含集合
-                                Field domainSubField = getDomainField(elementType, projSubField.getName());
-                                if (domainSubField != null && !isJavaStandardType(domainSubField.getType())) {
-                                    Class<?> nestedProjClass = projSubField.getType();
-                                    if (hasNestedCollections(domainSubField.getType(), nestedProjClass)) {
-                                        loadCollectionsV2(
-                                                Collections.singletonList((Map<String, Object>) childMap.get(projSubField.getName())),
-                                                domainSubField.getType(),
-                                                nestedProjClass,
-                                                em,
-                                                findIdField(domainSubField.getType())
-                                        );
-                                    }
-                                }
-                            } else {
-                                // 集合字段，递归
-                                Class<?> nestedElementType = getCollectionElementType(getDomainField(elementType, projSubField.getName()));
-                                Class<?> nestedProjClass = getCollectionGenericClass(projSubField);
-                                loadCollectionsV2(
-                                        childMap.containsKey(projSubField.getName()) ?
-                                                (List<Map<String, Object>>) childMap.get(projSubField.getName()) :
-                                                Collections.emptyList(),
-                                        nestedElementType,
-                                        nestedProjClass,
-                                        em,
-                                        findIdField(nestedElementType)
-                                );
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            // ---------------------------
-
-//            // ---------------------------
-//            // Step 5: 递归处理子集合
-//            // ---------------------------
-            if (hasNestedCollections(elementType)) {
-                loadCollectionsV2(
-                        grouped.values().stream().flatMap(List::stream).collect(Collectors.toList()),
-                        elementType,
-                        getCollectionElementType(projField),
-                        em,
-                        findIdField(elementType)
-                );
-            }
-        }
-    }
-
-    private static boolean hasNestedCollections(Class<?> type) {
-        return Arrays.stream(type.getDeclaredFields())
-                .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
-    }
-
-    private static List<Tuple> fetchChildTuples(
-            EntityManager em,
-            Class<?> elementType,
-            String parentRefField,
-            List<Object> parentIds,
-            Class<?> elementProjectType) {
+    /**
+     * 获取实体类信息，去除集合的字段
+     *
+     * @param parentIds
+     * @param parentEntityClass
+     * @param entityClass
+     * @param projectClass
+     * @param em
+     * @return
+     */
+    private static List<Tuple> projectEntity(Collection<Object> parentIds, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em) {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-        Root<?> root = cq.from(elementType);
-        //符合组件
-        Path<?> path = root;
-        String[] segments = parentRefField.split("\\.");
-        for (String s : segments) {
-            path = path.get(s);
-        }
+        Root<?> root = cq.from(entityClass);
 
-        // 选择子类所有非集合字段
-        List<Selection<?>> selections = buildSelections("", root, cb, elementType, elementProjectType);
-        if(selections.stream().noneMatch(s->s.getAlias().equals(parentRefField))){
-            selections.add(path.alias(parentRefField));
-        }
 
+        //获取子集合类的所有非集合的投影字段
+        List<Selection<?>> selections = buildEntitySelection(root, entityClass, projectClass);
+        Field parentRefField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentEntityClass);
+        Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
+        Class<?> parentIdClass = parentIdField.getType();
+        final Path<?> parentPath = root.get(parentRefField.getName());
+        if (selections.stream().noneMatch(s -> s.getAlias().startsWith(parentRefField.getName() + "."))) {
+            selections.add(parentPath.get(parentIdField.getName()).alias(parentRefField.getName() + "." + parentIdField.getName()));
+        }
         cq.multiselect(selections);
-        final Path<?> path_=path;
-
-
-        List<Predicate> predicates = new ArrayList<>();
-        if(!parentIds.isEmpty() && !isJavaStandardType(parentIds.get(0).getClass())) {
-            Class<?> parentIdType = parentIds.get(0).getClass();
-            Field[] fields = parentIdType.getDeclaredFields();
-            for (Object searchId : parentIds) {
-                List<Predicate> andPredicates = new ArrayList<>();
-                for (Field field : fields) {
-                    ReflectionUtils.makeAccessible(field);
-                    try {
-                        andPredicates.add(cb.equal(path_.get(field.getName()), field.get(searchId)));
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
-                predicates.add(andGroup);
-            }
-
-            cq.where(cb.or(predicates.toArray(new Predicate[0])));
-        }else{
-            cq.where(path_.in(parentIds));
-        }
-
+        Predicate predicate = buildPredicate(parentIds, entityClass, parentEntityClass, root, em);
+        cq.where(predicate);
         return em.createQuery(cq).getResultList();
     }
 
+    protected static void projectCollectionV2(Map<Object, Map<String, Object>> parentEntitiesByIdMap, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em, String fieldNameInParent) {
+        //根据父id，先获取到自己的所有非集合对象
+        Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
+        Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
+        Map<String, Field> parentEntityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(parentEntityClass);
 
+        Collection<Field> entityFields = entityFieldsMap.values();
+        Collection<Field> projectFields = projectFieldsMap.values();
+        Collection<Object> parentIds = parentEntitiesByIdMap.keySet();
 
-    private static Field findIdField(Class<?> type) {
-        Class<?> current = type;
-        while (current != null && !current.equals(Object.class)) {
-            for (Field f : current.getDeclaredFields()) {
-                if (f.isAnnotationPresent(Id.class) || f.isAnnotationPresent(EmbeddedId.class)) {
-                    f.setAccessible(true);
-                    return f;
-                }
-            }
-            current = current.getSuperclass();
+        boolean isCollectionFieldOfParent = ProjectionHelperUtil.isCollectionField(parentEntityFieldsMap.get(fieldNameInParent).getType());
+        //获取到自己的id集合
+        Map<Object, Map<String, Object>> childEntitiesByIdMap = Map.of();
+        Collection<Object> childIds = new HashSet<>();
+        //只有自己是父的集合的时候，才需要到数据库根据父id，查询出来project，如果不是集合，则在父类中已经通过join查询出来了，直接获取他的列表值即可
+        if (isCollectionFieldOfParent) {
+            List<Tuple> childTuples = projectEntity(parentIds, parentEntityClass, entityClass, projectClass, em);
+            List<Map<String, Object>> collectionEntities = ProjectionHelperUtil.tuplesToMap(childTuples);
+            childEntitiesByIdMap = keyById(collectionEntities, entityClass);
+            childIds = childEntitiesByIdMap.keySet();
+            String parentRefFieldName = ProjectionHelperUtil.getParentReferenceField(entityClass, parentEntityClass);
+            Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities, parentRefFieldName, parentIds);
+            //放回大树
+            mergeToParent(groupedCollections, parentEntitiesByIdMap, parentIds, parentEntityFieldsMap.get(fieldNameInParent));
+        } else {
+            List<Map<String, Object>> childEntities = getAllByKey(parentEntitiesByIdMap.values(), fieldNameInParent);//JsonPath.read(parentEntitiesByIdMap.values(),String.join(".","$[*]",fieldNameInParent));
+            childEntitiesByIdMap = keyById(childEntities, entityClass);
         }
-        throw new IllegalArgumentException("No @Id/@EmbeddedId found in " + type.getName());
+
+        //如果是@JsonIgonore或者jsonBackRefernce，就不再递归
+        Field fieldInParent = parentEntityFieldsMap.get(fieldNameInParent);
+        if(fieldInParent.isAnnotationPresent(JsonIgnore.class)||fieldInParent.isAnnotationPresent(JsonBackReference.class)){
+            return;
+        }
+        //再递归所有的子集合对象
+        for (Field projectField : projectFields) {
+            String projectFieldName = projectField.getName();
+            Class<?> projectFieldClass = projectField.getType();
+            Field entityField = entityFieldsMap.get(projectFieldName);
+            if (entityField == null) continue;
+
+            if (ProjectionHelperUtil.isCollectionField(entityField.getType())) {
+                Class<?> collectionEntityClass = ProjectionHelperUtil.getCollectionGenericClass(entityField);
+                Class<?> collectionProjectClass = ProjectionHelperUtil.getCollectionGenericClass(projectField);
+                log.info("递归子集合 {}", projectFieldName);
+                projectCollectionV2(childEntitiesByIdMap, entityClass, collectionEntityClass, collectionProjectClass, em, projectFieldName);
+            } else if (ProjectionHelperUtil.isAssociationOne(entityField)) {
+                log.info("递归关联实体 {}", projectFieldName);
+                projectCollectionV2(childEntitiesByIdMap, entityClass, entityField.getType(), projectFieldClass, em, projectFieldName);
+            }
+        }
     }
 
-    private static Field getField(Class<?> type, String name) {
-        Class<?> t = type;
-        while (t != null && t != Object.class) {
-            try {
-                Field f = t.getDeclaredField(name);
-                f.setAccessible(true);
-                return f;
-            } catch (NoSuchFieldException ignored) {
+    protected  static Map<Object, Map<String, Object>> keyById(List<Map<String, Object>> entityList, Class<?> entityClass) {
+        Field idField = ProjectionHelperUtil.findIdField(entityClass);
+        Map<Object, Map<String, Object>> map = new HashMap<>();
+        entityList.forEach(f -> {
+            Object id = f.get(idField.getName());
+            map.put(id, f);
+        });
+        return map;
+    }
+
+    protected static List<Map<String, Object>> getAllByKey(Collection<Map<String, Object>> entityList, String fieldName) {
+        return entityList.stream().map(entity -> (Map<String, Object>) entity.get(fieldName)).filter(Objects::nonNull).toList();
+    }
+
+
+    //构建集合的查询条件
+    private static Predicate buildPredicate(Collection<Object> parentIds, Class<?> entityClass, Class<?> parentClass, Root<?> root, EntityManager em) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+
+        Field parentField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentClass);
+        Field parentIdField = ProjectionHelperUtil.findIdField(parentField.getType());
+        log.info("构建查询条件 父id列表大小 {} 实体类 {} 父类 {} 实体类在父类的字段名 {} 父类id {}", parentIds.size(), entityClass.getName(), parentClass.getName(), parentField.getName(), parentIdField.getName());
+        final Class<?> parentIdClass = parentIdField.getType();
+        final Path<?> parentPath = root.get(parentField.getName());
+        if (parentIdField.isAnnotationPresent(EmbeddedId.class)) {
+            Path<?> idPath = parentPath.get(parentIdField.getName());
+            List<Predicate> predicates = new ArrayList<>();
+
+            for (Object searchId : parentIds) {
+                //这个时候parentId还是一个map，尚未转为为parent id的对象
+                Map<String, Object> parentId = (Map<String, Object>) searchId;
+                List<Predicate> andPredicates = new ArrayList<>();
+
+                parentId.forEach((k, v) -> {
+                    andPredicates.add(cb.equal(idPath.get(k), v));
+                });
+
+                Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
+                predicates.add(andGroup);
             }
-            t = t.getSuperclass();
+//            describePredicate(predicates);
+            return cb.or(predicates.toArray(new Predicate[0]));
+
+        } else {
+            //不是embeddedId的话，就获取其id字段来匹配
+            final Path<?> parentIdPath = parentPath.get(parentIdField.getName());
+//            final Field parentIdField_ = ProjectionHelperUtil.findIdField(parentClass);
+//            final String alias = String.join(".", parentIdField.getName(), parentIdField_.getName());
+            log.info("parentIdPath {}", parentIdPath.getAlias());
+            return parentIdPath.in(parentIds);
         }
-        return null;
+
+
+    }
+
+    private static List<Selection<?>> buildSelection(String prefix,
+                                                     From<?, ?> from,
+                                                     Class<?> domainClass,
+                                                     Class<?> projectClass) {
+
+        //基础字段和embedded字段
+        Map<String, Field> domainFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(domainClass);
+        Collection<Field> domainFields = domainFieldsMap.values();
+        Collection<Field> projectFields = ProjectionHelperUtil.getProjectFieldsMap(projectClass).values();
+        List<Selection<?>> selections = new ArrayList<>();
+
+        for (Field projectField : projectFields) {
+            Class<?> projectFieldClass = projectField.getType();
+            if (ProjectionHelperUtil.isCollectionField(projectFieldClass)) continue;
+
+            String projectFieldName = projectField.getName();
+            Field domainField = domainFieldsMap.get(projectFieldName);
+            if (domainField == null) continue;
+
+            String domainFieldName = domainField.getName();
+            String alias = prefix.isEmpty() ? domainFieldName : prefix + "." + domainFieldName;
+            //embedded的字段，直接递归select，安全
+
+            if (ProjectionHelperUtil.isJavaStandardType(domainField)) {
+                selections.add(from.get(domainFieldName).alias(alias));
+            } else {
+                log.info("递归嵌入 {}", domainFieldName);
+                Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(from, domainFieldName);
+                Class<?> joinClass = domainField.getType();
+                selections.addAll(buildSelection(alias, join, joinClass, projectFieldClass));
+            }
+
+
+        }
+        return selections;
     }
 
 
     /**
-     * 不为NULL，且不是TRANSIENT，也不是FINAL STATIC
-     *
-     * @param field
+     * @param childList    查询出来的集合的列表
+     * @param parentIdPath 关联父类在子集合的字段的名字，也就是@ManyToOne的字段的名字
+     * @param parentIds    父类的id集合，用来将子集合分组，这样后续回写父类的时候就能直接通过父类的id直接获取到对应的子集合
      * @return
      */
-    private static boolean isValidField(Field field) {
-        if (field == null) {
-            return false;
-        }
-
-        if (field.isAnnotationPresent(Transient.class)) {
-            return false;
-        }
-
-
-        int modifiers = field.getModifiers();
-        if (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static boolean isAssociation(Field f) {
-        return f.isAnnotationPresent(ManyToOne.class)
-                || f.isAnnotationPresent(OneToOne.class) || f.isAnnotationPresent(OneToMany.class);
-    }
-
-    private static boolean isEmbedded(Field f) {
-        return f.isAnnotationPresent(Embedded.class)
-                || f.isAnnotationPresent(EmbeddedId.class)
-                || f.getType().isAnnotationPresent(Embeddable.class);
-    }
-
-    private static boolean isEmbeddedId(Field f) {
-        return f.isAnnotationPresent(EmbeddedId.class)
-                || f.getType().isAnnotationPresent(Embeddable.class);
-    }
-
-    private static String makeAlias(String prefix, String name) {
-        return prefix == null || prefix.isEmpty() ? name : prefix + "." + name;
-    }
-
-    private static Class<?> extractGenericType(Field field) {
-        Type type = field.getGenericType();
-        if (type instanceof ParameterizedType pt) {
-            Type actualType = pt.getActualTypeArguments()[0];
-            if (actualType instanceof Class<?> clazz)
-                return clazz;
-        }
-        throw new IllegalArgumentException("Cannot extract generic type for field: " + field.getName());
-    }
-
-    private static boolean isJavaStandardType(Class<?> clazz) {
-        final Set<Class<?>> JAVA_TIME_TYPES = Set.of(java.time.LocalDate.class, java.time.LocalDateTime.class,
-                java.time.OffsetDateTime.class, java.time.Instant.class, java.time.ZonedDateTime.class,
-                java.time.OffsetTime.class, java.time.LocalTime.class, java.time.Duration.class,
-                java.time.Period.class);
-
-        return clazz.isPrimitive() || clazz.getName().startsWith("java.lang.") || clazz.equals(String.class)
-                || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz) || clazz.isEnum()
-                || JAVA_TIME_TYPES.contains(clazz);
-    }
-
-    private static boolean isJavaStandardType(Field field) {
-        Class<?> clazz = field.getType();
-        return isJavaStandardType(clazz) || field.isAnnotationPresent(Embedded.class);
-    }
-
-    /**
-     * 动态获取集合元素 DTO 类
-     */
-    private static Class<?> getCollectionElementProjectionClass(Field projField, Class<?> elementType) {
-        // 如果 DTO 的集合泛型是接口或具体类，直接返回
-        if (projField.getGenericType() instanceof ParameterizedType pt) {
-            Type[] args = pt.getActualTypeArguments();
-            if (args.length == 1) {
-                Type t = args[0];
-                if (t instanceof Class<?> clazz) return clazz;
-            }
-        }
-        return elementType;
-    }
-
-    /**
-     * 获取集合字段的泛型
-     */
-    private static Class<?> getCollectionGenericClass(Field field) {
-        try {
-            return (Class<?>) ((java.lang.reflect.ParameterizedType) field.getGenericType())
-                    .getActualTypeArguments()[0];
-        } catch (Exception e) {
-            throw new IllegalStateException("无法获取集合泛型类型: " + field.getName(), e);
-        }
-    }
-
-    private static boolean isCollectionField(Class<?> clazz) {
-        return Collection.class.isAssignableFrom(clazz);
-    }
-
-
-
-
-
-    private static boolean equals(Object obj1, Object obj2) {
-        if (obj1 == obj2) return true;
-        if (obj1 == null || obj2 == null) return false;
-        if (!obj1.getClass().equals(obj2.getClass())) return false;
-
-        Field[] fields = obj1.getClass().getDeclaredFields();
-
-        for (Field field : fields) {
-            log.info("field {} class {}", field.getName(), obj1.getClass().getName());
-            // 跳过静态字段
-            if (Modifier.isStatic(field.getModifiers())) continue;
-            // 避免尝试访问 JDK 内部类的字段
-            ReflectionUtils.makeAccessible(field);
-            Object v1 = ReflectionUtils.getField(field, obj1);
-            Object v2 = ReflectionUtils.getField(field, obj2);
-            if (!Objects.equals(v1, v2)) {
-                return false;
-            }
-
-        }
-
-        return false;
-    }
-
-    private static Object buildIdValue(Object id, Class<?> idClass) {
-        return JsonUtils.getMapper().convertValue(id, idClass);
-    }
-
-
-
     private static Map<Object, List<Map<String, Object>>> groupByParentId(
-            List<Tuple> childTuples,
-            String parentRefField,
-            List<Object> parentIds) {
-
-        Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
-
-        for (Tuple tuple : childTuples) {
-            if (tuple == null) continue;
-            Object parentId = extractParentId(tuple, parentRefField);
-            if (parentId == null) continue;
-
-            Map<String, Object> tupleMap = new HashMap<>();
-            Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
-
-            for (TupleElement<?> elem : tuple.getElements()) {
-                String alias = elem.getAlias();
-                Object value = tuple.get(elem);
-
-                if (alias.contains(".")) {
-                    String[] parts = alias.split("\\.", 2);
-                    nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
-                            .put(parts[1], value);
-                } else {
-                    tupleMap.put(alias, value);
-                }
-            }
-
-            nestedMaps.forEach(tupleMap::put);
-
-//            Map<String, Object> map = new HashMap<>();
-//                    tuple.getElements().forEach(element -> {
-//                        map.put(element.getAlias(),tuple.get(element.getAlias()));
-//                    });
-            parentIds.stream().filter(f->isJavaStandardType(f.getClass())?f.equals(parentId): equals(f,parentId)).findFirst().ifPresent(parentId_->{
-                grouped.computeIfAbsent(parentId_, k -> new ArrayList<>()).add(tupleMap);
-            });
-
+            List<Map<String, Object>> childList,
+            String parentIdPath, // 支持 JSONPath 语法，例如 "$.parent.id"
+            Collection<Object> parentIds
+    ) {
+        if (childList == null || childList.isEmpty() || parentIds == null || parentIds.isEmpty()) {
+            return Collections.emptyMap();
         }
 
+        // 1️⃣ 按childList实际值分组
+        Map<Object, List<Map<String, Object>>> grouped = childList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(
+                        map -> {
+                            try {
+                                return readJsonPath(map,parentIdPath);
+                            } catch (Exception e) {
+                                return null;
+                            }
+                        },
+                        Collectors.toList()
+                ));
 
-        return grouped;
-    }
+        // 2️⃣ 按 parentIds 顺序输出
+        Map<Object, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        for (Object parentId : parentIds) {
+            List<Map<String, Object>> matched = grouped.entrySet().stream()
+                    .filter(e -> {
+                        if(ProjectionHelperUtil.isJavaStandardType(e.getKey().getClass())){
+                            return Objects.equals(e.getKey(),parentId);
+                        }else{
+                            return Objects.equals(JsonUtils.getMapper().convertValue(e.getKey(), Map.class), parentId);
+                        }
 
-
-    private static Class<?> getCollectionElementType(Field field) {
-        ParameterizedType pt = (ParameterizedType) field.getGenericType();
-        return (Class<?>) pt.getActualTypeArguments()[0];
-    }
-
-    private static String getParentReferenceField(Class<?> childType, Class<?> parentType) {
-        for (Field f : childType.getDeclaredFields()) {
-            if (f.getType().equals(parentType)) {
-                Field idField = findIdField(parentType);
-                return String.join(".",f.getName(), idField.getName());
-//                if(f.isAnnotationPresent(JoinColumn.class)) {
-//                    return f.getAnnotation(JoinColumn.class).name();
-//                }
-//                JoinColumns joinColumns = f.getAnnotation(JoinColumns.class);
-//                if(joinColumns != null){
-//                  List<String> columns= Arrays.stream(joinColumns.value()).map(JoinColumn::name).toList();
-//                  return String.join(",", columns);
-//                }
-            }
+                    })
+                    .findFirst()
+                    .map(Map.Entry::getValue)
+                    .orElse(Collections.emptyList());
+            result.put(parentId, matched);
         }
-        return null;
+
+        return result;
     }
 
-
-
-    private static Object extractParentId(Tuple tuple, String parentField) {
-        if (tuple == null || parentField == null) return null;
-
-        try {
-            // 直接取别名
-            Object value = tuple.get(parentField);
-            if (value != null) return value;
-
-            // 如果是嵌套形式，比如 parent.id
-            if (parentField.contains(".")) {
-                String[] parts = parentField.split("\\.");
-                Object current = tuple.get(parts[0]);
-                for (int i = 1; i < parts.length && current != null; i++) {
-                    Field f = current.getClass().getDeclaredField(parts[i]);
-                    f.setAccessible(true);
-                    current = f.get(current);
-                }
-                return current;
-            }
-        } catch (Exception e) {
-            // 这里不要抛异常，直接返回 null
+    @SuppressWarnings("unchecked")
+    private static Object readJsonPath(Object data, String path) {
+        if (data == null || path == null || path.isEmpty()) {
             return null;
         }
 
-        return null;
-    }
+        String[] tokens = path.split("\\.");
 
+        Object current = data;
+        for (String token : tokens) {
+            if (current == null) return null;
 
-    private static boolean hasNestedCollections(Class<?> domainClass, Class<?> projectionClass) {
-        for (Field projField : projectionClass.getDeclaredFields()) {
-            if (!isValidField(projField)) continue;
+            // 支持 array 下标访问，比如 b[0]
+            int idxStart = token.indexOf('[');
+            if (idxStart != -1 && token.endsWith("]")) {
+                String key = token.substring(0, idxStart);
+                int index = Integer.parseInt(token.substring(idxStart + 1, token.length() - 1));
 
-            // 如果字段是集合
-            if (isCollectionField(projField.getType())) {
-                return true;
-            }
+                if (current instanceof Map) {
+                    current = ((Map<String, Object>) current).get(key);
+                }
 
-            // 如果字段是普通对象，检查其内部集合字段
-            Field domainField = getDomainField(domainClass, projField.getName());
-            if (domainField != null && !isJavaStandardType(domainField.getType())) {
-                Class<?> nestedProj = projField.getType();
-                if (hasNestedCollections(domainField.getType(), nestedProj)) {
-                    return true;
+                if (current instanceof List) {
+                    List<?> list = (List<?>) current;
+                    if (index >= 0 && index < list.size()) {
+                        current = list.get(index);
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            } else {
+                if (current instanceof Map) {
+                    current = ((Map<String, Object>) current).get(token);
+                } else {
+                    return null;
                 }
             }
         }
-        return false;
+
+        return current;
+    }
+
+
+    /**
+     * @param groupedChild          已按父id分组的子集合
+     * @param parentByIdMap         按父id索引的父实体
+     * @param parentIds             父id列表
+     * @param parentCollectionField 子集合在父类中的字段名，用于回写到父实体的哪个字段中
+     */
+    private static void mergeToParent(Map<Object, List<Map<String, Object>>> groupedChild, Map<Object, Map<String, Object>> parentByIdMap, Collection<Object> parentIds, Field parentCollectionField) {
+        parentIds.forEach(parentId -> {
+            final Map<String, Object> parent = parentByIdMap.get(parentId);
+            parent.put(parentCollectionField.getName(), groupedChild.get(parentId));
+        });
+    }
+
+
+    private static List<Selection<?>> buildEmbeddedSelection(String prefix,
+                                                             From<?, ?> from,
+                                                             Class<?> domainClass,
+                                                             Class<?> projectClass) {
+
+        //基础字段和embedded字段
+        Map<String, Field> domainFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(domainClass);
+        Collection<Field> domainFields = domainFieldsMap.values();
+        Collection<Field> projectFields = ProjectionHelperUtil.getProjectFieldsMap(projectClass).values();
+        List<Selection<?>> selections = new ArrayList<>();
+
+        for (Field projectField : projectFields) {
+            String projectFieldName = projectField.getName();
+            Class<?> projectFieldClass = projectField.getType();
+            Field domainField = domainFieldsMap.get(projectFieldName);
+            if (domainField == null) continue;
+            String domainFieldName = domainField.getName();
+            String alias = prefix.isEmpty() ? projectFieldName : prefix + "." + projectFieldName;
+            //embedded的字段，直接递归select，安全
+
+            if (ProjectionHelperUtil.isEmbeddedId(domainField)) {
+                log.info("递归嵌入 {}", domainFieldName);
+                Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(from, domainFieldName);
+                Class<?> joinClass = domainField.getType();
+                selections.addAll(buildEmbeddedSelection(alias, join, joinClass, projectFieldClass));
+            } else {
+                selections.add(from.get(domainFieldName).alias(alias));
+            }
+
+
+        }
+        return selections;
     }
 
 

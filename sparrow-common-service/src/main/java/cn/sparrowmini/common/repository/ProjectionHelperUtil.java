@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ReflectionUtils;
 
@@ -243,20 +242,6 @@ public class ProjectionHelperUtil {
         return isJavaStandardType(clazz) || field.isAnnotationPresent(Embedded.class);
     }
 
-    /**
-     * 动态获取集合元素 DTO 类
-     */
-    public static Class<?> getCollectionElementProjectionClass(Field projField, Class<?> elementType) {
-        // 如果 DTO 的集合泛型是接口或具体类，直接返回
-        if (projField.getGenericType() instanceof ParameterizedType pt) {
-            Type[] args = pt.getActualTypeArguments();
-            if (args.length == 1) {
-                Type t = args[0];
-                if (t instanceof Class<?> clazz) return clazz;
-            }
-        }
-        return elementType;
-    }
 
     /**
      * 获取集合字段的泛型
@@ -308,69 +293,11 @@ public class ProjectionHelperUtil {
 
 
 
-    public static Map<Object, List<Map<String, Object>>> groupByParentId(
-            List<Tuple> childTuples,
-            String parentRefField,
-            List<Object> parentIds) {
-
-        Map<Object, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
-
-        for (Tuple tuple : childTuples) {
-            if (tuple == null) continue;
-            Object parentId = extractParentId(tuple, parentRefField);
-            if (parentId == null) continue;
-
-            Map<String, Object> tupleMap = new HashMap<>();
-            Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
-
-            for (TupleElement<?> elem : tuple.getElements()) {
-                String alias = elem.getAlias();
-                Object value = tuple.get(elem);
-
-                if (alias.contains(".")) {
-                    String[] parts = alias.split("\\.", 2);
-                    nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
-                            .put(parts[1], value);
-                } else {
-                    tupleMap.put(alias, value);
-                }
-            }
-
-            nestedMaps.forEach(tupleMap::put);
-
-//            Map<String, Object> map = new HashMap<>();
-//                    tuple.getElements().forEach(element -> {
-//                        map.put(element.getAlias(),tuple.get(element.getAlias()));
-//                    });
-            parentIds.stream().filter(f->isJavaStandardType(f.getClass())?f.equals(parentId): equals(f,parentId)).findFirst().ifPresent(parentId_->{
-                grouped.computeIfAbsent(parentId_, k -> new ArrayList<>()).add(tupleMap);
-            });
-
-        }
-
-
-        return grouped;
-    }
-
-
-    public static Class<?> getCollectionElementType(Field field) {
-        ParameterizedType pt = (ParameterizedType) field.getGenericType();
-        return (Class<?>) pt.getActualTypeArguments()[0];
-    }
-
     public static String getParentReferenceField(Class<?> childType, Class<?> parentType) {
         for (Field f : childType.getDeclaredFields()) {
             if (f.getType().equals(parentType)) {
                 Field idField = findIdField(parentType);
                 return String.join(".",f.getName(), idField.getName());
-//                if(f.isAnnotationPresent(JoinColumn.class)) {
-//                    return f.getAnnotation(JoinColumn.class).name();
-//                }
-//                JoinColumns joinColumns = f.getAnnotation(JoinColumns.class);
-//                if(joinColumns != null){
-//                  List<String> columns= Arrays.stream(joinColumns.value()).map(JoinColumn::name).toList();
-//                  return String.join(",", columns);
-//                }
             }
         }
         return null;
@@ -414,26 +341,5 @@ public class ProjectionHelperUtil {
         return null;
     }
 
-
-    public static boolean hasNestedCollections(Class<?> domainClass, Class<?> projectionClass) {
-        for (Field projField : projectionClass.getDeclaredFields()) {
-            if (!isValidField(projField)) continue;
-
-            // 如果字段是集合
-            if (isCollectionField(projField.getType())) {
-                return true;
-            }
-
-            // 如果字段是普通对象，检查其内部集合字段
-            Field domainField = getDomainField(domainClass, projField.getName());
-            if (domainField != null && !isJavaStandardType(domainField.getType())) {
-                Class<?> nestedProj = projField.getType();
-                if (hasNestedCollections(domainField.getType(), nestedProj)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
 }
