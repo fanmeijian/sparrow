@@ -238,11 +238,53 @@ public class ProjectionHelper {
 
                 List<Map<String, Object>> children = grouped.get(parentId);
                 parentMap.put(collectionName, children);
+
+                // Step 5: 递归处理子集合
+// ---------------------------
+                if (children != null && !children.isEmpty()) {
+                    for (Map<String, Object> childMap : children) {
+                        for (Field projSubField : elementProjectType.getDeclaredFields()) {
+                            if (!isValidField(projSubField)) continue;
+                            if (!isCollectionField(projSubField.getType())) {
+                                // 普通对象字段，检查是否包含集合
+                                Field domainSubField = getDomainField(elementType, projSubField.getName());
+                                if (domainSubField != null && !isJavaStandardType(domainSubField.getType())) {
+                                    Class<?> nestedProjClass = projSubField.getType();
+                                    if (hasNestedCollections(domainSubField.getType(), nestedProjClass)) {
+                                        loadCollectionsV2(
+                                                Collections.singletonList((Map<String, Object>) childMap.get(projSubField.getName())),
+                                                domainSubField.getType(),
+                                                nestedProjClass,
+                                                em,
+                                                findIdField(domainSubField.getType())
+                                        );
+                                    }
+                                }
+                            } else {
+                                // 集合字段，递归
+                                Class<?> nestedElementType = getCollectionElementType(getDomainField(elementType, projSubField.getName()));
+                                Class<?> nestedProjClass = getCollectionGenericClass(projSubField);
+                                loadCollectionsV2(
+                                        childMap.containsKey(projSubField.getName()) ?
+                                                (List<Map<String, Object>>) childMap.get(projSubField.getName()) :
+                                                Collections.emptyList(),
+                                        nestedElementType,
+                                        nestedProjClass,
+                                        em,
+                                        findIdField(nestedElementType)
+                                );
+                            }
+                        }
+                    }
+                }
+
             }
 
             // ---------------------------
-            // Step 5: 递归处理子集合
-            // ---------------------------
+
+//            // ---------------------------
+//            // Step 5: 递归处理子集合
+//            // ---------------------------
             if (hasNestedCollections(elementType)) {
                 loadCollectionsV2(
                         grouped.values().stream().flatMap(List::stream).collect(Collectors.toList()),
@@ -255,6 +297,10 @@ public class ProjectionHelper {
         }
     }
 
+    private static boolean hasNestedCollections(Class<?> type) {
+        return Arrays.stream(type.getDeclaredFields())
+                .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
+    }
 
     private static List<Tuple> fetchChildTuples(
             EntityManager em,
@@ -573,9 +619,25 @@ public class ProjectionHelper {
     }
 
 
-    private static boolean hasNestedCollections(Class<?> type) {
-        return Arrays.stream(type.getDeclaredFields())
-                .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
+    private static boolean hasNestedCollections(Class<?> domainClass, Class<?> projectionClass) {
+        for (Field projField : projectionClass.getDeclaredFields()) {
+            if (!isValidField(projField)) continue;
+
+            // 如果字段是集合
+            if (isCollectionField(projField.getType())) {
+                return true;
+            }
+
+            // 如果字段是普通对象，检查其内部集合字段
+            Field domainField = getDomainField(domainClass, projField.getName());
+            if (domainField != null && !isJavaStandardType(domainField.getType())) {
+                Class<?> nestedProj = projField.getType();
+                if (hasNestedCollections(domainField.getType(), nestedProj)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 

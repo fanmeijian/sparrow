@@ -138,8 +138,10 @@ public class BaseRepositoryImpl<T, ID>
 //                domainType(), cb, root, projectionClass, "", new HashMap<>()
 //        );
 
-        List<Selection<?>> selections = ProjectionHelper.buildSelections(
-                "", root, cb, domainClass,projectionClass);
+//        List<Selection<?>> selections = ProjectionHelperV2.buildSelections(
+//                "", root, cb, domainClass,projectionClass);
+        List<Selection<?>> selections = ProjectionHelperV2.buildEntitySelection(
+                root, domainClass,projectionClass);
         query.multiselect(selections);
         query.where(finalPredicate);
 
@@ -158,44 +160,66 @@ public class BaseRepositoryImpl<T, ID>
         List<Tuple> tuples = typedQuery.getResultList();
         final List<P> finalResult = new ArrayList<>();
         // 转换成 DTO，支持嵌套对象，这个为主表的对象，不含子集合的查询，但是对于非集合，则直接join出来了
-        List<Map<String,Object>> results = tuples.stream()
-                .map(tuple -> {
-                    Map<String, Object> tupleMap = new HashMap<>();
-                    Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
+        List<Map<String,Object>> results = ProjectionHelperUtil.tuplesToMap(tuples);
 
-                    for (TupleElement<?> elem : tuple.getElements()) {
-                        String alias = elem.getAlias();
-                        Object value = tuple.get(elem);
-
-                        if (alias.contains(".")) {
-                            String[] parts = alias.split("\\.", 2);
-                            nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
-                                    .put(parts[1], value);
-                        } else {
-                            tupleMap.put(alias, value);
-                        }
-                    }
-
-                    nestedMaps.forEach(tupleMap::put);
-                    if(projectionClass.isInterface()){
-                        finalResult.add(projectionFactory.createProjection(projectionClass, tupleMap));
-                    }
-                    return tupleMap;
-                })
-                .collect(Collectors.toList());
+//        List<Map<String,Object>> results = tuples.stream()
+//                .map(tuple -> {
+//                    Map<String, Object> tupleMap = new HashMap<>();
+//                    Map<String, Map<String, Object>> nestedMaps = new HashMap<>();
+//
+//                    for (TupleElement<?> elem : tuple.getElements()) {
+//                        String alias = elem.getAlias();
+//                        Object value = tuple.get(elem);
+//
+//                        if (alias.contains(".")) {
+//                            String[] parts = alias.split("\\.", 2);
+//                            nestedMaps.computeIfAbsent(parts[0], k -> new HashMap<>())
+//                                    .put(parts[1], value);
+//                        } else {
+//                            tupleMap.put(alias, value);
+//                        }
+//                    }
+//
+//                    nestedMaps.forEach(tupleMap::put);
+//                    if(projectionClass.isInterface()){
+//                        finalResult.add(projectionFactory.createProjection(projectionClass, tupleMap));
+//                    }
+//                    return tupleMap;
+//                })
+//                .collect(Collectors.toList());
 
         //递归处理含有子集合的数据
         if(!projectionClass.isInterface()){
-            boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
-                    .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
 
-            if (hasCollectionField) {
-                // ----------------------------
-                // Step 3: 加载集合字段
-                // ----------------------------
-//                DynamicProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
-                ProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
-            }
+//            ProjectionHelperV2.loadCollections(results, domainType(), projectionClass,idField(), em);
+//            ProjectionHelperV2.loadCollectionsV2(results, domainType(), projectionClass,idField(), em);
+
+//            boolean hasCollectionField = Arrays.stream(projectionClass.getDeclaredFields())
+//                    .anyMatch(f -> Collection.class.isAssignableFrom(f.getType()));
+
+//            if (hasCollectionField) {
+//                // ----------------------------
+//                // Step 3: 加载集合字段
+//                // ----------------------------
+////                DynamicProjectionHelper.loadCollectionsV2(results, domainType(), projectionClass, em, idField());
+//                ProjectionHelperV2.loadCollections(results, domainType(), projectionClass,idField(), em);
+//            }
+
+
+
+//            Map<Object, Map<String,Object>> parentByIdMap = new HashMap<>();
+//
+//            results.forEach(f->parentByIdMap.put(f.get(idFieldName()),f));
+//            for(Field collectionField: projectionClass.getDeclaredFields()){
+//                if(!ProjectionHelperUtil.isCollectionField(collectionField.getType())) continue;
+//
+//                ProjectionHelperV2.projectCollection(parentByIdMap,domainType(),projectionClass,collectionField.getName(),em,domainType().getSimpleName());
+//            }
+
+
+            ProjectionHelperV2.projectCollection(results,domainType(),projectionClass,em,"$");
+
+
             ObjectMapper mapper = JsonUtils.getMapper();
             JavaType type = mapper.getTypeFactory().constructCollectionType(List.class, projectionClass);
             List<P> list = mapper.convertValue(results, type);
