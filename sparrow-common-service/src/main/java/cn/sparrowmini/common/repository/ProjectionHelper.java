@@ -3,6 +3,7 @@ package cn.sparrowmini.common.repository;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class ProjectionHelper {
             //embedded字段
             if (ProjectionHelperUtil.isEmbedded(entityField)) {
                 //要递归
-                log.info("递归嵌入字段 {} {} {}", entityField.getName(), entityFieldClass.getName(), projectFieldClass.getName());
+                log.debug("递归嵌入字段 {}.{} -> {}",projectClass.getName() , projectField.getName(), entityFieldClass.getName());
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
                 selections.addAll(buildEmbeddedSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
             }
@@ -58,7 +59,7 @@ public class ProjectionHelper {
 
                 //递归处理
                 //要递归
-                log.info("递归关联字段 {} {} {}", entityField.getName(), entityFieldClass.getName(), projectFieldClass.getName());
+                log.debug("递归关联字段 {}.{} -> {}", projectClass.getName(),projectField.getName(),entityFieldClass.getName());
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
                 selections.addAll(buildSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
             }
@@ -98,7 +99,7 @@ public class ProjectionHelper {
         return em.createQuery(cq).getResultList();
     }
 
-    protected static void projectCollectionV2(Map<Object, Map<String, Object>> parentEntitiesByIdMap, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em, String fieldNameInParent) {
+    protected static Map<Object, Map<String, Object>> projectCollectionV2(final Map<Object, Map<String, Object>> parentEntitiesByIdMap, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em,final String fieldNameInParent) {
         //根据父id，先获取到自己的所有非集合对象
         Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
         Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
@@ -106,31 +107,63 @@ public class ProjectionHelper {
 
         Collection<Field> entityFields = entityFieldsMap.values();
         Collection<Field> projectFields = projectFieldsMap.values();
-        Collection<Object> parentIds = parentEntitiesByIdMap.keySet();
+        final Collection<Object> parentIds = parentEntitiesByIdMap.keySet();
+        Map<Object, Map<String, Object>> result = Map.of();
 
         boolean isCollectionFieldOfParent = ProjectionHelperUtil.isCollectionField(parentEntityFieldsMap.get(fieldNameInParent).getType());
         //获取到自己的id集合
-        Map<Object, Map<String, Object>> childEntitiesByIdMap = Map.of();
-        Collection<Object> childIds = new HashSet<>();
-        //只有自己是父的集合的时候，才需要到数据库根据父id，查询出来project，如果不是集合，则在父类中已经通过join查询出来了，直接获取他的列表值即可
+        Map<Object, Map<String, Object>> childEntitiesByIdMap = new HashMap<>();
+
         if (isCollectionFieldOfParent) {
+            //只有自己是父的集合的时候，才需要到数据库根据父id，查询出来project，
             List<Tuple> childTuples = projectEntity(parentIds, parentEntityClass, entityClass, projectClass, em);
+            log.debug("查询结果 {}", childTuples.size());
             List<Map<String, Object>> collectionEntities = ProjectionHelperUtil.tuplesToMap(childTuples);
             childEntitiesByIdMap = keyById(collectionEntities, entityClass);
-            childIds = childEntitiesByIdMap.keySet();
             String parentRefFieldName = ProjectionHelperUtil.getParentReferenceField(entityClass, parentEntityClass);
-            Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities, parentRefFieldName, parentIds);
+            final Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities, parentRefFieldName, parentIds);
+
             //放回大树
             mergeToParent(groupedCollections, parentEntitiesByIdMap, parentIds, parentEntityFieldsMap.get(fieldNameInParent));
+
+            try {
+                log.debug("回写后情况 {} ",JsonUtils.getMapper().writeValueAsString(parentEntitiesByIdMap));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         } else {
-            List<Map<String, Object>> childEntities = getAllByKey(parentEntitiesByIdMap.values(), fieldNameInParent);//JsonPath.read(parentEntitiesByIdMap.values(),String.join(".","$[*]",fieldNameInParent));
-            childEntitiesByIdMap = keyById(childEntities, entityClass);
+
+            /**如果不是集合，则在父类中已经通过join查询出来了，直接获取他的列表值即可。这里注意，如果关联的实体所在的实体是复合主键，则需要用所在实体的主键作为索引
+             * 例如以下MemberInfoDtoForVote
+             * @Value
+             * public class AttendTouPiaoDtoSimple implements Serializable {
+             *     AttendTouPiao.AttendTouPiaoId id;
+             *
+             *     MemberInfoDtoForVote memberInfo;
+             * }
+             * 如果用自己的主键作为索引，则会丢失部分实体
+             * 因为关联实体，传入的索引里面的key，就为关联实体所在的实体的id
+             */
+
+            List<Map<String, Object>> childEntities = getAllByKey(parentEntitiesByIdMap.values(), fieldNameInParent);
+            childEntitiesByIdMap =  keyById(childEntities, entityClass);
+            result = childEntitiesByIdMap;
+//            for(Object key : parentEntitiesByIdMap.keySet()){
+//                childEntitiesByIdMap.put(key, parentEntitiesByIdMap.get(fieldNameInParent));
+//            }
+            try {
+                log.debug("关联字段汇总 {} {}",fieldNameInParent, JsonUtils.getMapper().writeValueAsString(childEntitiesByIdMap));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
+
 
         //如果是@JsonIgonore或者jsonBackRefernce，就不再递归
         Field fieldInParent = parentEntityFieldsMap.get(fieldNameInParent);
         if(fieldInParent.isAnnotationPresent(JsonIgnore.class)||fieldInParent.isAnnotationPresent(JsonBackReference.class)){
-            return;
+            //返回集合
+            return result;
         }
         //再递归所有的子集合对象
         for (Field projectField : projectFields) {
@@ -142,13 +175,48 @@ public class ProjectionHelper {
             if (ProjectionHelperUtil.isCollectionField(entityField.getType())) {
                 Class<?> collectionEntityClass = ProjectionHelperUtil.getCollectionGenericClass(entityField);
                 Class<?> collectionProjectClass = ProjectionHelperUtil.getCollectionGenericClass(projectField);
-                log.info("递归子集合 {}", projectFieldName);
+                try {
+                    log.debug("递归子集合 {}.{} {}", projectClass.getName(), projectFieldName, JsonUtils.getMapper().writeValueAsString(childEntitiesByIdMap));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
                 projectCollectionV2(childEntitiesByIdMap, entityClass, collectionEntityClass, collectionProjectClass, em, projectFieldName);
+//                final Map<Object, List<Map<String, Object>>> result_ = projectCollectionV2(childEntitiesByIdMap, entityClass, collectionEntityClass, collectionProjectClass, em, projectFieldName);
+                try {
+                    log.debug("递归子集合后的结果 {}.{} {}", projectClass.getName(), projectFieldName, JsonUtils.getMapper().writeValueAsString(childEntitiesByIdMap));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             } else if (ProjectionHelperUtil.isAssociationOne(entityField)) {
-                log.info("递归关联实体 {}", projectFieldName);
-                projectCollectionV2(childEntitiesByIdMap, entityClass, entityField.getType(), projectFieldClass, em, projectFieldName);
+                try {
+                    log.debug("递归关联实体 {}.{} {}", projectClass.getName(), projectFieldName, JsonUtils.getMapper().writeValueAsString(childEntitiesByIdMap));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+//                projectCollectionV2(childEntitiesByIdMap, entityClass, entityField.getType(), projectFieldClass, em, projectFieldName);
+               final Map<Object, Map<String, Object>> result_ =  projectCollectionV2(childEntitiesByIdMap, entityClass, entityField.getType(), projectFieldClass, em, projectFieldName);
+                /**
+                 * 将关联实体返回的结果，合并到当前对象中，这个时候需要知道这个关联对象对应的join column值，从而确定根据哪个id来查询替换
+                 */
+                Field toOnEntityIdField = ProjectionHelperUtil.findIdField(entityField.getType());
+                childEntitiesByIdMap.values().stream().filter(f->f.containsKey(projectFieldName)).forEach(child->{
+
+                    Object id = ((Map<String,Object>)child.get(projectFieldName)).get(toOnEntityIdField.getName());
+                    child.put(projectFieldName, result_.get(id));
+                });
+                result = childEntitiesByIdMap;
+                try {
+                    log.debug("递归关联实体后返回的结果 {}.{} {}", projectClass.getName(), projectFieldName, JsonUtils.getMapper().writeValueAsString(result_));
+                    log.debug("递归关联实体后的结果 {}.{} {}", projectClass.getName(), projectFieldName, JsonUtils.getMapper().writeValueAsString(childEntitiesByIdMap));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         }
+
+        //返回集合
+        return result;
     }
 
     protected  static Map<Object, Map<String, Object>> keyById(List<Map<String, Object>> entityList, Class<?> entityClass) {
@@ -167,12 +235,18 @@ public class ProjectionHelper {
 
 
     //构建集合的查询条件
-    private static Predicate buildPredicate(Collection<Object> parentIds, Class<?> entityClass, Class<?> parentClass, Root<?> root, EntityManager em) {
+    private static Predicate buildPredicate(final Collection<Object> parentIds, Class<?> entityClass, Class<?> parentClass, Root<?> root, EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         Field parentField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentClass);
         Field parentIdField = ProjectionHelperUtil.findIdField(parentField.getType());
-        log.info("构建查询条件 父id列表大小 {} 实体类 {} 父类 {} 实体类在父类的字段名 {} 父类id {}", parentIds.size(), entityClass.getName(), parentClass.getName(), parentField.getName(), parentIdField.getName());
+        log.debug("构建查询条件 {}.{}.{}({}) in 大小{} ", entityClass.getName(), parentField.getName(), parentIdField.getName(), parentClass.getName(),parentIds.size());
+//        if(String.join(".",entityClass.getName(), parentField.getName(), parentIdField.getName()).equals("cn.linkairtech.toupiao.model.MemberTeam.memberInfo.username")){
+//            parentIds.forEach(p->{
+//                System.out.print("'"+p + "',");
+//            });
+//        }
+
         final Class<?> parentIdClass = parentIdField.getType();
         final Path<?> parentPath = root.get(parentField.getName());
         if (parentIdField.isAnnotationPresent(EmbeddedId.class)) {
@@ -192,6 +266,7 @@ public class ProjectionHelper {
                 predicates.add(andGroup);
             }
 //            describePredicate(predicates);
+            log.debug("复合主键");
             return cb.or(predicates.toArray(new Predicate[0]));
 
         } else {
@@ -199,7 +274,7 @@ public class ProjectionHelper {
             final Path<?> parentIdPath = parentPath.get(parentIdField.getName());
 //            final Field parentIdField_ = ProjectionHelperUtil.findIdField(parentClass);
 //            final String alias = String.join(".", parentIdField.getName(), parentIdField_.getName());
-            log.info("parentIdPath {}", parentIdPath.getAlias());
+            log.debug("parentIdPath {}", parentIdPath.getAlias());
             return parentIdPath.in(parentIds);
         }
 
@@ -232,7 +307,7 @@ public class ProjectionHelper {
             if (ProjectionHelperUtil.isJavaStandardType(domainField)) {
                 selections.add(from.get(domainFieldName).alias(alias));
             } else {
-                log.info("递归嵌入 {}", domainFieldName);
+                log.debug("递归嵌入 {}", domainFieldName);
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(from, domainFieldName);
                 Class<?> joinClass = domainField.getType();
                 selections.addAll(buildSelection(alias, join, joinClass, projectFieldClass));
@@ -345,10 +420,17 @@ public class ProjectionHelper {
      * @param parentIds             父id列表
      * @param parentCollectionField 子集合在父类中的字段名，用于回写到父实体的哪个字段中
      */
-    private static void mergeToParent(Map<Object, List<Map<String, Object>>> groupedChild, Map<Object, Map<String, Object>> parentByIdMap, Collection<Object> parentIds, Field parentCollectionField) {
+    private static void mergeToParent(final Map<Object, List<Map<String, Object>>> groupedChild,final Map<Object, Map<String, Object>> parentByIdMap,final Collection<Object> parentIds,final Field parentCollectionField) {
+//        log.debug("回写到 {} 主ast树 {}",parentByIdMap, parentCollectionField.getName());
         parentIds.forEach(parentId -> {
             final Map<String, Object> parent = parentByIdMap.get(parentId);
-            parent.put(parentCollectionField.getName(), groupedChild.get(parentId));
+            if(parent!=null){
+//                log.debug("回写字段 {} 对象 {} 集合长度 {}", parentCollectionField.getName(),parentId, groupedChild.get(parentId).size());
+                parent.put(parentCollectionField.getName(), groupedChild.get(parentId));
+            }else{
+                log.debug("没有找到回写父对象 {}", parentId);
+            }
+
         });
     }
 
@@ -374,7 +456,7 @@ public class ProjectionHelper {
             //embedded的字段，直接递归select，安全
 
             if (ProjectionHelperUtil.isEmbeddedId(domainField)) {
-                log.info("递归嵌入 {}", domainFieldName);
+                log.debug("递归嵌入 {}", domainFieldName);
                 Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(from, domainFieldName);
                 Class<?> joinClass = domainField.getType();
                 selections.addAll(buildEmbeddedSelection(alias, join, joinClass, projectFieldClass));

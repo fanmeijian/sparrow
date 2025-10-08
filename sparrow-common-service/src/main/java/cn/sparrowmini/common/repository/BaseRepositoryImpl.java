@@ -182,14 +182,19 @@ public class BaseRepositoryImpl<T, ID>
                     if(ProjectionHelperUtil.isJavaStandardType(collectionProjectClass)){
                         continue;
                     }
-                    log.info("递归子集合1 字段名 {} 字段类型 {} 投影类型 {}, {}", projectFieldName, domainClass.getName(), collectionEntityClass.getName(), collectionProjectClass.getName());
+                    log.debug("递归子集合1 字段名 {} 字段类型 {} 投影类型 {}, {}", projectFieldName, domainClass.getName(), collectionEntityClass.getName(), collectionProjectClass.getName());
                     projectCollectionV2(rootEntitiesByIdMap, domainClass ,collectionEntityClass, collectionProjectClass,em, projectFieldName);
+                    try {
+                        log.debug("回写后情况1 {} ",JsonUtils.getMapper().writeValueAsString(rootEntitiesByIdMap));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
 
                 if(ProjectionHelperUtil.isAssociationOne(entityField)){
-                    log.info("递归关联实体1 {}", projectFieldName);
+                    log.debug("递归关联实体1 {}", projectFieldName);
                     Class<?> toOneEntityClass = entityField.getType();
-                    List<Map<String, Object>> childEntities = ProjectionHelper.getAllByKey(results,projectFieldName);
+                    final List<Map<String, Object>> childEntities = ProjectionHelper.getAllByKey(results,projectFieldName);
                     final Map<Object, Map<String, Object>> childEntitiesByIdMap = keyById(childEntities,toOneEntityClass);
                     projectCollectionV2(childEntitiesByIdMap, domainClass ,toOneEntityClass, projectFieldClass,em, projectFieldName);
                 }
