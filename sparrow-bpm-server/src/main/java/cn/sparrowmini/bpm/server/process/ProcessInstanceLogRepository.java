@@ -33,7 +33,7 @@ public interface ProcessInstanceLogRepository extends JpaRepository<ProcessInsta
             "            where v2.processInstanceId = p.processInstanceId " +
             "              and v2.variableId = 'title' " +
             "        ) " +
-            "        and p.processInstanceId in (:ids)")
+            "        and p.processInstanceId in (:ids) order by p.id desc")
     List<MyApprovedProcess> findApprovedProcesses(Collection<Long> ids);
 
     @Query("select distinct a.processInstanceId from AuditTaskImpl a where a.actualOwner=:username")
