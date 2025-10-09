@@ -18,9 +18,6 @@
 	<name>bpm server</name>
 
 	<properties>
-		<version.org.kie>7.74.1.Final</version.org.kie>
-		<maven.compiler.target>11</maven.compiler.target>
-		<maven.compiler.source>11</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<narayana.version>5.9.0.Final</narayana.version>
@@ -31,9 +28,13 @@
 		<version.org.webjars.swagger-ui>2.2.10</version.org.webjars.swagger-ui>
 		<version.org.keycloak>21.1.1</version.org.keycloak>
 		<version.com.h2database>1.4.197</version.com.h2database>
-		<version.org.springframework.boot>2.6.6</version.org.springframework.boot>
 		<version.spring>2.6.6</version.spring>
-	</properties>
+        <version.org.kie>7.74.1.Final</version.org.kie>
+        <version.org.springframework.boot>2.6.6</version.org.springframework.boot>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+
+    </properties>
 
 	<dependencyManagement>
 		<dependencies>
@@ -80,24 +81,7 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-data-rest</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.data</groupId>-->
-<!--			<artifactId>spring-data-rest-hal-explorer</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.jbpm</groupId>-->
-<!--			<artifactId>jbpm-flow</artifactId>-->
-<!--			<version>${version.org.kie}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.jbpm</groupId>-->
-<!--			<artifactId>jbpm-bpmn2</artifactId>-->
-<!--			<version>${version.org.kie}</version>-->
-<!--		</dependency>-->
+
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-flow</artifactId>
@@ -108,11 +92,7 @@
 <!--			<artifactId>jbpm-event-emitters-kafka</artifactId>-->
 <!--			<version>${version.org.kie}</version>-->
 <!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.jbpm</groupId>-->
-<!--			<artifactId>keycloak-http-workitem</artifactId>-->
-<!--			<version>0.0.1</version>-->
-<!--		</dependency>-->
+
 
 		<!--keycloak 集成 spring-->
 		<dependency>
@@ -182,22 +162,18 @@
 			<artifactId>cxf-rt-rs-service-description-swagger</artifactId>
 			<version>${version.org.apache.cxf}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-jaxrs</artifactId>
-			<version>${version.io.swagger}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.ws.rs</groupId>
-					<artifactId>jsr311-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!--        <dependency>-->
-		<!--            <groupId>org.webjars</groupId>-->
-		<!--            <artifactId>swagger-ui</artifactId>-->
-		<!--            <version>5.10.3</version>-->
-		<!--        </dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>io.swagger</groupId>-->
+<!--			<artifactId>swagger-jaxrs</artifactId>-->
+<!--			<version>${version.io.swagger}</version>-->
+<!--			<exclusions>-->
+<!--				<exclusion>-->
+<!--					<groupId>javax.ws.rs</groupId>-->
+<!--					<artifactId>jsr311-api</artifactId>-->
+<!--				</exclusion>-->
+<!--			</exclusions>-->
+<!--		</dependency>-->
+
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>

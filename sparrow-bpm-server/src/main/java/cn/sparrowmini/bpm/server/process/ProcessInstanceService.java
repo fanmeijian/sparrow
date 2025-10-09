@@ -47,7 +47,4 @@ public interface ProcessInstanceService {
     @Operation(summary = "删除流程")
     public void deleteProcessInstance(@RequestParam Set<Long> processInstanceIds);
 
-    @PostMapping
-    @ResponseBody
-    public void reopenProcessInstance(Long processInstanceId,Long nodeInstanceId);
 }
