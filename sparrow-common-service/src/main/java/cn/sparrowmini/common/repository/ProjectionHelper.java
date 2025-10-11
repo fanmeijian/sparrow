@@ -77,7 +77,7 @@ public class ProjectionHelper {
      * @param em
      * @return
      */
-    private static List<Tuple> projectEntity(Collection<Object> parentIds, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em) {
+    private static List<Tuple> projectEntity(Collection<Object> parentIds, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em,Field fieldInParent) {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tuple> cq = cb.createTupleQuery();
@@ -87,6 +87,7 @@ public class ProjectionHelper {
         //获取子集合类的所有非集合的投影字段
         List<Selection<?>> selections = buildEntitySelection(root, entityClass, projectClass);
         Field parentRefField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentEntityClass);
+        List<Order> orders = buildOrderByFromAnnotation(root,cb,fieldInParent);
         Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
         Class<?> parentIdClass = parentIdField.getType();
         final Path<?> parentPath = root.get(parentRefField.getName());
@@ -96,7 +97,54 @@ public class ProjectionHelper {
         cq.multiselect(selections);
         Predicate predicate = buildPredicate(parentIds, entityClass, parentEntityClass, root, em);
         cq.where(predicate);
+        cq.orderBy(orders);
         return em.createQuery(cq).getResultList();
+    }
+
+    /**
+     * 根据实体字段上的 @OrderBy 注解生成 CriteriaQuery 排序
+     *
+     * @param root              Root 对象
+     * @param cb                CriteriaBuilder
+     * @param field         集合字段
+     * @return List<Order> 可直接传给 cq.orderBy(...)
+     */
+    public static List<Order> buildOrderByFromAnnotation(
+
+            Root<?> root,
+            CriteriaBuilder cb,
+            Field field
+    ) {
+        List<Order> orders = new ArrayList<>();
+
+        //            Field field = entityClass.getDeclaredField(fieldName);
+        OrderBy orderByAnno = field.getAnnotation(OrderBy.class);
+        if (orderByAnno == null) {
+            return orders; // 没有 @OrderBy 注解
+        }
+
+        String value = orderByAnno.value(); // e.g. "seq ASC, createdAt DESC"
+        if (value == null || value.trim().isEmpty()) {
+            return orders;
+        }
+
+        String[] orderParts = value.split(",");
+        for (String part : orderParts) {
+            part = part.trim();
+            String[] tokens = part.split("\\s+");
+            String propertyPath = tokens[0]; // 支持嵌套属性 "parent.name"
+            boolean asc = tokens.length == 1 || "ASC".equalsIgnoreCase(tokens[1]);
+
+            // 解析嵌套路径
+            Path<?> path = root;
+            for (String p : propertyPath.split("\\.")) {
+                path = path.get(p);
+            }
+
+            orders.add(asc ? cb.asc(path) : cb.desc(path));
+        }
+
+        return orders;
     }
 
     protected static Map<Object, Map<String, Object>> projectCollectionV2(final Map<Object, Map<String, Object>> parentEntitiesByIdMap, Class<?> parentEntityClass, Class<?> entityClass, Class<?> projectClass, EntityManager em,final String fieldNameInParent) {
@@ -115,8 +163,12 @@ public class ProjectionHelper {
         Map<Object, Map<String, Object>> childEntitiesByIdMap = new HashMap<>();
 
         if (isCollectionFieldOfParent) {
+            Field collectionFieldInParent = parentEntityFieldsMap.get(fieldNameInParent);
+
             //只有自己是父的集合的时候，才需要到数据库根据父id，查询出来project，
-            List<Tuple> childTuples = projectEntity(parentIds, parentEntityClass, entityClass, projectClass, em);
+            List<Tuple> childTuples = projectEntity(parentIds, parentEntityClass, entityClass, projectClass, em,collectionFieldInParent);
+
+            //获取排序
             log.debug("查询结果 {}", childTuples.size());
             List<Map<String, Object>> collectionEntities = ProjectionHelperUtil.tuplesToMap(childTuples);
             childEntitiesByIdMap = keyById(collectionEntities, entityClass);
