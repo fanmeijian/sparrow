@@ -2,6 +2,7 @@ package cn.sparrowmini.common.antlr;
 import jakarta.persistence.criteria.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -96,17 +97,58 @@ public class ExprToPredicateVisitor extends ExprBaseVisitor<Predicate> {
                 case "!=" -> cb.notEqual(path.as(OffsetDateTime.class), offsetDateTime);
                 default -> throw new IllegalArgumentException("Unsupported OffsetDateTime operator: " + operator);
             };
-        } else if (value instanceof Number number) {
-            return switch (operator) {
-                case ">" -> cb.gt(path.as(Number.class), number);
-                case "<" -> cb.lt(path.as(Number.class), number);
-                case ">=" -> cb.ge(path.as(Number.class), number);
-                case "<=" -> cb.le(path.as(Number.class), number);
-                case "=" -> cb.equal(path.as(Number.class), number);
-                case "!=" -> cb.notEqual(path.as(Number.class), number);
-                default -> throw new IllegalArgumentException("Unsupported Number operator: " + operator);
-            };
-        } else {
+        } else if (value instanceof Number numberValue) {
+            Class<?> type = path.getJavaType();
+
+
+            if(type.equals(BigDecimal.class)) {
+                Expression<BigDecimal> expr = path.as(BigDecimal.class);
+                BigDecimal number =new BigDecimal(numberValue.toString());
+                return switch (operator) {
+                    case ">" -> cb.gt(expr, number);
+                    case "<" -> cb.lt(expr, number);
+                    case ">=" -> cb.ge(expr, number);
+                    case "<=" -> cb.le(expr, number);
+                    case "=" -> cb.equal(expr, number);
+                    case "!=" -> cb.notEqual(expr, number);
+                    default -> throw new IllegalArgumentException("Unsupported Number operator: " + operator);
+                };
+            } else if (type.equals(Integer.class)) {
+                Expression<? extends Number> expr = path.as(Integer.class);
+                Number number = Integer.valueOf(numberValue.toString());
+                return switch (operator) {
+                    case ">" -> cb.gt(expr, number);
+                    case "<" -> cb.lt(expr, number);
+                    case ">=" -> cb.ge(expr, number);
+                    case "<=" -> cb.le(expr, number);
+                    case "=" -> cb.equal(expr, number);
+                    case "!=" -> cb.notEqual(expr, number);
+                    default -> throw new IllegalArgumentException("Unsupported Number operator: " + operator);
+                };
+            }else if (type.equals(Long.class)) {
+                Expression<Long> expr = path.as(Long.class);
+                Long number = Long.valueOf(numberValue.toString());
+                return switch (operator) {
+                    case ">" -> cb.gt(expr, number);
+                    case "<" -> cb.lt(expr, number);
+                    case ">=" -> cb.ge(expr, number);
+                    case "<=" -> cb.le(expr, number);
+                    case "=" -> cb.equal(expr, number);
+                    case "!=" -> cb.notEqual(expr, number);
+                    default -> throw new IllegalArgumentException("Unsupported Number operator: " + operator);
+                };
+            } else{
+                throw new IllegalArgumentException("Unsupported Number operator: " + operator);
+            }
+
+        } else if(value instanceof Boolean boolValue) {
+            if(boolValue.equals(true)) {
+                return cb.isTrue(path.as(Boolean.class));
+            }else{
+                return cb.isFalse(path.as(Boolean.class));
+            }
+        }
+        else {
             throw new IllegalArgumentException("不支持的值类型: " + value.getClass());
         }
     }
@@ -154,7 +196,11 @@ public class ExprToPredicateVisitor extends ExprBaseVisitor<Predicate> {
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("无法解析数值: " + number);
             }
+        }else if (ctx.BOOLEAN() != null) {
+            String text = ctx.BOOLEAN().getText();
+            return Boolean.parseBoolean(text);
         }
+
 
         return null; // 没匹配到
     }
