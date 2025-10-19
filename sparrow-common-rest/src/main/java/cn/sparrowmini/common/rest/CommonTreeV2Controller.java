@@ -65,6 +65,28 @@ public class CommonTreeV2Controller {
     }
 
     /**
+     * 获取子节点
+     * @param parentId
+     * @param pageable
+     * @return
+     */
+    @GetMapping("/all-children")
+    @ResponseBody
+    public <T extends BaseTreeV2, P extends BaseTreeDto> Page<?> getAllChildren(String parentId, Pageable pageable, String className, String filter, String projectionClassName){
+        Class<T> domainClass = null;
+        Class<P> projectionClass = null;
+        try {
+            domainClass = (Class<T>) Class.forName(className);
+            if(projectionClassName!=null){
+                projectionClass = (Class<P>) Class.forName(projectionClassName);
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return commonTreeService.getAllChildren(parentId,pageable,domainClass,filter);
+    }
+
+    /**
      * 节点详情
      * @param id
      * @return

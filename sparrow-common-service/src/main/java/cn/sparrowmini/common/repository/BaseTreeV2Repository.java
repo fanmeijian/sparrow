@@ -192,6 +192,30 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
         return new PageImpl<>(root, pageable, rootPage.getTotalElements());
     }
 
+    /**
+     * 查询所有子孙， FILTER仅适用于第一层查询，子孙查询不生效
+     * @param parentId
+     * @param pageable_
+     * @param filter
+     * @return
+     */
+    default Page<S> getAllChildren(ID parentId, Pageable pageable_, String filter) {
+        Pageable pageable = (pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000)
+                ? Pageable.unpaged()
+                : pageable_;
+
+        Page<S> rootPage = getChildren(parentId, pageable,filter); //findByParentId(parentId, pageable);
+        List<S> root = rootPage.getContent();
+
+        root.forEach(r -> {
+            List<S> children = getAllChildren((ID) r.getId(), pageable, null).getContent();
+            r.getChildren().addAll(children);
+            r.setChildCount(children.size());
+        });
+
+        return new PageImpl<>(root, pageable, rootPage.getTotalElements());
+    }
+
     // ========= 其他 =========
     S getReferenceByCode(String code);
     boolean existsByCode(String code);
