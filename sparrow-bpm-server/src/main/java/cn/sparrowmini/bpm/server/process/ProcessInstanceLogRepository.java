@@ -42,4 +42,20 @@ public interface ProcessInstanceLogRepository extends JpaRepository<ProcessInsta
 
     void deleteByProcessInstanceId(Long pid);
 
+    @Query(value="select p from ProcessInstanceLog p left join AuditTaskImpl t on p.processInstanceId=t.processInstanceId where t.actualOwner=:username order by p.id desc")
+    Page<ProcessInstanceLog> findProcessInstanceLogBy(String username, Pageable pageable);
+
+    @Query(value="select new cn.sparrowmini.bpm.server.dto.MyApprovedProcess(p, v.value) from ProcessInstanceLog p left join VariableInstanceLog v on v.processInstanceId=p.processInstanceId and v.variableId='title' and v.id = (\n" +
+            "    select max(v2.id)\n" +
+            "    from VariableInstanceLog v2\n" +
+            "    where v2.processInstanceId = p.processInstanceId\n" +
+            "      and v2.variableId = 'title'\n" +
+            "  ) where exists (\n" +
+            "  select 1\n" +
+            "  from AuditTaskImpl t\n" +
+            "  where t.processInstanceId = p.processInstanceId\n" +
+            "    and t.actualOwner = :username\n" +
+            ") order by p.id desc")
+    Page<MyApprovedProcess> findProcessInstanceLogBy_(String username, Pageable pageable);
+
 }

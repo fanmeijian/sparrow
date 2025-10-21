@@ -1,5 +1,6 @@
 package cn.sparrowmini.bpm.server.controller;
 
+import cn.sparrowmini.bpm.server.common.SparrowTaskInstance;
 import cn.sparrowmini.bpm.server.dto.MyApprovedProcess;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplDto;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplInfo;
@@ -7,12 +8,17 @@ import cn.sparrowmini.bpm.server.process.ProcessInstanceLogRepository;
 import cn.sparrowmini.bpm.server.repository.AuditTaskImplRepository;
 import cn.sparrowmini.bpm.server.repository.TaskImplRepository;
 import cn.sparrowmini.bpm.server.util.JsonUtils;
+import cn.sparrowmini.bpm.server.util.SparrowCriteriaBuilderHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.jbpm.process.audit.ProcessInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog_;
+import org.jbpm.services.api.model.ProcessInstanceDesc;
+import org.jbpm.services.api.model.VariableDesc;
 import org.jbpm.services.task.audit.impl.model.AuditTaskImpl;
 import org.jbpm.services.task.audit.impl.model.AuditTaskImpl_;
-import org.jbpm.services.task.impl.model.TaskImpl;
+import org.jbpm.services.task.impl.model.*;
+import org.kie.api.task.model.OrganizationalEntity;
+import org.kie.internal.query.QueryContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,6 +28,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,18 +66,6 @@ public class ProcessController {
         list.forEach(map -> {
             map.put("auditTasks", auditTasks.stream().filter(auditTask -> auditTask.getProcessInstanceId() ==(Long) map.get(ProcessInstanceLog_.PROCESS_INSTANCE_ID)).collect(Collectors.toList()));
         });
-
-//        processInstanceLogs.forEach(processInstanceLog -> {
-//            Map<String, Object> map = JsonUtils.getMapper().convertValue(processInstanceLog, Map.class);
-//            Specification<AuditTaskImpl> filter = auditTaskImplRepository.equal(AuditTaskImpl_.PROCESS_INSTANCE_ID, processInstanceLog.getProcessInstanceId())
-//                    .and(
-//                            auditTaskImplRepository.in(AuditTaskImpl_.STATUS, List.of("Ready"))
-//                    );
-//            Page<AuditTaskImpl> auditTasks = auditTaskImplRepository.findAll(filter, Pageable.unpaged());
-//            log.info("当前任务长度{}", auditTasks.getSize());
-//            map.put("auditTasks", auditTasks.getContent());
-//            list.add(map);
-//        });
         return new PageImpl<>(list, pageable, processInstanceLogs.getTotalElements());
     }
 
@@ -76,10 +73,14 @@ public class ProcessController {
     @GetMapping("/approved-by-me")
     @ResponseBody
     public Page<MyApprovedProcess> approvedByMe(Pageable pageable, @RequestParam(value = "variable", required = false) Set<String> variables) {
+
+
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Page<Long> idsPage = processInstanceLogRepository.myAuditTask(username, pageable);
-        List<MyApprovedProcess> processInstanceLogs = processInstanceLogRepository.findApprovedProcesses(idsPage.getContent());
-        return new PageImpl<>(processInstanceLogs, pageable, idsPage.getTotalElements());
+//        Page<Long> idsPage = processInstanceLogRepository.myAuditTask(username, pageable);
+//        List<MyApprovedProcess> processInstanceLogs = processInstanceLogRepository.findApprovedProcesses(idsPage.getContent());
+//        return new PageImpl<>(processInstanceLogs, pageable, idsPage.getTotalElements());
+
+        return processInstanceLogRepository.findProcessInstanceLogBy_(username, pageable);
     }
 
     @GetMapping("/my-tasks")

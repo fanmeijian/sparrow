@@ -4,6 +4,7 @@ import cn.sparrowmini.bpm.server.dto.TaskDataImplDto;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplInfo;
 import org.jbpm.services.task.impl.model.TaskDataImpl;
 import org.jbpm.services.task.impl.model.TaskImpl;
+import org.kie.api.task.model.Task;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,12 +22,12 @@ public interface TaskImplRepository extends JpaRepository<TaskImpl, Integer> {
             nativeQuery = true)
     Page<TaskImpl> myTasks(Set<String> entityIds, Pageable pageable);
 
-    @Query("select distinct t.id,t.peopleAssignments " +
+    @Query("select distinct t " +
             "from TaskImpl t " +
             "join t.peopleAssignments.potentialOwners po " +
             "where po.id in :entityIds " +
             "order by t.id desc")
-    Page<TaskImpl> findMyTasks(Set<String> entityIds, Pageable pageable);
+    Page<Task> findMyTasks(Set<String> entityIds, Pageable pageable);
 
 
     @Query(

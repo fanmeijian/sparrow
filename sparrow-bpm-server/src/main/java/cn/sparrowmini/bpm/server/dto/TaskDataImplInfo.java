@@ -10,6 +10,7 @@ import java.util.Date;
 public interface TaskDataImplInfo {
     Long getId();
     String getName();
+    String getTitle();
     String getProcessName();
 
     Status getStatus();
