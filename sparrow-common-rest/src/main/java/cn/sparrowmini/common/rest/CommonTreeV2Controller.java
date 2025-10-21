@@ -23,13 +23,14 @@ public class CommonTreeV2Controller {
 
     /**
      * 移动节点
+     *
      * @param currentId
      * @param nextId
      */
     @PatchMapping("/move")
     @ResponseBody
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public void moveNode(@RequestParam Object currentId,@RequestParam Object nextId,String className, String parentId){
+    public void moveNode(@RequestParam Object currentId, @RequestParam Object nextId, String className, String parentId) {
         Class<? extends BaseTreeV2> domainClass = null;
         try {
             domainClass = (Class<? extends BaseTreeV2>) Class.forName(className);
@@ -37,63 +38,68 @@ public class CommonTreeV2Controller {
             throw new RuntimeException(e);
         }
 
-        commonTreeService.moveNode(parentId,currentId,nextId, domainClass);
+        commonTreeService.moveNode(parentId, currentId, nextId, domainClass);
     }
 
     /**
      * 获取子节点
+     *
      * @param parentId
      * @param pageable
      * @return
      */
     @GetMapping("/children")
     @ResponseBody
-    public <T extends BaseTreeV2, P extends BaseTreeDto> Page<?> getChildren(String parentId, Pageable pageable, String className, String filter, String projectionClassName){
+    public <T extends BaseTreeV2, P extends BaseTreeDto> Page<?> getChildren(String parentId, Pageable pageable, String className, String filter, String projectionClassName) {
         Class<T> domainClass = null;
         Class<P> projectionClass = null;
         try {
             domainClass = (Class<T>) Class.forName(className);
-            if(projectionClassName!=null){
+            if (projectionClassName != null) {
                 projectionClass = (Class<P>) Class.forName(projectionClassName);
             }
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return projectionClass==null
-                ? commonTreeService.getChildren(parentId,pageable,domainClass,filter)
-                : commonTreeService.getChildrenProjection(parentId,pageable,domainClass, projectionClass);
+        return projectionClass == null
+                ? commonTreeService.getChildren(parentId, pageable, domainClass, filter)
+                : commonTreeService.getChildrenProjection(parentId, pageable, domainClass, projectionClass);
     }
 
     /**
      * 获取子节点
+     *
      * @param parentId
      * @param pageable
      * @return
      */
     @GetMapping("/all-children")
     @ResponseBody
-    public <T extends BaseTreeV2, P extends BaseTreeDto> Page<?> getAllChildren(String parentId, Pageable pageable, String className, String filter, String projectionClassName){
+    public <T extends BaseTreeV2, P> Page<?> getAllChildren(String parentId, Pageable pageable, String className, String filter, String projectionClassName) {
         Class<T> domainClass = null;
         Class<P> projectionClass = null;
         try {
             domainClass = (Class<T>) Class.forName(className);
-            if(projectionClassName!=null){
+            if (projectionClassName != null) {
                 projectionClass = (Class<P>) Class.forName(projectionClassName);
             }
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return commonTreeService.getAllChildren(parentId,pageable,domainClass,filter);
+        return projectionClass == null
+                ? commonTreeService.getAllChildren(parentId, pageable, domainClass, filter)
+                : commonTreeService.getAllChildren(parentId, pageable, domainClass, filter, projectionClass);
     }
 
     /**
      * 节点详情
+     *
      * @param id
      * @return
      */
     @GetMapping
     @ResponseBody
-    public <T extends BaseTreeV2> T getNode(@RequestParam Object id,String className){
+    public <T extends BaseTreeV2> T getNode(@RequestParam Object id, String className) {
         Class<T> domainClass = null;
         try {
             domainClass = (Class<T>) Class.forName(className);
@@ -101,18 +107,19 @@ public class CommonTreeV2Controller {
             throw new RuntimeException(e);
         }
 
-        return commonTreeService.getNode(id,domainClass);
+        return commonTreeService.getNode(id, domainClass);
     }
 
     /**
      * 新增或更新节点
+     *
      * @param entitiesMap
      * @return
      */
     @PostMapping()
     @ResponseBody
     @ResponseStatus(code = HttpStatus.CREATED)
-    public <T extends BaseTreeV2, ID> ApiResponse<List<ID>> saveNode(@RequestBody List<Map<String, Object>> entitiesMap,String className){
+    public <T extends BaseTreeV2, ID> ApiResponse<List<ID>> saveNode(@RequestBody List<Map<String, Object>> entitiesMap, String className) {
         Class<T> domainClass = null;
         try {
             domainClass = (Class<T>) Class.forName(className);
@@ -120,17 +127,18 @@ public class CommonTreeV2Controller {
             throw new RuntimeException(e);
         }
 
-        return commonTreeService.saveNode(entitiesMap,domainClass);
+        return commonTreeService.saveNode(entitiesMap, domainClass);
     }
 
     /**
      * 删除节点
+     *
      * @param ids
      */
     @DeleteMapping("")
     @ResponseBody
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public <T extends BaseTreeV2, ID> void deleteNode(@RequestParam("id") Set<ID> ids,String className){
+    public <T extends BaseTreeV2, ID> void deleteNode(@RequestParam("id") Set<ID> ids, String className) {
         Class<T> domainClass = null;
         try {
             domainClass = (Class<T>) Class.forName(className);

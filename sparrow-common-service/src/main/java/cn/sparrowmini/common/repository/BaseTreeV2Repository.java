@@ -97,15 +97,15 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
 
     // ========= Projection 查询 =========
     default <P> Page<P> findByParentIdProjection(ID parentId, Pageable pageable_, Class<P> projectionClass) {
+        return findByParentIdProjection(parentId, pageable_,null, projectionClass);
+    }
+
+    default <P> Page<P> findByParentIdProjection(ID parentId, Pageable pageable_, Specification<S> spec, Class<P> projectionClass) {
         Pageable pageable = (pageable_ == null || pageable_.getPageSize() >= 2000)
                 ? Pageable.unpaged(Sort.by("parentIds.seq"))
                 : pageable_;
 
-//        Page<P> children = findBy(
-//                parentIdSpecification(parentId),
-//                query -> query.as(projectionClass).page(pageable));
-
-        Page<P> children = findByProjection(pageable,parentIdSpecification(parentId),projectionClass);
+        Page<P> children = findByProjection(pageable,spec==null?parentIdSpecification(parentId) : parentIdSpecification(parentId).and(spec),projectionClass);
 
         // Projection 必须是 BaseTreeDto 子类，否则不能调用 setChildCount
         try {
@@ -206,6 +206,40 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
         return new PageImpl<>(root, pageable, rootPage.getTotalElements());
     }
 
+    default <P> Page<P> getAllChildren(ID parentId, Pageable pageable_, Specification<S> spec, Class<P> projectClass) {
+        Pageable pageable = (pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000)
+                ? Pageable.unpaged()
+                : pageable_;
+
+        Page<P> rootPage = findByParentIdProjection(parentId, null,spec, projectClass); //findByParentId(parentId, pageable);
+        List<P> root = rootPage.getContent();
+
+        try{
+            Field idField = projectClass.getDeclaredField(idFieldName());
+            Field childrenField = projectClass.getDeclaredField("children");
+            Field childCountField = projectClass.getDeclaredField("childCount");
+            ReflectionUtils.makeAccessible(idField);
+            ReflectionUtils.makeAccessible(childrenField);
+            ReflectionUtils.makeAccessible(childCountField);
+
+            root.forEach(r -> {
+                ID id = (ID)ReflectionUtils.getField(idField,r);
+                List<P> children = getAllChildren(id, Pageable.unpaged(), null, projectClass).getContent();
+//                Collection<P> children_ = (Collection<P>)ReflectionUtils.getField(childrenField,r);
+//                children_.addAll(children);
+                ReflectionUtils.setField(childrenField,r,children);
+                ReflectionUtils.setField(childCountField,r,(long)children.size());
+            });
+
+            return new PageImpl<>(root, pageable, rootPage.getTotalElements());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+    }
+
     /**
      * 查询所有子孙， FILTER仅适用于第一层查询，子孙查询不生效
      * @param parentId
@@ -224,7 +258,7 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
         root.forEach(r -> {
             List<S> children = getAllChildren((ID) r.getId(), pageable, null).getContent();
             r.getChildren().addAll(children);
-            r.setChildCount(children.size());
+            r.setChildCount((long)children.size());
         });
 
         return new PageImpl<>(root, pageable, rootPage.getTotalElements());

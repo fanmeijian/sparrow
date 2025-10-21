@@ -37,6 +37,14 @@ public interface CommonTreeServiceV2 {
     public <T extends BaseTreeV2, ID> Page<T> getAllChildren(ID parentId, Pageable pageable,Class<T> domainClass, String filter);
 
     /**
+     * 获取子节点
+     * @param parentId
+     * @param pageable
+     * @return
+     */
+    public <T extends BaseTreeV2,P, ID> Page<P> getAllChildren(ID parentId, Pageable pageable,Class<T> domainClass, String filter, Class<P> projectClass);
+
+    /**
      * 可以获取Projection类
      * @param parentId
      * @param pageable
