@@ -42,7 +42,7 @@ public interface CommonTreeServiceV2 {
      * @param pageable
      * @return
      */
-    public <T extends BaseTreeV2, P extends BaseTreeDto, ID> Page<P> getChildrenProjection(ID parentId, Pageable pageable, Class<T> domainClass, Class<P> projectionClass);
+    public <T extends BaseTreeV2, P, ID> Page<P> getChildrenProjection(ID parentId, Pageable pageable, Class<T> domainClass, Class<P> projectionClass);
 
 
     /**

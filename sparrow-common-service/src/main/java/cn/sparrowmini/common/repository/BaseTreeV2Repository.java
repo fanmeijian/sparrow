@@ -15,7 +15,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -94,24 +96,36 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
     }
 
     // ========= Projection 查询 =========
-    default <P extends BaseTreeDto> Page<P> findByParentIdProjection(ID parentId, Pageable pageable_, Class<P> projectionClass) {
+    default <P> Page<P> findByParentIdProjection(ID parentId, Pageable pageable_, Class<P> projectionClass) {
         Pageable pageable = (pageable_ == null || pageable_.getPageSize() >= 2000)
                 ? Pageable.unpaged(Sort.by("parentIds.seq"))
                 : pageable_;
 
-        Page<P> children = findBy(
-                parentIdSpecification(parentId),
-                query -> query.as(projectionClass).page(pageable));
+//        Page<P> children = findBy(
+//                parentIdSpecification(parentId),
+//                query -> query.as(projectionClass).page(pageable));
+
+        Page<P> children = findByProjection(pageable,parentIdSpecification(parentId),projectionClass);
 
         // Projection 必须是 BaseTreeDto 子类，否则不能调用 setChildCount
-        if (BaseTreeDto.class.isAssignableFrom(projectionClass)) {
-            List<ID> ids = children.stream().map(c -> (ID) ((BaseTreeDto) c).getId()).toList();
+        try {
+            Field childCount = projectionClass.getDeclaredField("childCount");
+            ReflectionUtils.makeAccessible(childCount);
+            String idFieldName = idFieldName();
+            Field idField = projectionClass.getDeclaredField(idFieldName);
+            ReflectionUtils.makeAccessible(idField);
+
+            List<ID> ids = children.stream().map(c -> (ID) ReflectionUtils.getField(idField, c)).toList();
             Map<ID, Long> counts = countByParentIds(ids);
             children.forEach(child -> {
-                Long cnt = counts.getOrDefault((ID) ((BaseTreeDto) child).getId(), 0L);
-                ((BaseTreeDto) child).setChildCount(cnt);
+                ID id = (ID)ReflectionUtils.getField(idField, child);
+                Long cnt = counts.getOrDefault(id, 0L);
+                ReflectionUtils.setField(childCount,child,cnt);
             });
+        }catch (Exception e){
+            throw new RuntimeException(e);
         }
+
 
         return children;
     }
