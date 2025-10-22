@@ -158,8 +158,7 @@ public class ProjectionHelper {
         final Collection<Object> parentIds = parentEntitiesByIdMap.keySet();
         Map<Object, Map<String, Object>> result = Map.of();
 
-        Class<?> collectionFieldTypeInParent= ProjectionHelperUtil.getCollectionGenericClass(parentEntityFieldsMap.get(fieldNameInParent));
-        boolean isCollectionFieldOfParent = !collectionFieldTypeInParent.isAnnotationPresent(Embeddable.class) && ProjectionHelperUtil.isCollectionField(parentEntityFieldsMap.get(fieldNameInParent).getType());
+        boolean isCollectionFieldOfParent = ProjectionHelperUtil.isCollectionField(parentEntityFieldsMap.get(fieldNameInParent).getType());
         //获取到自己的id集合
         Map<Object, Map<String, Object>> childEntitiesByIdMap = new HashMap<>();
 
