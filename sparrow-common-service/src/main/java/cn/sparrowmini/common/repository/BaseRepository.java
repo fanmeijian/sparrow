@@ -27,12 +27,31 @@ public interface BaseRepository<T, ID>
         extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
     default Page<T> findAll(Pageable pageable, String filter) {
-        Specification<T> specification = filter == null ? Specification.where(null) : filterSpecification(filter);
+        Specification<T> specification = filterSpecification(filter);
 
         return findBy(
                 specification,
                 query -> query.page(pageable)
         );
+    }
+
+    default Page<?> findAll(Pageable pageable, String filter, String projectClassName) {
+        Specification<T> specification = filterSpecification(filter);
+        if(projectClassName != null) {
+            try {
+                Class<?> projectClass = Class.forName(projectClassName);
+
+                return findByProjection(pageable,specification,projectClass);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }else{
+            return findBy(
+                    specification,
+                    query -> query.page(pageable)
+            );
+        }
+
     }
 
     /**
