@@ -5,6 +5,7 @@ import cn.sparrowmini.bpm.server.dto.MyApprovedProcess;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplDto;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplInfo;
 import cn.sparrowmini.bpm.server.process.ProcessInstanceLogRepository;
+import cn.sparrowmini.bpm.server.process.repository.VariableInstanceLogRepository;
 import cn.sparrowmini.bpm.server.repository.AuditTaskImplRepository;
 import cn.sparrowmini.bpm.server.repository.TaskImplRepository;
 import cn.sparrowmini.bpm.server.util.JsonUtils;
@@ -12,6 +13,7 @@ import cn.sparrowmini.bpm.server.util.SparrowCriteriaBuilderHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.jbpm.process.audit.ProcessInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog_;
+import org.jbpm.process.audit.VariableInstanceLog;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
 import org.jbpm.services.api.model.VariableDesc;
 import org.jbpm.services.task.audit.impl.model.AuditTaskImpl;
@@ -47,6 +49,9 @@ public class ProcessController {
     @Autowired
     private TaskImplRepository taskImplRepository;
 
+    @Autowired
+    private VariableInstanceLogRepository variableInstanceLogRepository;
+
     @GetMapping("")
     @ResponseBody
     public Page<Map<String, Object>> getProcessInstanceLogs(Pageable pageable, @RequestParam(value = "variable", required = false) Set<String> variables) {
@@ -62,8 +67,13 @@ public class ProcessController {
         Page<AuditTaskImpl> auditTasks = auditTaskImplRepository.findAll(filter, Pageable.unpaged());
 
         List<Map<String, Object>> list = JsonUtils.getMapper().convertValue(processInstanceLogs.getContent(), List.class);
+        List<VariableInstanceLog> variableInstanceLogs = variableInstanceLogRepository.findByProcessInstanceId(ids);
 
         list.forEach(map -> {
+            final Long processInstanceId = (Long) map.get(ProcessInstanceLog_.PROCESS_INSTANCE_ID);
+            variableInstanceLogs.stream().filter(f -> f.getProcessInstanceId().equals(processInstanceId)).findFirst().ifPresent(variableInstanceLog -> {
+                map.put("title",variableInstanceLog.getValue());
+            });
             map.put("auditTasks", auditTasks.stream().filter(auditTask -> auditTask.getProcessInstanceId() ==(Long) map.get(ProcessInstanceLog_.PROCESS_INSTANCE_ID)).collect(Collectors.toList()));
         });
         return new PageImpl<>(list, pageable, processInstanceLogs.getTotalElements());
