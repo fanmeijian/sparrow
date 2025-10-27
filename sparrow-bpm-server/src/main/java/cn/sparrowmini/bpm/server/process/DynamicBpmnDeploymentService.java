@@ -1,49 +1,32 @@
 package cn.sparrowmini.bpm.server.process;
 
-import cn.sparrowmini.bpm.server.process.model.GlobalVariable;
-import cn.sparrowmini.bpm.server.util.MyMVELActionBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.appformer.maven.integration.MavenRepository;
 import org.drools.compiler.kie.builder.impl.InternalKieModule;
 import org.drools.compiler.kie.builder.impl.KieBuilderImpl;
-import org.drools.compiler.kie.builder.impl.KieRepositoryImpl;
 import org.drools.mvel.builder.MVELDialect;
-import org.jbpm.process.builder.dialect.ProcessDialectRegistry;
-import org.jbpm.process.builder.dialect.mvel.MVELProcessDialect;
+import org.jbpm.kie.services.impl.KModuleDeploymentUnit;
+import org.jbpm.services.api.DeploymentService;
 import org.jbpm.services.api.model.DeployedUnit;
+import org.jbpm.services.api.model.DeploymentUnit;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
-import org.kie.api.builder.ReleaseId;
-import org.jbpm.services.api.DeploymentService;
-import org.jbpm.services.api.model.DeploymentUnit;
-import org.jbpm.kie.services.impl.KModuleDeploymentUnit;
 import org.kie.api.definition.process.Process;
-import org.kie.api.definition.rule.Global;
-import org.kie.api.runtime.KieContainer;
 import org.kie.internal.runtime.conf.DeploymentDescriptor;
 import org.kie.internal.runtime.conf.NamedObjectModel;
-import org.kie.internal.runtime.conf.ObjectModel;
 import org.kie.internal.runtime.conf.RuntimeStrategy;
 import org.kie.internal.runtime.manager.deploy.DeploymentDescriptorImpl;
 import org.kie.server.api.model.KieContainerResource;
-import org.kie.server.api.model.KieScannerResource;
-import org.kie.server.api.model.KieScannerStatus;
-import org.kie.server.remote.rest.common.resource.KieServerRestImpl;
 import org.kie.server.services.api.KieServer;
-import org.kie.server.services.api.KieServerExtension;
-import org.kie.server.services.impl.KieContainerInstanceImpl;
 import org.kie.server.services.impl.KieServerImpl;
-import org.kie.server.springboot.SpringBootKieServerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+@Slf4j
 @Service
 public class DynamicBpmnDeploymentService {
 
@@ -134,12 +117,43 @@ public class DynamicBpmnDeploymentService {
             MVELDialect mveldialect = new MVELDialect();
             // 6. 热更新容器（不删除，不新建）
 
+//            DeployedUnit existing = deploymentService.getDeployedUnit(containerId_);
+//            if (existing != null) {
+//                this.kieServer.disposeContainer(containerId_, false);
+//            }
+//            this.kieServer.disposeContainer(containerId_, false);
+//            this.kieServer.createContainer(containerId_, new KieContainerResource(new org.kie.server.api.model.ReleaseId(releaseId.getGroupId(), releaseId.getArtifactId(), releaseId.getVersion())));
             DeployedUnit existing = deploymentService.getDeployedUnit(containerId_);
             if (existing != null) {
-                this.kieServer.disposeContainer(containerId_, false);
+                try {
+                    // 1. 从 DeploymentService 卸载
+                    deploymentService.undeploy(existing.getDeploymentUnit());
+                    // 2. 确保 RuntimeManager 已被释放
+                    deploymentService.getRuntimeManager(containerId_); // 确认状态
+                } catch (Exception e) {
+                    log.warn("旧部署卸载失败: {}", e.getMessage());
+                }
             }
-            this.kieServer.disposeContainer(containerId_, false);
-            this.kieServer.createContainer(containerId_, new KieContainerResource(new org.kie.server.api.model.ReleaseId(releaseId.getGroupId(), releaseId.getArtifactId(), releaseId.getVersion())));
+
+// 3. 同步清理掉 KieServer 中的容器
+            try {
+                kieServer.disposeContainer(containerId_, false);
+            } catch (Exception e) {
+                log.warn("KieServer 容器清理失败: {}", e.getMessage());
+            }
+
+// 4. 创建新容器
+            kieServer.createContainer(
+                    containerId_,
+                    new KieContainerResource(
+                            new org.kie.server.api.model.ReleaseId(
+                                    releaseId.getGroupId(),
+                                    releaseId.getArtifactId(),
+                                    releaseId.getVersion()
+                            )
+                    )
+            );
+
         } catch (Exception e) {
             throw new RuntimeException("部署 BPMN 流程失败", e);
         }
@@ -156,11 +170,11 @@ public class DynamicBpmnDeploymentService {
         DeploymentDescriptor descriptor = new DeploymentDescriptorImpl("org.jbpm.domain");
 
 // 设置 runtime 策略
-//        descriptor.getBuilder().runtimeStrategy(RuntimeStrategy.PER_PROCESS_INSTANCE);
+        descriptor.getBuilder().runtimeStrategy(RuntimeStrategy.PER_PROCESS_INSTANCE);
 
 // 注册全局变量
         descriptor.getBuilder().addGlobal(new NamedObjectModel("spring", "mvel", "mvel"));
-        descriptor.getBuilder().addGlobal(new NamedObjectModel("mvel", "global", "new cn.sparrowmini.bpm.server.process.GlobalVariableMap(\""+containerId+"\")"));
+        descriptor.getBuilder().addGlobal(new NamedObjectModel("mvel", "global", "new cn.sparrowmini.bpm.server.process.GlobalVariableMap(\"" + containerId + "\")"));
 
         return descriptor;
     }

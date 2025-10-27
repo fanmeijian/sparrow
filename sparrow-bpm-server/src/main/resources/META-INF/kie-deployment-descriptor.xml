@@ -6,7 +6,7 @@
     <audit-persistence-unit>org.jbpm.domain</audit-persistence-unit>
     <audit-mode>JPA</audit-mode>
     <persistence-mode>JPA</persistence-mode>
-    <runtime-strategy/>
+    <runtime-strategy>PER_REQUEST</runtime-strategy>
     <event-listeners />
     <task-event-listeners />
     <globals>
