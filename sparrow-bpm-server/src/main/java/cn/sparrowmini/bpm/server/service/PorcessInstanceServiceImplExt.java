@@ -169,6 +169,7 @@ public class PorcessInstanceServiceImplExt implements PorcessInstanceServiceExt 
             taskInstance.setProcessInstanceId(task.getTaskData().getProcessInstanceId());
             taskInstance.setActualOwner(task.getTaskData().getActualOwner() == null ? null : task.getTaskData().getActualOwner().getId());
             taskInstance.setCreatedOn(task.getTaskData().getCreatedOn());
+            taskInstance.setActivationTime(task.getTaskData().getActivationTime());
             taskInstance.setId(task.getId());
             taskInstance.setTaskName(task.getFormName());
             taskInstance.setDeploymentId(task.getTaskData().getDeploymentId());
