@@ -30,7 +30,7 @@ public abstract class BaseOpLog {
 
 	@JsonProperty("isAuthor")
 	public boolean isAuthor(){
-		return CurrentUser.get().equals(createdBy);
+		return CurrentUser.get()!=null && CurrentUser.get().equals(createdBy);
 	}
 
 	@PrePersist
