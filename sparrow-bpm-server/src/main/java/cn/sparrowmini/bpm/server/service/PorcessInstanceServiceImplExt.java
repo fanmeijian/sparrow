@@ -3,6 +3,7 @@ package cn.sparrowmini.bpm.server.service;
 import cn.sparrowmini.bpm.server.common.*;
 import cn.sparrowmini.bpm.server.process.ProcessInstanceLogRepository;
 import cn.sparrowmini.bpm.server.process.VariableArchiveRepository;
+import cn.sparrowmini.bpm.server.repository.BAMTaskSummaryImplRepository;
 import cn.sparrowmini.bpm.server.util.SparrowCriteriaBuilderHelper;
 import cn.sparrowmini.bpm.server.util.SparrowJpaFilter;
 import org.jbpm.process.audit.ProcessInstanceLog;
@@ -10,6 +11,7 @@ import org.jbpm.process.audit.ProcessInstanceLog_;
 import org.jbpm.services.api.*;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
 import org.jbpm.services.api.model.VariableDesc;
+import org.jbpm.services.task.audit.BAMTaskSummaryQueryBuilder;
 import org.jbpm.services.task.impl.model.*;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.api.task.model.Comment;
@@ -50,6 +52,9 @@ public class PorcessInstanceServiceImplExt implements PorcessInstanceServiceExt 
 
     @Autowired
     private DeploymentService deploymentService;
+
+    @Autowired
+    private BAMTaskSummaryImplRepository bamTaskSummaryImplRepository;
 
 
 
@@ -169,7 +174,10 @@ public class PorcessInstanceServiceImplExt implements PorcessInstanceServiceExt 
             taskInstance.setProcessInstanceId(task.getTaskData().getProcessInstanceId());
             taskInstance.setActualOwner(task.getTaskData().getActualOwner() == null ? null : task.getTaskData().getActualOwner().getId());
             taskInstance.setCreatedOn(task.getTaskData().getCreatedOn());
-            taskInstance.setActivationTime(task.getTaskData().getActivationTime());
+            bamTaskSummaryImplRepository.findByTaskId(taskId).ifPresent(bam->{
+                taskInstance.setActivationTime(bam.getEndDate());
+            });
+
             taskInstance.setId(task.getId());
             taskInstance.setTaskName(task.getFormName());
             taskInstance.setDeploymentId(task.getTaskData().getDeploymentId());
