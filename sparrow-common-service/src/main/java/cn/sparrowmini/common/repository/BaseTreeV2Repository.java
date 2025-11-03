@@ -1,17 +1,13 @@
 package cn.sparrowmini.common.repository;
 
-import cn.sparrowmini.common.dto.BaseTreeDto;
+import cn.sparrowmini.common.dto.BaseTreeV2Dto;
 import cn.sparrowmini.common.model.BaseTreeV2;
 import cn.sparrowmini.common.model.BaseTreeV2_;
-import cn.sparrowmini.common.model.BaseTree_;
-import cn.sparrowmini.common.model.BaseUuidEntity;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +16,9 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +26,15 @@ import java.util.stream.Collectors;
  */
 @NoRepositoryBean
 public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStateRepository<S, ID> {
+
+    // 缓存树节点的 Map，key = 节点 ID
+    Map<String, BaseTreeV2Dto> NODE_CACHE = new ConcurrentHashMap<>();
+
+    // 树是否初始化完成的标记
+    AtomicBoolean TREE_INITIALIZED = new AtomicBoolean(false);
+
+    // 读写锁
+    ReentrantReadWriteLock TREE_LOCK = new ReentrantReadWriteLock();
 
     // ===== 修正：必须从 ParentTree 里取 seq，而不是 t.seq =====
     @Query("select max(p.seq) from #{#entityName} t join t.parentIds p where p.parentId is null")
@@ -273,5 +281,87 @@ public interface BaseTreeV2Repository<S extends BaseTreeV2, ID> extends BaseStat
                 parentId == null
                         ? cb.isNull(root.join(BaseTreeV2_.PARENT_IDS).get("parentId"))
                         : cb.equal(root.join(BaseTreeV2_.PARENT_IDS).get("parentId"), parentId);
+    }
+
+    /**
+     * 构建树，支持缓存和线程安全
+     */
+    default List<? extends BaseTreeV2Dto> buildTree(List<? extends BaseTreeV2Dto> treeList) {
+        // 先尝试读锁读取缓存
+        TREE_LOCK.readLock().lock();
+        try {
+            if (TREE_INITIALIZED.get() && NODE_CACHE.size() == treeList.size()) {
+                return getCachedRoots();
+            }
+        } finally {
+            TREE_LOCK.readLock().unlock();
+        }
+
+        // 写锁重建树
+        TREE_LOCK.writeLock().lock();
+        try {
+            // 双重检查，防止多线程同时到达写锁
+            if (!TREE_INITIALIZED.get() || NODE_CACHE.size() != treeList.size()) {
+                // 1️⃣ 清空缓存
+                NODE_CACHE.clear();
+
+                // 2️⃣ 填充节点到缓存
+                treeList.forEach(node -> NODE_CACHE.put(node.getId(), node));
+
+                // 3️⃣ 初始化 children
+                treeList.forEach(node -> {
+                    if (node.getChildren() == null) node.setChildren(new ArrayList<>());
+                    else node.getChildren().clear();
+                });
+
+                // 4️⃣ 组装父子关系
+                for (BaseTreeV2Dto node : treeList) {
+                    if (node.getParentIds() != null) {
+                        for (BaseTreeV2Dto.ParentTreeDto parentRef : node.getParentIds()) {
+                            String parentId = parentRef.getParentId();
+                            if (parentId == null) {
+                                parentId="/";
+                            }; //
+                            BaseTreeV2Dto parent = NODE_CACHE.get(parentId);
+                            if (parent != null) parent.getChildren().add(node);
+                        }
+                    }
+                }
+
+                // 5️⃣ 标记初始化完成
+                TREE_INITIALIZED.set(true);
+            }
+        } finally {
+            TREE_LOCK.writeLock().unlock();
+        }
+
+        return getCachedRoots();
+    }
+
+    /**
+     * 获取缓存的根节点
+     */
+    default List<BaseTreeV2Dto> getCachedRoots() {
+        TREE_LOCK.readLock().lock();
+        try {
+            return NODE_CACHE.values().stream()
+                    .filter(node -> node.getParentIds() == null || node.getParentIds().isEmpty() || node.getParentIds().stream().anyMatch(parentTree -> parentTree.getParentId()==null))
+                    .collect(Collectors.toList());
+        } finally {
+            TREE_LOCK.readLock().unlock();
+        }
+    }
+
+    /**
+     * 刷新缓存
+     */
+    default void invalidateTreeCache() {
+        TREE_LOCK.writeLock().lock();
+        try {
+            NODE_CACHE.clear();
+            TREE_INITIALIZED.set(false);
+        } finally {
+            TREE_LOCK.writeLock().unlock();
+        }
     }
 }

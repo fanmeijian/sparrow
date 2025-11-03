@@ -10,19 +10,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hibernate.jpa.AvailableHints;
+import org.hibernate.stat.Statistics;
 import org.reflections.ReflectionUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.IntrospectionException;
@@ -49,6 +52,16 @@ public class BaseRepositoryImpl<T, ID>
         this.em = em;
         this.entityInformation = (JpaEntityInformation<T, ID>) entityInformation;
         this.projectionFactory = projectionFactory;
+    }
+
+
+    @Override
+    protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
+        TypedQuery<T> query = super.getQuery(spec, this.getDomainClass(), pageable.getSort());
+        query.setHint(AvailableHints.HINT_CACHEABLE, true);
+        query.setHint(AvailableHints.HINT_READ_ONLY, true);
+        query.setHint(AvailableHints.HINT_CACHE_REGION, domainClass.getSimpleName() + "_default");
+        return query;
     }
 
     @Override
@@ -155,7 +168,9 @@ public class BaseRepositoryImpl<T, ID>
             typedQuery.setMaxResults(pageable.getPageSize());
         }
 
+        enableCache(typedQuery);
         List<Tuple> tuples = typedQuery.getResultList();
+
         final List<P> finalResult = new ArrayList<>();
         // 转换成 DTO，支持嵌套对象，这个为主表的对象，不含子集合的查询，但是对于非集合，则直接join出来了
         List<Map<String,Object>> results = ProjectionHelperUtil.tuplesToMap(tuples);
@@ -184,11 +199,7 @@ public class BaseRepositoryImpl<T, ID>
                     }
                     log.debug("递归子集合1 字段名 {} 字段类型 {} 投影类型 {}, {}", projectFieldName, domainClass.getName(), collectionEntityClass.getName(), collectionProjectClass.getName());
                     projectCollectionV2(rootEntitiesByIdMap, domainClass ,collectionEntityClass, collectionProjectClass,em, projectFieldName);
-                    try {
-                        log.debug("回写后情况1 {} ",JsonUtils.getMapper().writeValueAsString(rootEntitiesByIdMap));
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
+                    log.debug("回写后情况1 {} ",rootEntitiesByIdMap.entrySet().size());
                 }
 
                 if(ProjectionHelperUtil.isAssociationOne(entityField)){
@@ -350,6 +361,12 @@ public class BaseRepositoryImpl<T, ID>
         List<ID> ids = em.createQuery(cq).getResultList();
         ids.forEach(id->refs.put(id,em.getReference(domainClass, id)));
         return refs;
+    }
+
+    private void enableCache(TypedQuery<?> typedQuery ){
+        typedQuery.setHint(AvailableHints.HINT_CACHEABLE, true);
+        typedQuery.setHint(AvailableHints.HINT_READ_ONLY, true);
+        typedQuery.setHint(AvailableHints.HINT_CACHE_REGION, domainClass.getSimpleName() + "_default");
     }
 
 }

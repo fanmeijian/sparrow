@@ -1,5 +1,7 @@
 package cn.sparrowmini.common.repository;
 
+import cn.sparrowmini.common.model.BaseTreeV2;
+import cn.sparrowmini.common.model.BaseTreeV2_;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -7,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.jpa.AvailableHints;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -14,6 +17,55 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class ProjectionHelper {
+
+    protected static List<Selection<?>> buildEntitySelectionJoin(Join<?, ?> root, Class<?> entityClass, Class<?> projectClass) {
+        Map<String, Field> entityFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(entityClass);
+        Map<String, Field> projectFieldsMap = ProjectionHelperUtil.getDomainFieldsMap(projectClass);
+        Collection<Field> entityFields = entityFieldsMap.values();
+        Collection<Field> projectFields = projectFieldsMap.values();
+        List<Selection<?>> selections = new ArrayList<>();
+
+        //一次性构建所有的selection
+        for (Field projectField : projectFields) {
+            if (ProjectionHelperUtil.isCollectionField(projectField.getType())) continue;
+
+            String projectFieldName = projectField.getName();
+            Field entityField = entityFieldsMap.get(projectFieldName);
+            if (entityField == null) continue;
+
+            String entityFieldName = entityField.getName();
+            Class<?> entityFieldClass = entityField.getType();
+            Class<?> projectFieldClass = projectField.getType();
+
+            //标准字段
+            if (ProjectionHelperUtil.isJavaStandardType(projectField)) {
+                selections.add(root.get(entityFieldName).alias(entityFieldName));
+            }
+
+            //嵌入字段
+            //embedded字段
+            if (ProjectionHelperUtil.isEmbedded(entityField)) {
+                //要递归
+                log.debug("递归嵌入字段 {}.{} -> {}",projectClass.getName() , projectField.getName(), entityFieldClass.getName());
+                Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
+                selections.addAll(buildEmbeddedSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
+            }
+
+            //toOne字段
+            if (ProjectionHelperUtil.isAssociationOne(entityField)) {
+                //toOne字段要找到@JoinColumn的name属性，从而获取真正的字段
+                JoinColumn joinColumn = entityField.getAnnotation(JoinColumn.class);
+                String joinColumnName = joinColumn.name();
+
+                //递归处理
+                //要递归
+                log.debug("递归关联字段 {}.{} -> {}", projectClass.getName(),projectField.getName(),entityFieldClass.getName());
+                Join<?, ?> join = ProjectionHelperUtil.tryGetOrCreateJoin(root, entityFieldName);
+                selections.addAll(buildSelection(entityFieldName, join, entityFieldClass, projectFieldClass));
+            }
+        }
+        return selections;
+    }
 
     /**
      * 所有非集合字段都可以一次性全部获取出来
@@ -81,24 +133,64 @@ public class ProjectionHelper {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-        Root<?> root = cq.from(entityClass);
 
+        boolean isEmbedded = entityClass.isAnnotationPresent(Embeddable.class);
 
-        //获取子集合类的所有非集合的投影字段
-        List<Selection<?>> selections = buildEntitySelection(root, entityClass, projectClass);
-        Field parentRefField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentEntityClass);
-        List<Order> orders = buildOrderByFromAnnotation(root,cb,fieldInParent);
-        Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
-        Class<?> parentIdClass = parentIdField.getType();
-        final Path<?> parentPath = root.get(parentRefField.getName());
-        if (selections.stream().noneMatch(s -> s.getAlias().startsWith(parentRefField.getName() + "."))) {
-            selections.add(parentPath.get(parentIdField.getName()).alias(parentRefField.getName() + "." + parentIdField.getName()));
+        if(isEmbedded){
+//            Root<?> root = cq.from(parentEntityClass);
+//            Join<?, BaseTreeV2.ParentTree> parent = root.join(BaseTreeV2_.PARENT_IDS);
+//            Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
+//            List<Order> orders = buildOrderByFromAnnotation(root,cb,fieldInParent);
+//            Predicate predicate = buildPredicate(parentIds, entityClass, parentEntityClass, root, em);
+//            List<Selection<?>> selections = buildEntitySelection(root, entityClass, projectClass);
+//            cq.multiselect(selections);
+//            cq.where(predicate);
+//            cq.orderBy(orders);
+//            TypedQuery<Tuple> typedQuery = em.createQuery(cq);
+//            enableCache(typedQuery,entityClass);
+//            return typedQuery.getResultList();
+
+            Root<?> root = cq.from(parentEntityClass);
+            Join<?, ?> parentJoin = root.join(fieldInParent.getName());
+            Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
+
+            // orderBy
+            List<Order> orders = buildOrderByFromAnnotation(root, cb, fieldInParent);
+
+            // where
+//            Predicate predicate = buildPredicateJoin(parentIds, entityClass, parentEntityClass, parentJoin, em);
+
+            // select from join
+            List<Selection<?>> selections = buildEntitySelectionJoin(parentJoin, entityClass, projectClass);
+            selections.add(root.get(parentIdField.getName()).alias("_id"));
+            cq.multiselect(selections);
+            cq.where(root.get(parentIdField.getName()).in(parentIds));
+            cq.orderBy(orders);
+
+            TypedQuery<Tuple> typedQuery = em.createQuery(cq);
+            enableCache(typedQuery, entityClass);
+            return typedQuery.getResultList();
+        }else{
+            Root<?> root = cq.from(entityClass);
+            //获取子集合类的所有非集合的投影字段
+            List<Selection<?>> selections = buildEntitySelection(root, entityClass, projectClass);
+            Field parentRefField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentEntityClass);
+            List<Order> orders = buildOrderByFromAnnotation(root,cb,fieldInParent);
+            Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
+            Class<?> parentIdClass = parentIdField.getType();
+            final Path<?> parentPath = root.get(parentRefField.getName());
+            if (selections.stream().noneMatch(s -> s.getAlias().startsWith(parentRefField.getName() + "."))) {
+                selections.add(parentPath.get(parentIdField.getName()).alias(parentRefField.getName() + "." + parentIdField.getName()));
+            }
+            cq.multiselect(selections);
+            Predicate predicate = buildPredicate(parentIds, entityClass, parentEntityClass, root, em);
+            cq.where(predicate);
+            cq.orderBy(orders);
+            TypedQuery<Tuple> typedQuery = em.createQuery(cq);
+            enableCache(typedQuery,entityClass);
+            return typedQuery.getResultList();
         }
-        cq.multiselect(selections);
-        Predicate predicate = buildPredicate(parentIds, entityClass, parentEntityClass, root, em);
-        cq.where(predicate);
-        cq.orderBy(orders);
-        return em.createQuery(cq).getResultList();
+
     }
 
     /**
@@ -164,25 +256,27 @@ public class ProjectionHelper {
 
         if (isCollectionFieldOfParent) {
             Field collectionFieldInParent = parentEntityFieldsMap.get(fieldNameInParent);
-
             //只有自己是父的集合的时候，才需要到数据库根据父id，查询出来project，
             List<Tuple> childTuples = projectEntity(parentIds, parentEntityClass, entityClass, projectClass, em,collectionFieldInParent);
 
             //获取排序
             log.debug("查询结果 {}", childTuples.size());
             List<Map<String, Object>> collectionEntities = ProjectionHelperUtil.tuplesToMap(childTuples);
-            childEntitiesByIdMap = keyById(collectionEntities, entityClass);
-            String parentRefFieldName = ProjectionHelperUtil.getParentReferenceField(entityClass, parentEntityClass);
+
+            String parentRefFieldName ="";
+            if(!entityClass.isAnnotationPresent(Embeddable.class)){
+                childEntitiesByIdMap = keyById(collectionEntities, entityClass);
+                parentRefFieldName=ProjectionHelperUtil.getParentReferenceField(entityClass, parentEntityClass);
+            }else{
+                parentRefFieldName = "_id";
+            }
+
+
             final Map<Object, List<Map<String, Object>>> groupedCollections = groupByParentId(collectionEntities, parentRefFieldName, parentIds);
 
             //放回大树
             mergeToParent(groupedCollections, parentEntitiesByIdMap, parentIds, parentEntityFieldsMap.get(fieldNameInParent));
-
-            try {
-                log.debug("回写后情况 {} ",JsonUtils.getMapper().writeValueAsString(parentEntitiesByIdMap));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            log.debug("回写后情况-- {} ",parentEntitiesByIdMap.keySet().size());
         } else {
 
             /**如果不是集合，则在父类中已经通过join查询出来了，直接获取他的列表值即可。这里注意，如果关联的实体所在的实体是复合主键，则需要用所在实体的主键作为索引
@@ -272,17 +366,72 @@ public class ProjectionHelper {
     }
 
     protected  static Map<Object, Map<String, Object>> keyById(List<Map<String, Object>> entityList, Class<?> entityClass) {
-        Field idField = ProjectionHelperUtil.findIdField(entityClass);
+
+        String keyByIdName = "";
+        if(entityClass.isAnnotationPresent(Embeddable.class)){
+
+        }else{
+            Field idField = ProjectionHelperUtil.findIdField(entityClass);
+            keyByIdName = idField.getName();
+        }
+
         Map<Object, Map<String, Object>> map = new HashMap<>();
-        entityList.forEach(f -> {
-            Object id = f.get(idField.getName());
+        for(Map<String, Object> f: entityList){
+            Object id = f.get(keyByIdName);
             map.put(id, f);
-        });
+        }
+
         return map;
     }
 
     protected static List<Map<String, Object>> getAllByKey(Collection<Map<String, Object>> entityList, String fieldName) {
         return entityList.stream().map(entity -> (Map<String, Object>) entity.get(fieldName)).filter(Objects::nonNull).toList();
+    }
+
+    private static Predicate buildPredicateJoin(final Collection<Object> parentIds, Class<?> entityClass, Class<?> parentClass, Join<?, ?> root, EntityManager em) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+
+        Field parentField = ProjectionHelperUtil.getReferenceParentField(entityClass, parentClass);
+        Field parentIdField = ProjectionHelperUtil.findIdField(parentField.getType());
+        log.debug("构建查询条件 {}.{}.{}({}) in 大小{} ", entityClass.getName(), parentField.getName(), parentIdField.getName(), parentClass.getName(),parentIds.size());
+//        if(String.join(".",entityClass.getName(), parentField.getName(), parentIdField.getName()).equals("cn.linkairtech.toupiao.model.MemberTeam.memberInfo.username")){
+//            parentIds.forEach(p->{
+//                System.out.print("'"+p + "',");
+//            });
+//        }
+
+        final Class<?> parentIdClass = parentIdField.getType();
+        final Path<?> parentPath = root.get(parentField.getName());
+        if (parentIdField.isAnnotationPresent(EmbeddedId.class)) {
+            Path<?> idPath = parentPath.get(parentIdField.getName());
+            List<Predicate> predicates = new ArrayList<>();
+
+            for (Object searchId : parentIds) {
+                //这个时候parentId还是一个map，尚未转为为parent id的对象
+                Map<String, Object> parentId = (Map<String, Object>) searchId;
+                List<Predicate> andPredicates = new ArrayList<>();
+
+                parentId.forEach((k, v) -> {
+                    andPredicates.add(cb.equal(idPath.get(k), v));
+                });
+
+                Predicate andGroup = cb.and(andPredicates.toArray(new Predicate[0]));
+                predicates.add(andGroup);
+            }
+//            describePredicate(predicates);
+            log.debug("复合主键");
+            return cb.or(predicates.toArray(new Predicate[0]));
+
+        } else {
+            //不是embeddedId的话，就获取其id字段来匹配
+            final Path<?> parentIdPath = parentPath.get(parentIdField.getName());
+//            final Field parentIdField_ = ProjectionHelperUtil.findIdField(parentClass);
+//            final String alias = String.join(".", parentIdField.getName(), parentIdField_.getName());
+            log.debug("parentIdPath {}", parentIdPath.getAlias());
+            return parentIdPath.in(parentIds);
+        }
+
+
     }
 
 
@@ -521,5 +670,9 @@ public class ProjectionHelper {
         return selections;
     }
 
-
+    private static void enableCache(TypedQuery<?> typedQuery,Class<?> domainClass ){
+        typedQuery.setHint(AvailableHints.HINT_CACHEABLE, true);
+        typedQuery.setHint(AvailableHints.HINT_READ_ONLY, true);
+        typedQuery.setHint(AvailableHints.HINT_CACHE_REGION, domainClass.getSimpleName() + "_default");
+    }
 }
