@@ -7,9 +7,12 @@ import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.io.Serializable;
 
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Setter
 @Getter
 @NoArgsConstructor

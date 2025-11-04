@@ -15,6 +15,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,7 +29,6 @@ import java.util.*;
 @NoRepositoryBean
 public interface BaseRepository<T, ID>
         extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
-
     default Page<T> findAll(Pageable pageable, String filter) {
         Specification<T> specification = filterSpecification(filter);
 
