@@ -4,6 +4,7 @@ import cn.sparrowmini.bpm.server.process.repository.AuditTaskRepository;
 import cn.sparrowmini.bpm.server.process.repository.ProcessInstanceInfoRepository;
 import cn.sparrowmini.bpm.server.process.repository.TaskRepository;
 import cn.sparrowmini.bpm.server.process.repository.VariableInstanceLogRepository;
+import org.jbpm.persistence.processinstance.ProcessInstanceInfo;
 import org.jbpm.process.audit.AuditLogService;
 import org.jbpm.process.audit.NodeInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog;
@@ -122,9 +123,13 @@ public class ProcessInstanceServiceImpl implements ProcessInstanceService {
     @Transactional
     @Override
     public void deleteProcessInstance(Set<Long> processInstanceIds) {
-        processInstanceIds.forEach(pid->{
-            List<AuditTaskImpl> auditTaskList = auditTaskRepository.findByProcessInstanceId(pid);
-            taskRepository.deleteAllById(auditTaskList.stream().map(AuditTaskImpl::getTaskId).collect(Collectors.toList()));
+        processInstanceIds.stream().filter(f->f>0).forEach(pid->{
+            ProcessInstanceLog processInstanceInfo = processInstanceLogRepository.findByProcessInstanceId(pid).orElseThrow();
+
+            if(processInstanceInfo.getStatus()!=ProcessInstance.STATE_ABORTED){
+                throw new RuntimeException("正常结束的流程不可删除！");
+            }
+            taskRepository.deleteByTaskDataProcessInstanceId(pid);
             auditTaskRepository.deleteByProcessInstanceId(pid);
             variableInstanceLogRepository.deleteByProcessInstanceId(pid);
             nodeInstanceLogRepository.deleteByProcessInstanceId(pid);

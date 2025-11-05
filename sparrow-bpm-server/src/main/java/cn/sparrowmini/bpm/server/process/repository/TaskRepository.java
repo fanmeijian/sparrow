@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TaskRepository extends JpaRepository<TaskImpl,Long> {
 
+    void deleteByTaskDataProcessInstanceId(Long pid);
 }
