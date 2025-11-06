@@ -17,8 +17,11 @@ import org.jbpm.process.audit.NodeInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog_;
 import org.jbpm.process.audit.VariableInstanceLog;
+import org.jbpm.services.api.DefinitionService;
 import org.jbpm.services.api.UserTaskService;
 import org.jbpm.services.api.admin.ProcessInstanceAdminService;
+import org.jbpm.services.api.model.NodeDesc;
+import org.jbpm.services.api.model.ProcessDefinition;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
 import org.jbpm.services.api.model.VariableDesc;
 import org.jbpm.services.task.audit.impl.model.AuditTaskImpl;
@@ -66,6 +69,9 @@ public class ProcessController {
 
     @Autowired
     private NodeInstanceLogRepository nodeInstanceLogRepository;
+
+    @Autowired
+    private DefinitionService definitionService;
 
     @GetMapping("")
     @ResponseBody
@@ -130,8 +136,10 @@ public class ProcessController {
         if(nodeInstanceLog.getNodeId().equals(targetNodeInstanceLog.getNodeId())){
             throw new RuntimeException("不可以驳回给自己！");
         }
+        ProcessDefinition processDefinition = definitionService.getProcessDefinition(nodeInstanceLog.getExternalId(),nodeInstanceLog.getProcessId());
+        NodeDesc nodeDesc = processDefinition.getNodes().stream().filter(f->f.getUniqueId().equals(targetNodeInstanceLog.getNodeId())).findFirst().orElseThrow();
         final long nodeInstanceId = Long.parseLong(nodeInstanceLog.getNodeInstanceId());
         this.processInstanceAdminService.cancelNodeInstance(processInstanceId,nodeInstanceId);
-        this.processInstanceAdminService.triggerNode(processInstanceId, targetNodeInstanceId);
+        this.processInstanceAdminService.triggerNode(processInstanceId, nodeDesc.getId());
     }
 }
