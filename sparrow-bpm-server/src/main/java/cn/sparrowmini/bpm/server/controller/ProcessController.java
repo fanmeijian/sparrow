@@ -4,16 +4,21 @@ import cn.sparrowmini.bpm.server.common.SparrowTaskInstance;
 import cn.sparrowmini.bpm.server.dto.MyApprovedProcess;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplDto;
 import cn.sparrowmini.bpm.server.dto.TaskDataImplInfo;
+import cn.sparrowmini.bpm.server.process.NodeInstanceLogRepository;
 import cn.sparrowmini.bpm.server.process.ProcessInstanceLogRepository;
+import cn.sparrowmini.bpm.server.process.ProcessInstanceService;
 import cn.sparrowmini.bpm.server.process.repository.VariableInstanceLogRepository;
 import cn.sparrowmini.bpm.server.repository.AuditTaskImplRepository;
 import cn.sparrowmini.bpm.server.repository.TaskImplRepository;
 import cn.sparrowmini.bpm.server.util.JsonUtils;
 import cn.sparrowmini.bpm.server.util.SparrowCriteriaBuilderHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.jbpm.process.audit.NodeInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog;
 import org.jbpm.process.audit.ProcessInstanceLog_;
 import org.jbpm.process.audit.VariableInstanceLog;
+import org.jbpm.services.api.UserTaskService;
+import org.jbpm.services.api.admin.ProcessInstanceAdminService;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
 import org.jbpm.services.api.model.VariableDesc;
 import org.jbpm.services.task.audit.impl.model.AuditTaskImpl;
@@ -28,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
@@ -51,6 +57,15 @@ public class ProcessController {
 
     @Autowired
     private VariableInstanceLogRepository variableInstanceLogRepository;
+
+    @Autowired
+    private ProcessInstanceService processInstanceService;
+
+    @Autowired
+    private ProcessInstanceAdminService processInstanceAdminService;
+
+    @Autowired
+    private NodeInstanceLogRepository nodeInstanceLogRepository;
 
     @GetMapping("")
     @ResponseBody
@@ -104,5 +119,19 @@ public class ProcessController {
             entityIds.add(f.getAuthority());
         });
         return taskImplRepository.findTasksWithLatestTitle(entityIds, Set.of("Ready"), pageable);
+    }
+
+    @Transactional
+    @PostMapping("/trigger-node")
+    @ResponseBody
+    public void triggerNode(Long processInstanceId, Long taskId, Long targetNodeInstanceId){
+        final NodeInstanceLog nodeInstanceLog = this.nodeInstanceLogRepository.getNodeInstanceId(taskId).orElseThrow();
+        final NodeInstanceLog targetNodeInstanceLog = nodeInstanceLogRepository.findByNodeInstanceId(processInstanceId,targetNodeInstanceId.toString(),1).orElseThrow();
+        if(nodeInstanceLog.getNodeId().equals(targetNodeInstanceLog.getNodeId())){
+            throw new RuntimeException("不可以驳回给自己！");
+        }
+        final long nodeInstanceId = Long.parseLong(nodeInstanceLog.getNodeInstanceId());
+        this.processInstanceAdminService.cancelNodeInstance(processInstanceId,nodeInstanceId);
+        this.processInstanceAdminService.triggerNode(processInstanceId, targetNodeInstanceId);
     }
 }
