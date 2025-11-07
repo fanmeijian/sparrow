@@ -124,7 +124,7 @@ public class ProcessController {
         auth.getAuthorities().forEach(f -> {
             entityIds.add(f.getAuthority());
         });
-        return taskImplRepository.findTasksWithLatestTitle(entityIds, Set.of("Ready"), pageable);
+        return taskImplRepository.findTasksWithLatestTitle(entityIds, Set.of("Ready","InProgress","Reserved","Suspended"), pageable);
     }
 
     @Transactional
