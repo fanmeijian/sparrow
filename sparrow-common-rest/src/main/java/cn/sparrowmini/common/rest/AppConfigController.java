@@ -1,5 +1,6 @@
 package cn.sparrowmini.common.rest;
 
+import cn.sparrowmini.common.model.AppConfig;
 import cn.sparrowmini.common.model.AppConfigAttachment;
 import cn.sparrowmini.common.repository.AppConfigAttachmentRepository;
 import cn.sparrowmini.common.repository.AppConfigRepository;
@@ -30,8 +31,8 @@ public class AppConfigController {
 
     @GetMapping("/{id}")
     @ResponseBody
-    public AppConfigInfo getEntityList(@PathVariable String id){
-        return appConfigRepository.findByIdProjection(id, AppConfigInfo.class).orElseThrow();
+    public AppConfig getEntityList(@PathVariable String id){
+        return appConfigRepository.findById(id).orElseThrow();
     }
 
     @GetMapping("/attachments/{attachmentId}")

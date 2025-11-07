@@ -32,6 +32,7 @@
 			<groupId>cn.sparrowmini</groupId>
 			<artifactId>sparrow-common-service</artifactId>
 			<version>2.0.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
