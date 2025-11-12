@@ -8,10 +8,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -52,7 +49,9 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
 
 
     default Page<S> getChildren(ID parentId_, Pageable pageable, String filter) {
-        Pageable pageable_ = pageable.getPageSize() >= 2000 ? Pageable.unpaged(Sort.by(BaseTree_.seq.getName())) : pageable;
+        Pageable pageable__= PageRequest.of(0,Integer.MAX_VALUE);
+        pageable__.getSort().and(Sort.by(BaseTree_.seq.getName()));
+        Pageable pageable_ = pageable.getPageSize() >= 2000 ? pageable__ : pageable;
         ID parentId = parentId_;
 
         if(parentId_ != null && existsByCode(parentId_.toString())) {
@@ -74,8 +73,10 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
     Page<S> findByParentId(ID parentId, Pageable pageable, Specification<S> spec);
 
     default <P extends BaseTreeDto> Page<P> findByParentIdProjection(ID parentId, Pageable pageable_, Class<P> projectionClass) {
+        Pageable pageable__= PageRequest.of(0,Integer.MAX_VALUE);
+        pageable__.getSort().and(Sort.by(BaseTree_.seq.getName()));
         Pageable pageable = pageable_ == null || pageable_.getPageSize() >= 2000
-                ? Pageable.unpaged(Sort.by(BaseTree_.SEQ))
+                ? pageable__
                 : pageable_;
         Page<P> children = findBy(
                 parentIdSpecification(parentId),
@@ -164,7 +165,7 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
         deleteAllById(ids);
         ids.forEach(id -> {
             if (countByParentId(id) > 0) {
-                deleteCascade((Collection<ID>) getChildren(id, Pageable.unpaged()).getContent().stream()
+                deleteCascade((Collection<ID>) getChildren(id, PageRequest.of(0,Integer.MAX_VALUE)).getContent().stream()
                         .filter(f -> f.getChildCount() > 0)
                         .map(BaseUuidEntity::getId)
                         .toList());
@@ -175,7 +176,9 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
     }
 
     default Page<S> getAllChildren(ID parentId_, Pageable pageable_) {
-        Pageable pageable = pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000 ? Pageable.unpaged(Sort.by(BaseTree_.SEQ)) : pageable_;
+        Pageable pageable__= PageRequest.of(0,Integer.MAX_VALUE);
+        pageable__.getSort().and(Sort.by(BaseTree_.seq.getName()));
+        Pageable pageable = pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000 ? pageable__ : pageable_;
         ID parentId = parentId_;
 
         if(parentId_ != null && existsByCode(parentId_.toString())) {
