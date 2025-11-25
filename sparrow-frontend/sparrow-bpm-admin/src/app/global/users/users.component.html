@@ -1,0 +1,31 @@
+<mat-form-field class="example-form-field">
+  <mat-label>Video keywords</mat-label>
+  <mat-chip-grid #chipGrid aria-label="Enter keywords" >
+    <mat-chip-row *ngFor="let keyword of selections.users" (removed)="removeKeyword(keyword)">
+      {{keyword}}
+      <button matChipRemove aria-label="'remove ' + keyword">
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip-row>
+  </mat-chip-grid>
+  <input placeholder="New keyword..."
+          [matChipInputFor]="chipGrid"
+          (matChipInputTokenEnd)="add($event)"/>
+</mat-form-field>
+
+<mat-form-field class="example-form-field">
+  <mat-label>Video keywords</mat-label>
+  <mat-chip-grid #chipGrid1 aria-label="Enter keywords" >
+    <mat-chip-row *ngFor="let keyword of selections.groups" (removed)="removeGroups(keyword)">
+      {{keyword}}
+      <button matChipRemove aria-label="'remove ' + keyword">
+        <mat-icon>cancel</mat-icon>
+      </button>
+    </mat-chip-row>
+  </mat-chip-grid>
+  <input placeholder="New keyword..."
+          [matChipInputFor]="chipGrid1"
+          (matChipInputTokenEnd)="addGroups($event)"/>
+</mat-form-field>
+
+<button mat-raised-button [mat-dialog-close]="selections">Log Keywords</button>

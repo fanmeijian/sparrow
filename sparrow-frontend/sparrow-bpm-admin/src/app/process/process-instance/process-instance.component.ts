@@ -7,6 +7,7 @@ import { environment } from 'src/environments/environment';
 import _ from 'lodash'
 import { MatDialog } from '@angular/material/dialog';
 import { ProcessVariableFormComponent } from '../process-variable-form/process-variable-form.component';
+import { UsersComponent } from 'src/app/global/users/users.component';
 
 @Component({
   selector: 'app-process-instance',
@@ -15,11 +16,19 @@ import { ProcessVariableFormComponent } from '../process-variable-form/process-v
   providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService]
 })
 export class ProcessInstanceComponent implements OnInit {
-onChange($event: any) {
-throw new Error('Method not implemented.');
-}
-editorOptions: any;
-code: any;
+  deleteAssignment(taskId: number, reassignmentId: any) {
+    this.taskInstanceAdminService.cancelReassignment(this.process.externalId, taskId, reassignmentId).subscribe();
+  }
+  onChange($event: any) {
+    throw new Error('Method not implemented.');
+  }
+  editorOptions: any;
+  code: any;
+
+  taskPotOwners: any = {}
+  taskAssignments: any[] = []
+  activeTasksByWorkItemId: any = {}
+
   updateVaraible() {
     this.dialog.open(ProcessVariableFormComponent, {
       width: '100%',
@@ -58,7 +67,8 @@ code: any;
   processVariables: Record<string, any> = {}
   /**
    * 任务只有在Created状态下才允许nominate
-   * @param nodeInstance
+   * @param nodeInstancetask-id
+
    */
   nominate(nodeInstance: any) {
     this.processService.getTaskByWorkItemId(nodeInstance['work-item-id']).subscribe((res: any) => {
@@ -66,16 +76,27 @@ code: any;
     })
   }
 
-  addPotOwners(nodeInstance: any) {
-    const potOwners = JSON.stringify({
-      "users": ['jully'],
-      "groups": ['HQ_GM']
+  addPotOwners(taskId: number) {
+    this.dialog.open(UsersComponent).afterClosed().subscribe((res: any) => {
+      console.log(res)
+      if (res) {
+        const potOwners = JSON.stringify(res)
+        const containerId = this.process.externalId
+        this.taskInstanceAdminService.addPotentialOwners(containerId, taskId, potOwners, undefined, false).subscribe()
+      }
     })
-    const containerId = this.process.externalId
-    this.processService.getTaskByWorkItemId(nodeInstance['work-item-id']).subscribe((res: any) => {
-      const taskInstanceId = res['task-id']
-      this.taskInstanceAdminService.addPotentialOwners(containerId, taskInstanceId, potOwners, undefined, false).subscribe()
-    })
+    // const potOwners = JSON.stringify({
+    //   "users": ['jully'],
+    //   "groups": ['HQ_GM']
+    // })
+    // const containerId = this.process.externalId
+    // this.taskInstanceAdminService.addPotentialOwners(containerId, taskId, potOwners, undefined, false).subscribe()
+
+  }
+
+  removePotOwners(taskId: number, potOwnerId: any) {
+    this.taskInstanceAdminService.removePotentialOwnersGroups(this.process.externalId, taskId, potOwnerId).subscribe()
+    this.taskInstanceAdminService.removeExcludedOwnersUsers(this.process.externalId, taskId, potOwnerId).subscribe()
   }
 
   getReassignments(nodeInstance: any) {
@@ -162,6 +183,7 @@ code: any;
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
+    private processQueryService: ProcessQueriesService,
     private processInstancesAdminService: ProcessInstanceAdministrationService,
     private processInstanceService: ProcessInstancesService,
     private processService: ProcessQueriesService,
@@ -210,8 +232,27 @@ code: any;
         this.activeNodes.forEach(n => {
           const containerId = this.process.externalId
           this.processService.getTaskByWorkItemId(n['work-item-id']).subscribe((res: any) => {
-            this.taskInstanceService.getTask(containerId, res['task-id'], false, false, true).subscribe()
+            // this.activeTasks[n['work-item-id']] = res
+            const taskId = res['task-id']
+
+            this.taskInstanceService.getTask(containerId, taskId, false, false, true).subscribe(task => {
+              this.activeTasksByWorkItemId[n['work-item-id']] = task
+            })
+
+            //初始化各项任务的可分配人列表
+            this.taskInstanceAdminService.getTaskReassignments(containerId, taskId).subscribe((res: any) => {
+              this.taskAssignments[n['work-item-id']] = res['task-reassignment']
+            })
+
+
+            this.processQueryService.getTasksAssignedAsPotentialOwner(['Created', 'Ready', 'Reserved', 'InProgress', 'Suspended', 'Failed', 'Error', 'Obsolete']).subscribe(res => {
+
+            })
+
+
           })
+
+
         })
       })
 

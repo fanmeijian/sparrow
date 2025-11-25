@@ -23,6 +23,7 @@
     "@sparrowmini/common": "file:.yalc/@sparrowmini/common",
     "@sparrowmini/common-api": "file:.yalc/@sparrowmini/common-api",
     "@sparrowmini/common-ui-nm": "file:.yalc/@sparrowmini/common-ui-nm",
+    "dayjs": "^1.11.19",
     "jsonpath-plus": "^10.3.0",
     "keycloak-angular": "^14.4.0",
     "keycloak-js": "^25.0.6",

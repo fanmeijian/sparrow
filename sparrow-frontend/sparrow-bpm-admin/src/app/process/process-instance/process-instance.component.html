@@ -1,5 +1,3 @@
-
-
 <mat-tab-group>
   <mat-tab label="基本信息">
     {{process.status}} {{process.processInstanceId}} {{process.processName}} {{process.start|date: 'short'}}
@@ -21,6 +19,27 @@
         </mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="owners">
+        <mat-header-cell *matHeaderCellDef> 当前执行人 </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <mat-chip-grid aria-label="Fish selection">
+            <mat-chip *ngFor="let owner of activeTasksByWorkItemId[item['work-item-id']]['task-pot-owners']">
+              {{owner}}
+              <button matChipRemove aria-label="Remove orange"
+                (click)="removePotOwners(activeTasksByWorkItemId[item['work-item-id']]['task-id'],owner)">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip>
+          </mat-chip-grid>
+
+          <div>
+            <button mat-button color="primary"
+              (click)="addPotOwners(activeTasksByWorkItemId[item['work-item-id']]['task-id'])">添加</button>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+
       <ng-container matColumnDef="actions">
         <mat-header-cell *matHeaderCellDef> </mat-header-cell>
         <mat-cell *matCellDef="let item">
@@ -36,11 +55,24 @@
             <button mat-button color="primary" (click)="delegate(item)">{{'delegate'|translate}}</button>
             <button mat-button color="primary" (click)="skip(item)">{{'skip'|translate}}</button>
           </div>
+
+          <div *ngFor="let reassignment of taskAssignments[item['work-item-id']]">
+            <div>{{reassignment.id}}</div>
+            <div>{{reassignment.groups}}</div>
+            <div>{{reassignment.users}}</div>
+            <div>{{activeTasksByWorkItemId[item['work-item-id']]['task-id']}}</div>
+            <div><button mat-button
+                (click)="deleteAssignment(activeTasksByWorkItemId[item['work-item-id']]['task-id'],reassignment.id)">删除</button>
+            </div>
+          </div>
+
+
+
         </mat-cell>
       </ng-container>
 
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      <mat-header-row *matHeaderRowDef="['id', 'name','owners', 'actions']"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: ['id', 'name','owners', 'actions'];"></mat-row>
     </mat-table>
     <!-- <div *ngFor="let item of activeNodes">
       {{item['node-instance-id']}} {{item['node-name']}} {{item['node-type']}} {{item['node-completed']}}

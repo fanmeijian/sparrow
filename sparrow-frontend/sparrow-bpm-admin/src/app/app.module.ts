@@ -36,6 +36,7 @@ import { ProcessGlobalComponent } from './process/process-global/process-global.
 import { BASE_PATH, CommonApiModule, CommonApiService } from '@sparrowmini/common-api';
 import { ProcessVariableFormComponent } from './process/process-variable-form/process-variable-form.component';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { UsersComponent } from './global/users/users.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
     ProcessInstanceImageComponent,
     JsonViewerComponent,
     ProcessGlobalComponent,
-    ProcessVariableFormComponent
+    ProcessVariableFormComponent,
+    UsersComponent
   ],
   imports: [
     BrowserModule,

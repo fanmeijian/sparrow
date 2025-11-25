@@ -5,7 +5,7 @@ import { KeycloakOnLoad } from "keycloak-js";
 const SPARROW_BASE = 'http://localhost:8300/toupiao-service'
 // const API_BASE = 'http://localhost:8081/dengbo-service'
 // const API_BASE = 'http://localhost:8300/toupiao-service'
-const API_BASE = 'http://localhost:8999'
+const API_BASE = 'http://localhost:8601/chnplc-service'
 const login: KeycloakOnLoad = 'login-required'
 export const environment = {
   production: false,
