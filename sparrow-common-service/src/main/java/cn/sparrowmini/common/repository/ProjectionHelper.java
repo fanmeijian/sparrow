@@ -155,7 +155,7 @@ public class ProjectionHelper {
             Field parentIdField = ProjectionHelperUtil.findIdField(parentEntityClass);
 
             // orderBy
-            List<Order> orders = buildOrderByFromAnnotation(root, cb, fieldInParent);
+            List<Order> orders = buildOrderByFromAnnotation(parentJoin, cb, fieldInParent);
 
             // where
 //            Predicate predicate = buildPredicateJoin(parentIds, entityClass, parentEntityClass, parentJoin, em);
@@ -196,14 +196,14 @@ public class ProjectionHelper {
     /**
      * 根据实体字段上的 @OrderBy 注解生成 CriteriaQuery 排序
      *
-     * @param root              Root 对象
+     * @param path              join path 对象
      * @param cb                CriteriaBuilder
      * @param field         集合字段
      * @return List<Order> 可直接传给 cq.orderBy(...)
      */
     public static List<Order> buildOrderByFromAnnotation(
 
-            Root<?> root,
+            Path<?> path,
             CriteriaBuilder cb,
             Field field
     ) {
@@ -228,7 +228,7 @@ public class ProjectionHelper {
             boolean asc = tokens.length == 1 || "ASC".equalsIgnoreCase(tokens[1]);
 
             // 解析嵌套路径
-            Path<?> path = root;
+//            Path<?> path = root;
             for (String p : propertyPath.split("\\.")) {
                 path = path.get(p);
             }
