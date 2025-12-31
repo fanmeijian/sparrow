@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.antlr.PredicateBuilder;
+import cn.sparrowmini.common.model.BaseState;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
@@ -235,7 +236,7 @@ public class BaseRepositoryImpl<T, ID>
 
     @Override
     @Transactional
-    public List<ID> upsert(List<Map<String, Object>> entitiesMap) {
+    public List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat) {
         ObjectMapper mapper = JsonUtils.getMapper();
         // 允许 null 覆盖
         mapper.setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.SET));
@@ -281,7 +282,9 @@ public class BaseRepositoryImpl<T, ID>
 
             // 🔑 递归处理关联
             handleRelations(entity, entityMap, mapper);
-
+            if(entityMap.containsKey("stat") && entity instanceof BaseState){
+                ((BaseState)entity).setStat(entityMap.get("stat").toString());
+            }
             entities.add(entity);
         });
 

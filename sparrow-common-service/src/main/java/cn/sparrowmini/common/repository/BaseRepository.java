@@ -121,7 +121,11 @@ public interface BaseRepository<T, ID>
         return findAllProjection(pageable, null, projectionClass);
     }
 
-    List<ID> upsert(List<Map<String, Object>> entitiesMap);
+    List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat);
+
+    default List<ID> upsert(List<Map<String, Object>> entitiesMap){
+        return upsert(entitiesMap, false);
+    }
 
     default Specification<T> filterSpecification(String filter) {
         return new Specification<T>() {
