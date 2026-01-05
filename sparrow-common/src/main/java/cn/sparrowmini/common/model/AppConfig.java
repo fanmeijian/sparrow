@@ -31,4 +31,9 @@ public class AppConfig extends BaseEntity {
 
     @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER, mappedBy = "appConfig")
     private List<AppConfigAttachment> attachments;
+
+    @Lob
+    @Convert(converter = JsonMapConverter.class)
+    private Map<String, Object> formJson; // 保存变量的 JSON 字符串
+
 }
