@@ -1,0 +1,30 @@
+<zk>
+    <window viewModel="@id('vm') @init('cn.liyuan.chnplc.SidebarVM')">
+        <tree id="tree" model="@load(vm)"
+              width="100%" height="100%">
+            <treecols>
+
+                <treecol label="菜单" />
+            </treecols>
+
+            <template name="model" var="menu">
+                <treeitem>
+                    <treerow>
+                        <treecell label="@load(menu.name)" />
+                    </treerow>
+                    <!-- 添加 Treechildren 占位，否则有子节点的展开会消失 -->
+                    <treechildren if="@load(vm.getChildCount(menu) > 0)">
+                        <template name="model" var="child">
+                            <treeitem>
+                                <treerow>
+                                    <treecell label="@load(child.name)" />
+                                </treerow>
+                            </treeitem>
+                        </template>
+                    </treechildren>
+                </treeitem>
+            </template>
+        </tree>
+    </window>
+
+</zk>

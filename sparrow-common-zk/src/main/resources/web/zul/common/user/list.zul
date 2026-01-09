@@ -1,0 +1,29 @@
+<!--<?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>-->
+<zk>
+    <window viewModel="@id('vm') @init('cn.sparrowmini.common.zk.view.UserVM')">
+<!--        <hlayout id="ctlhlayout">-->
+<!--            <button id="revertBtn" width="115px" label="Revert Letters" onClick="@command('revertMail')" />-->
+<!--            <button id="rmAllBtn" width="115px" label="Delete All"-->
+<!--                    disabled="@load(empty vm.mailData.mails)" onClick="@command('deleteAllMail')" />-->
+<!--        </hlayout>-->
+        <separator />
+        Inbox mails : <label value="@load(vm.userInfoList.size())" />
+        <separator />
+        <grid height="350px" model="@load(vm.userInfoList)"
+              emptyMessage="Nothing in Inbox.">
+            <columns>
+                <column label="Subject" />
+                <column label="Received" width="150px" />
+                <column label="Ctrl" width="100px" />
+            </columns>
+            <template name="model">
+                <row>
+                    <label value="@load(each.name)" />
+                    <label value="@load(each.url)" />
+                    <button label="Delete" onClick="@command('removeMail', mail=each)" />
+                </row>
+            </template>
+        </grid>
+
+    </window>
+</zk>

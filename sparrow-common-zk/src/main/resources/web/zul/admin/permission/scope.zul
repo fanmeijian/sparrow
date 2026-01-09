@@ -1,0 +1,54 @@
+<zk>
+    <window viewModel="@id('vm') @init('cn.sparrowmini.common.zk.view.scope.ScopeVM')"
+            width="100%" height="100%">
+
+        <menubar id="menubar" width="100%">
+            <menuitem label="text" onClick="@global-command('navigate',url='/common/scope/new',name='新增功能')" />
+        </menubar>
+        <!-- 查询条件 -->
+        <hlayout>
+            <textbox placeholder="Name"
+                     value="@bind(vm.nameKeyword)"
+                     width="200px"/>
+            <textbox placeholder="Code"
+                     value="@bind(vm.codeKeyword)"
+                     width="200px"/>
+            <button label="Search"
+                    onClick="@command('search')"/>
+        </hlayout>
+
+        <separator/>
+
+        Inbox mails :
+        <label value="@load(vm.totalSize)"/>
+
+        <separator/>
+
+        <!-- Grid -->
+        <grid height="350px"
+              model="@load(vm.scopeList)"
+              mold="default"
+        >
+            <columns>
+                <column label="Name"/>
+                <column label="Code"/>
+                <column label="Ctrl"/>
+            </columns>
+            <template name="model">
+                <row>
+                    <label value="@load(each.name)"/>
+                    <label value="@load(each.code)"/>
+                    <button label="Delete"
+                            onClick="@command('remove', item=each)"/>
+                </row>
+            </template>
+        </grid>
+
+        <!-- 分页 -->
+        <paging pageSize="@load(vm.pageSize)"
+                totalSize="@load(vm.totalSize)"
+                activePage="@bind(vm.activePage)"
+                onPaging="@command('onPaging', page=event.activePage)"
+                detailed="true"/>
+    </window>
+</zk>

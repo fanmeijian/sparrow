@@ -1,0 +1,29 @@
+<!-- an example to add zk.xml under spring-->
+<zk>
+    <library-property>
+        <name>org.zkoss.theme.preferred</name>
+        <value>iceblue_c</value> <!-- no whitespace in theme names -->
+    </library-property>
+    <desktop-config>
+        <theme-uri>/css/spr.css</theme-uri>
+    </desktop-config>
+    <client-config>
+        <debug-js>true</debug-js>
+    </client-config>
+    <config-name>zkspringboot-security-demo</config-name>
+    <session-config>
+        <session-timeout>300</session-timeout>
+        <timeout-uri>/timeout</timeout-uri>
+    </session-config>
+    <listener>
+	    <listener-class>cn.sparrowmini.server.config.SpringSecurityCsrfInitiator</listener-class>
+	</listener>
+    <!-- Loads the Spring application context configuration -->
+<!--    <listener>-->
+<!--        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>-->
+<!--    </listener>-->
+    <!-- For using web scoped bean -->
+<!--    <listener>-->
+<!--        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>-->
+<!--    </listener>-->
+</zk>

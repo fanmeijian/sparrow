@@ -1,0 +1,14 @@
+<zk xmlns:h="native">
+    <style>
+        .formItem{
+        padding-left: 20px;
+        }
+    </style>
+    <div apply="cn.sparrowmini.common.zk.view.AbstractToZulComposer">
+        <button id="buildZulFromAbstract" label="build form directly" /><h:br/>
+        <h:h2>Generated Form</h:h2>
+        <div id="host" style="margin: 10px 0">
+        </div>
+    </div>
+
+</zk>

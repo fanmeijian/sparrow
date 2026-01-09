@@ -1,0 +1,25 @@
+:root {
+    --zk-primary-color: #f163d9;
+    --zk-primary-color-hover: #4f46e5;
+    --zk-primary-color-active: #4338ca;
+}
+
+/* 隐藏 Tabbox 的边框，使其与 Center 区域融合 */
+.z-tabbox {
+    border: none;
+}
+
+/* 调整 Tab 标签的间距 */
+/*.z-tab-content {*/
+/*    padding: 8px 15px;*/
+/*}*/
+
+/* 如果需要去掉 Tabpanel 的内边距 */
+.z-tabpanel {
+    padding: 0;
+    overflow: auto;
+}
+
+.z-button{
+    background-color: #6d96b3;
+}

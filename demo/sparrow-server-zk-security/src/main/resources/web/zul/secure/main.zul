@@ -1,0 +1,55 @@
+
+<!--<?link rel="stylesheet" type="text/css" href="/css/spr.css"?>-->
+<?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>
+<window id="demoWindow"
+        width="100%" height="100%" border="none"
+        viewModel="@id('mainVM') @init(mainVM)">
+    <style>
+        .h-inline-block {
+        display: inline-block;
+        _display: inline;
+        }
+    </style>
+    <borderlayout height="100%" width="100%">
+        <north size="90px" border="0">
+            <div>
+                <div style="float:right">
+                    <textbox sclass="demo-search-inp" value="@bind(mainVM.searchText)" />
+                    <button label="注销"
+                            id="logoutBtn" onClick="@command('logout')" />
+                </div>
+                <image sclass="complex-layout-header-img"
+                       src="" />
+                <label sclass="complex-layout-header-label"
+                       value="荔园基础平台" />
+            </div>
+        </north>
+        <!-- 左侧菜单 -->
+        <west size="250px" splittable="true" collapsible="true" autoscroll="true">
+            <include src="~./zul/common/menu/nav.zul"/>
+        </west>
+
+        <!-- 右侧内容 -->
+        <center>
+            <tabbox>
+                <tabs children="@load(mainVM.tabList)">
+                    <template name="children" status="st">
+                        <tab label="@load(each.title)"
+                             selected="@load(mainVM.isSelected(st.index))"
+                             closable="@load(each.closeable)"
+                             onClose="@command('closeTab', index=st.index)" />
+                    </template>
+                </tabs>
+
+                <tabpanels children="@load(mainVM.tabList)">
+                    <template name="children">
+                        <tabpanel>
+                            <include src="@load(each.url)" mode="instant" />
+                        </tabpanel>
+                    </template>
+                </tabpanels>
+            </tabbox>
+        </center>
+
+    </borderlayout>
+</window>
