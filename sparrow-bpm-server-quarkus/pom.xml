@@ -10,8 +10,19 @@
 
 	<groupId>cn.sparrowmini</groupId>
 	<artifactId>sparrow-bpm-server-quarkus</artifactId>
-<!--	<version>0.0.1</version>-->
 	<packaging>jar</packaging>
+<!--	<properties>-->
+<!--		<quarkus-plugin.version>3.15.3</quarkus-plugin.version>-->
+<!--		<quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>-->
+<!--		<quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>-->
+<!--		<quarkus.platform.version>3.15.3</quarkus.platform.version>-->
+<!--		<kogito.bom.group-id>org.kie.kogito</kogito.bom.group-id>-->
+<!--		<kogito.bom.artifact-id>kogito-bom</kogito.bom.artifact-id>-->
+<!--		<kogito.bom.version>10.1.0</kogito.bom.version>-->
+<!--		<version.org.kie.kogito>10.1.0</version.org.kie.kogito>-->
+<!--		<maven.compiler.source>17</maven.compiler.source>-->
+<!--		<maven.compiler.target>17</maven.compiler.target>-->
+<!--	</properties>-->
 	<properties>
 		<java.version>17</java.version>
 		<hibernate.version>6.6.26.Final</hibernate.version>
@@ -26,8 +37,8 @@
 		<kogito.bom.artifact-id>kogito-bom</kogito.bom.artifact-id>
 		<kogito.bom.version>10.1.0</kogito.bom.version>
 		<version.org.kie.kogito>10.1.0</version.org.kie.kogito>
+		<kie.version>10.1.0</kie.version>
 	</properties>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -44,54 +55,91 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>${kogito.bom.group-id}</groupId>
+				<artifactId>jobs-service</artifactId>
+				<version>${kogito.bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
-		<dependency>
-			<groupId>jakarta.data</groupId>
-			<artifactId>jakarta.data-api</artifactId>
-			<version>1.0.0</version>
-		</dependency>
 
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-hibernate-orm</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>cn.sparrowmini</groupId>
-			<artifactId>sparrow-bpm-api</artifactId>
-			<version>0.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-rest-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-oidc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-oidc-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.microprofile.rest.client</groupId>
-			<artifactId>microprofile-rest-client-api</artifactId>
-		</dependency>
+		<!--		在quarkus使用jpa-->
+		<!--		<dependency>-->
+		<!--			<groupId>jakarta.data</groupId>-->
+		<!--			<artifactId>jakarta.data-api</artifactId>-->
+		<!--			<version>1.0.0</version>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>io.quarkus</groupId>-->
+		<!--			<artifactId>quarkus-hibernate-orm</artifactId>-->
+		<!--		</dependency>-->
 
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-rest</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-rest-jackson</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.kie.kogito</groupId>-->
+<!--			<artifactId>process-workitems</artifactId>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>org.kie.kogito</groupId>-->
+<!--			<artifactId>jbpm-usertask</artifactId>-->
+<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>cn.sparrowmini</groupId>-->
+		<!--			<artifactId>sparrow-bpm-api</artifactId>-->
+		<!--			<version>0.0.1</version>-->
+		<!--		</dependency>-->
+
+		<!--		在quarkus使用oidc keycloak-->
+		<!--		<dependency>-->
+		<!--			<groupId>io.quarkus</groupId>-->
+		<!--			<artifactId>quarkus-oidc</artifactId>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>io.quarkus</groupId>-->
+		<!--			<artifactId>quarkus-oidc-client</artifactId>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>org.eclipse.microprofile.rest.client</groupId>-->
+		<!--			<artifactId>microprofile-rest-client-api</artifactId>-->
+		<!--		</dependency>-->
+
+		<!--		在quarkus使用rest client调用外部服务-->
+		<!--		<dependency>-->
+		<!--			<groupId>io.quarkus</groupId>-->
+		<!--			<artifactId>quarkus-rest</artifactId>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>io.quarkus</groupId>-->
+		<!--			<artifactId>quarkus-rest-jackson</artifactId>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-with-drools-quarkus</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-hibernate-validator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-index-postgresql</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy-reactive</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+		</dependency>
+
+
+
+		<!--		swagger文档功能-->
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-smallrye-openapi</artifactId>
@@ -106,30 +154,21 @@
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-smallrye-health</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>io.quarkus</groupId>-->
+<!--			<artifactId>quarkus-smallrye-health</artifactId>-->
+<!--		</dependency>-->
 
-		<dependency>
-			<groupId>org.drools</groupId>
-			<artifactId>drools-quarkus-rules</artifactId>
-		</dependency>
 
-		<dependency>
-			<groupId>org.kie.kogito</groupId>
-			<artifactId>jbpm-usertask</artifactId>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.kie/kogito-addons-quarkus-data-audit-jpa -->
+
+		<!--		启用审计日志-->
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kogito-addons-quarkus-data-audit-jpa</artifactId>
-			<version>${version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kogito-addons-quarkus-data-audit</artifactId>
-			<version>${version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jbpm</groupId>
@@ -137,34 +176,58 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-jdbc-postgresql</artifactId>
-		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>io.quarkus</groupId>-->
-<!--			<artifactId>quarkus-hibernate-orm-panache</artifactId>-->
-<!--		</dependency>-->
-		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-addons-quarkus-persistence-jdbc</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.kie.kogito</groupId>
-			<artifactId>process-workitems</artifactId>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jdbc-postgresql</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-agroal</artifactId>
+		</dependency>
+
+
+		<!--		启用数据库链接-->
+		<!--		<dependency>-->
+		<!--			<groupId>io.quarkus</groupId>-->
+		<!--			<artifactId>quarkus-hibernate-orm-panache</artifactId>-->
+		<!--		</dependency>-->
+
+		<!--		<dependency>-->
+		<!--			<groupId>org.drools</groupId>-->
+		<!--			<artifactId>drools-quarkus-rules</artifactId>-->
+		<!--		</dependency>-->
 <!--		<dependency>-->
 <!--			<groupId>org.jbpm</groupId>-->
 <!--			<artifactId>jbpm-addons-quarkus-task-management</artifactId>-->
 <!--		</dependency>-->
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kie-addons-quarkus-process-management</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.kie</groupId>-->
+<!--			<artifactId>kie-addons-quarkus-process-management</artifactId>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.kie</groupId>
 			<artifactId>kie-addons-quarkus-process-svg</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-addons-quarkus-events-process</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-jobs</artifactId>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.kie.kogito</groupId>-->
+<!--			<artifactId>jobs-service-storage-jpa</artifactId>-->
+<!--		</dependency>-->
+		<dependency>
+			<groupId>org.kie.kogito</groupId>
+			<artifactId>jobs-service-postgresql-common</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-addons-quarkus-mail</artifactId>
@@ -173,10 +236,15 @@
 			<groupId>org.jbpm</groupId>
 			<artifactId>jbpm-addons-quarkus-task-notification</artifactId>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.kie</groupId>-->
+<!--			<artifactId>kogito-addons-quarkus-jobs-management</artifactId>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-messaging-kafka</artifactId>
+			<artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
 		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -184,9 +252,29 @@
 			<version>1.18.38</version>
 			<scope>compile</scope>
 		</dependency>
-    </dependencies>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>native</id>
+			<properties>
+				<failsafe.include>**/Native*IT.java</failsafe.include>
+				<failsafe.exclude></failsafe.exclude>
+				<quarkus.native.enabled>true</quarkus.native.enabled>
+				<quarkus.native.native-image-xmx>8g</quarkus.native.native-image-xmx>
+				<!-- Native building needs a fixed port for tests -->
+				<tests.quarkus.http.port>8888</tests.quarkus.http.port>
+			</properties>
+			<activation>
+				<property>
+					<name>native</name>
+				</property>
+			</activation>
+		</profile>
+	</profiles>
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>${quarkus.platform.group-id}</groupId>
 				<artifactId>quarkus-maven-plugin</artifactId>
@@ -202,7 +290,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.13.0</version>
 				<configuration>
 					<source>17</source>
 					<target>17</target>
@@ -210,13 +298,13 @@
 					<compilerArgs>
 						<arg>-parameters</arg>
 					</compilerArgs>
-                    <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
+<!--					<generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>-->
 					<annotationProcessorPaths>
-						<path>
-							<groupId>org.hibernate.orm</groupId>
-							<artifactId>hibernate-jpamodelgen</artifactId>
-							<version>${hibernate.version}</version>
-						</path>
+						<!--						<path>-->
+						<!--							<groupId>org.hibernate.orm</groupId>-->
+						<!--							<artifactId>hibernate-jpamodelgen</artifactId>-->
+						<!--							<version>${hibernate.version}</version>-->
+						<!--						</path>-->
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>

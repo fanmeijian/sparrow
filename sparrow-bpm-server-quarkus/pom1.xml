@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.kie.kogito</groupId>
+        <artifactId>kogito-runtimes</artifactId>
+        <version>10.1.0</version>
+    </parent>
+
+    <groupId>cn.liyuan.chnplc</groupId>
+    <artifactId>chnplc-bpm-service</artifactId>
+    <name>chnplc bpm</name>
+    <properties>
+        <quarkus-plugin.version>3.15.3</quarkus-plugin.version>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <quarkus.platform.version>3.15.3</quarkus.platform.version>
+        <kogito.bom.group-id>org.kie.kogito</kogito.bom.group-id>
+        <kogito.bom.artifact-id>kogito-bom</kogito.bom.artifact-id>
+        <kogito.bom.version>10.1.0</kogito.bom.version>
+        <version.org.kie.kogito>10.1.0</version.org.kie.kogito>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>${quarkus.platform.artifact-id}</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>${kogito.bom.group-id}</groupId>
+                <artifactId>${kogito.bom.artifact-id}</artifactId>
+                <version>${kogito.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>${kogito.bom.group-id}</groupId>
+                <artifactId>jobs-service</artifactId>
+                <version>${kogito.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-rest-client</artifactId>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-oidc</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-oidc-client</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.eclipse.microprofile.rest.client</groupId>-->
+<!--            <artifactId>microprofile-rest-client-api</artifactId>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-resteasy-reactive</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jbpm</groupId>
+            <artifactId>jbpm-with-drools-quarkus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-openapi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-smallrye-health</artifactId>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.drools</groupId>-->
+<!--            <artifactId>drools-quarkus-rules</artifactId>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.kie.kogito</groupId>
+            <artifactId>jbpm-usertask</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.kie/kogito-addons-quarkus-data-audit-jpa -->
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kogito-addons-quarkus-data-audit-jpa</artifactId>-->
+<!--            <version>${version.org.kie.kogito}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kogito-addons-quarkus-data-audit</artifactId>-->
+<!--            <version>${version.org.kie.kogito}</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.jbpm</groupId>
+            <artifactId>jbpm-addons-quarkus-usertask-storage-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kie</groupId>
+            <artifactId>kie-addons-quarkus-persistence-jdbc</artifactId>
+            <version>${version.org.kie.kogito}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-hibernate-orm-panache</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kie-addons-quarkus-persistence-jdbc</artifactId>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.kie.kogito</groupId>
+            <artifactId>process-workitems</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jbpm</groupId>
+            <artifactId>jbpm-addons-quarkus-task-management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kie</groupId>
+            <artifactId>kie-addons-quarkus-process-management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kie</groupId>
+            <artifactId>kie-addons-quarkus-process-svg</artifactId>
+        </dependency>
+
+
+
+        <!--        通过邮件通知任务，这里会消费任务发送到kafka的消息，也就是说可以自定义实现其他渠道
+                @Incoming("kogito-deadline-consumer")
+                quarkus.mailer.host=localhost
+                quarkus.mailer.port=25
+                quarkus.mailer.mock=false
+                quarkus.mailer.ssl=false
+                quarkus.mailer.start-tls=disabled
+        -->
+<!--        <dependency>-->
+<!--            <groupId>org.jbpm</groupId>-->
+<!--            <artifactId>jbpm-addons-quarkus-mail</artifactId>-->
+<!--        </dependency>-->
+<!--        启用任务通知，需定义kogito-deadline-events主题-->
+<!--        <dependency>-->
+<!--            <groupId>org.jbpm</groupId>-->
+<!--            <artifactId>jbpm-addons-quarkus-task-notification</artifactId>-->
+<!--        </dependency>-->
+<!--        这里是将任务通知发送到kafak-->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-messaging-kafka</artifactId>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.kie</groupId>
+            <artifactId>kogito-addons-quarkus-data-index-postgresql</artifactId>
+        </dependency>
+
+
+<!--        流程信息以消息发送-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kie-addons-quarkus-events-process</artifactId>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kogito-addons-quarkus-jobs-knative-eventing</artifactId>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kogito-addons-quarkus-jobs-messaging</artifactId>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.kie.kogito</groupId>-->
+<!--            <artifactId>jobs-service-storage-jpa</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie.kogito</groupId>-->
+<!--            <artifactId>jobs-service-postgresql</artifactId>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.kie</groupId>
+            <artifactId>kogito-addons-quarkus-jobs-management</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.kie.kogito</groupId>-->
+<!--            <artifactId>jobs-service-messaging-http</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie.kogito</groupId>-->
+<!--            <artifactId>jobs-service-messaging-kafka</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie</groupId>-->
+<!--            <artifactId>kogito-addons-quarkus-jobs</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie.kogito</groupId>-->
+<!--            <artifactId>jobs-service-infinispan</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.kie.kogito</groupId>-->
+<!--            <artifactId>jobs-service-common</artifactId>-->
+
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>io.quarkus</groupId>-->
+<!--                    <artifactId>quarkus-rest</artifactId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <groupId>io.quarkus</groupId>-->
+<!--                    <artifactId>quarkus-rest-jackson</artifactId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <groupId>io.quarkus</groupId>-->
+<!--                    <artifactId>quarkus-container-image-jib</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>native</id>
+            <properties>
+                <failsafe.include>**/Native*IT.java</failsafe.include>
+                <failsafe.exclude></failsafe.exclude>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+                <quarkus.native.native-image-xmx>8g</quarkus.native.native-image-xmx>
+                <!-- Native building needs a fixed port for tests -->
+                <tests.quarkus.http.port>8888</tests.quarkus.http.port>
+            </properties>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+        </profile>
+    </profiles>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- ✅ 修复 Invalid automatic module name: '' -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>cn.liyuan.vote.bpm</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.38</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
