@@ -123,10 +123,6 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-hibernate-validator</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kogito-addons-quarkus-data-index-postgresql</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>io.quarkus</groupId>
@@ -162,18 +158,9 @@
 
 
 		<!--		启用审计日志-->
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kogito-addons-quarkus-data-audit-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kogito-addons-quarkus-data-audit</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-addons-quarkus-usertask-storage-jpa</artifactId>
-		</dependency>
+
+
+
 
 		<dependency>
 			<groupId>org.kie</groupId>
@@ -187,6 +174,45 @@
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-agroal</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-addons-quarkus-usertask-storage-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-audit</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-audit-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie.kogito</groupId>
+			<artifactId>jobs-service-storage-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-jobs</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-addons-quarkus-task-notification</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-addons-quarkus-mail</artifactId>
+		</dependency>
+
+
+<!--		<dependency>-->
+<!--			<groupId>org.kie</groupId>-->
+<!--			<artifactId>kogito-addons-quarkus-jobs-management</artifactId>-->
+<!--		</dependency>-->
+
+
+
 
 
 		<!--		启用数据库链接-->
@@ -207,44 +233,23 @@
 <!--			<groupId>org.kie</groupId>-->
 <!--			<artifactId>kie-addons-quarkus-process-management</artifactId>-->
 <!--		</dependency>-->
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kie-addons-quarkus-process-svg</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kie-addons-quarkus-events-process</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.kie</groupId>
-			<artifactId>kogito-addons-quarkus-jobs</artifactId>
-		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.kie.kogito</groupId>-->
-<!--			<artifactId>jobs-service-storage-jpa</artifactId>-->
-<!--		</dependency>-->
-		<dependency>
-			<groupId>org.kie.kogito</groupId>
-			<artifactId>jobs-service-postgresql-common</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-addons-quarkus-mail</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jbpm</groupId>
-			<artifactId>jbpm-addons-quarkus-task-notification</artifactId>
-		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>org.kie</groupId>-->
-<!--			<artifactId>kogito-addons-quarkus-jobs-management</artifactId>-->
+<!--			<artifactId>kie-addons-quarkus-process-svg</artifactId>-->
 <!--		</dependency>-->
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
-		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>org.kie</groupId>-->
+<!--			<artifactId>kie-addons-quarkus-events-process</artifactId>-->
+<!--		</dependency>-->
+
+
+
+
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kogito-addons-quarkus-data-index-jpa</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
