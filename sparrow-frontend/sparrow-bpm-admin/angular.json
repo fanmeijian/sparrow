@@ -23,7 +23,11 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "/assets/monaco/" },
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor",
+                "output": "/assets/monaco/"
+              },
               "src/favicon.ico",
               "src/assets",
               {
@@ -33,8 +37,17 @@
               }
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.css"
+              "src/styles.scss",
+              {
+                "input": "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+                "bundleName": "indigo-pink",
+                "inject": false 
+              },
+              {
+                "input": "node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
+                "bundleName": "pink-bluegrey",
+                "inject": false
+              }
             ]
           },
           "configurations": {
@@ -109,7 +122,15 @@
       }
     }
   },
+  "schematics": {
+    "@schematics/angular:component": {
+      "style": "scss"
+    }
+  },
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "cache": {
+      "enabled": false
+    }
   }
 }
