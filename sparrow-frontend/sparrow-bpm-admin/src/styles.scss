@@ -1,0 +1,77 @@
+/* You can add global styles to this file, and also import other style files */
+// 只有 SCSS 才能识别这种语法来动态注入样式
+// 1. 必须放在文件第一行！
+@use '@angular/material' as mat;
+@include mat.core();
+
+// --- 1. 定义调色板 ---
+$indigo-p: mat.define-palette(mat.$indigo-palette);
+$pink-p: mat.define-palette(mat.$pink-palette);
+$purple-p: mat.define-palette(mat.$purple-palette);
+$accent: mat.define-palette(mat.$grey-palette, A200, A100, A400);
+
+// --- 2. 创建主题配置矩阵 ---
+$themes: (
+  "theme-indigo": (
+    light: mat.define-light-theme((color: (primary: $indigo-p, accent: $accent))),
+    dark:  mat.define-dark-theme((color: (primary: $indigo-p, accent: $accent)))
+  ),
+  "theme-pink": (
+    light: mat.define-light-theme((color: (primary: $pink-p, accent: $accent))),
+    dark:  mat.define-dark-theme((color: (primary: $pink-p, accent: $accent)))
+  )
+);
+
+// --- 3. 生成 CSS 类 ---
+// 默认样式
+@include mat.all-component-themes(map-get(map-get($themes, "theme-indigo"), light));
+
+// 循环生成：例如 .theme-pink 且没有 .dark-mode 时，应用粉色亮色
+@each $name, $modes in $themes {
+  .#{$name} {
+    @include mat.all-component-colors(map-get($modes, light));
+    
+    &.dark-mode {
+      @include mat.all-component-colors(map-get($modes, dark));
+    }
+  }
+}
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; font-size: 10px; }
+
+
+.s-link{
+  color: -webkit-link;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    text-decoration: underline;
+  }
+  &:visited{
+    color: #0b0080;
+  }
+}
+
+.s-row{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-radius: 5px;
+}
+
+.s-col{
+  display: flex;
+  flex-direction: column;
+}
+
+.s-toolbar{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 10px;
+  gap: 10px;
+  background-color: #e5e5e5;
+  border-radius: 5px;
+}

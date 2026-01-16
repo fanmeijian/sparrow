@@ -1,11 +1,31 @@
-
 <mat-toolbar color="primary" style="height: 60px">
   <button mat-icon-button (click)="drawer.toggle()">
     <mat-icon>menu</mat-icon>
   </button>
   <!-- <div class="breadcrumb">首页 /</div> -->
+
   <span class="example-spacer"></span>
-  <button mat-button color="accent" (click)="logout()">注销</button>
+
+  <button mat-icon-button [matMenuTriggerFor]="beforeMenu">
+    <span class="material-icons">
+      format_color_fill
+    </span>
+  </button>
+  <mat-menu #beforeMenu="matMenu" xPosition="before">
+    <button mat-menu-item (click)="themeService.setThemeColor(season.code)"
+      *ngFor="let season of seasons"><mat-radio-button [checked]="themeService.theme==season.code"
+        [value]="season.code"></mat-radio-button>{{season.name}}</button>
+  </mat-menu>
+
+
+  <button mat-icon-button (click)="themeService.toggleDarkMode()">
+    <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
+  <button mat-icon-button color="accent" (click)="logout()">
+    <span class="material-icons">
+      logout
+    </span>
+  </button>
 </mat-toolbar>
 
 <mat-drawer-container class="example-container" autosize>
