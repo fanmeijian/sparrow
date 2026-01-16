@@ -7,14 +7,14 @@
 	<version>2.0.0</version>
 	<packaging>jar</packaging>
 	<properties>
-		<hibernate.version>7.0.0.Final</hibernate.version>
+		<hibernate.version>6.6.26.Final</hibernate.version>
 		<junit-platform.version>5.3.1</junit-platform.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
-			<version>0.9.11</version>
+			<version>0.10.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
