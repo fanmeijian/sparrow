@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -25,26 +27,32 @@ public class AppConfigController {
 
     @GetMapping("")
     @ResponseBody
-    public Page<AppConfigView> getEntityList(Pageable pageable, String filter){
+    public Page<AppConfigView> getAppConfigList(Pageable pageable, String filter){
         return appConfigRepository.findAllProjection(pageable, filter, AppConfigView.class);
     }
 
     @GetMapping("/{id}")
     @ResponseBody
-    public AppConfig getEntityList(@PathVariable String id){
+    public AppConfig getAppConfig(@PathVariable String id){
         return appConfigRepository.findById(id).orElseThrow();
     }
 
     @GetMapping("/attachments/{attachmentId}")
     @ResponseBody
-    public AppConfigAttachment getAttachment(@PathVariable String attachmentId){
+    public AppConfigAttachment getAppConfigAttachment(@PathVariable String attachmentId){
         return appConfigAttachmentRepository.findById(attachmentId).orElseThrow();
     }
 
     @DeleteMapping("/attachments")
     @ResponseBody
-    public void deleteAttachment(@RequestParam("id") Set<String> attachmentIds){
+    public void deleteAppConfigAttachment(@RequestParam("id") Set<String> attachmentIds){
         appConfigAttachmentRepository.deleteByIds(attachmentIds);
+    }
+
+    @PostMapping
+    @ResponseBody
+    public void saveAppConfig(@RequestBody Map<String, Object> appConfig){
+        appConfigRepository.upsert(List.of(appConfig));
     }
 
 }
