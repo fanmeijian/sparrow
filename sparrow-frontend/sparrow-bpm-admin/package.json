@@ -28,6 +28,7 @@
     "@ngx-formly/material": "^6.3.12",
     "@ngx-translate/core": "^16.0.4",
     "@ngx-translate/http-loader": "^6.0.0",
+    "@sparrowmini/bpm-api": "file:.yalc/@sparrowmini/bpm-api",
     "@sparrowmini/common-api": "file:.yalc/@sparrowmini/common-api",
     "fs": "^0.0.1-security",
     "json5": "^2.2.3",
@@ -37,6 +38,7 @@
     "minimatch": "^10.0.3",
     "ngx-monaco-editor-v2": "^16.0.1",
     "rxjs": "~7.5.0",
+    "sparrow-bpm-api-impl-jbpm": "file:.yalc/sparrow-bpm-api-impl-jbpm",
     "tslib": "^2.3.0",
     "underscore": "^1.13.7",
     "zone.js": "~0.13.3"

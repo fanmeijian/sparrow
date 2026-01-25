@@ -22,15 +22,20 @@
       <ng-container matColumnDef="owners">
         <mat-header-cell *matHeaderCellDef> 当前执行人 </mat-header-cell>
         <mat-cell *matCellDef="let item">
-          <mat-chip-grid aria-label="Fish selection">
-            <mat-chip *ngFor="let owner of activeTasksByWorkItemId[item['work-item-id']]['task-pot-owners']">
-              {{owner}}
-              <button matChipRemove aria-label="Remove orange"
-                (click)="removePotOwners(activeTasksByWorkItemId[item['work-item-id']]['task-id'],owner)">
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip>
-          </mat-chip-grid>
+          <ng-container *ngIf="activeTasksByWorkItemId[item['work-item-id']]">
+            <mat-chip-grid #chipGrid aria-label="Fish selection">
+
+              <mat-chip *ngFor="let owner of activeTasksByWorkItemId[item['work-item-id']]['task-pot-owners']">
+                {{owner}}
+                <button matChipRemove aria-label="Remove orange"
+                  (click)="removePotOwners(activeTasksByWorkItemId[item['work-item-id']]['task-id'],owner)">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip>
+              <input type="hidden" placeholder="新增所有者..." [matChipInputFor]="chipGrid">
+
+            </mat-chip-grid>
+          </ng-container>
 
           <div>
             <button mat-button color="primary"
@@ -164,7 +169,9 @@
         <mat-cell *matCellDef="let item">
           <div class="s-row">
             <button mat-button *ngIf="item.type===0" (click)="retrigger(item)" color="accent">重新激活</button>
+            <button mat-button *ngIf="item.type===1" (click)="updateTaskVariables(item)" color="primary">更新变量</button>
           </div>
+          <!-- <app-json-viewer *ngIf="item.type==1" [json]="taskOutputs[item.workItemId]"></app-json-viewer> -->
         </mat-cell>
       </ng-container>
 

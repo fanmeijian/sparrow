@@ -1,9 +1,10 @@
-import { Component, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { KeycloakService } from 'keycloak-angular';
 import { ThemeService } from './service/theme.service';
 import { StyleService } from './service/style.service';
 import { MatRadioChange } from '@angular/material/radio';
+import { BPM_API_TOKEN, BpmApi } from '@sparrowmini/bpm-api';
 
 @Component({
   selector: 'app-root',
@@ -30,10 +31,15 @@ export class AppComponent {
     private keycloak: KeycloakService,
     private translate: TranslateService,
     public themeService: ThemeService,
-    private styleService: StyleService
+    private styleService: StyleService,
+    @Inject(BPM_API_TOKEN) private bpmApi: BpmApi
   ) {
     translate.setDefaultLang('zh-CN');
     themeService.setThemeColor('theme-indigo')
+    // console.log('bpm api', this.bpmApi);
+    // this.bpmApi.todoTasks().subscribe(res => {
+    //   console.log('todo tasks', res);
+    // })
   }
   get isDark() {
     return this.themeService.isDarkMode;

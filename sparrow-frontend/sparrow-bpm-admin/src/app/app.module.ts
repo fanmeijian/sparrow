@@ -37,6 +37,9 @@ import { BASE_PATH, CommonApiModule, CommonApiService } from '@sparrowmini/commo
 import { ProcessVariableFormComponent } from './process/process-variable-form/process-variable-form.component';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { UsersComponent } from './global/users/users.component';
+import { SparrowBpmApiModule, BASE_PATH as BPM_BASE_PATH1, BPM_API_TOKEN } from '@sparrowmini/bpm-api';
+import { SparrowBpmApiImplJbpmModule, SparrowBpmApiImplJbpmService } from 'sparrow-bpm-api-impl-jbpm';
+import { VariablesDialogComponent } from './variables-dialog/variables-dialog.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +61,8 @@ import { UsersComponent } from './global/users/users.component';
     JsonViewerComponent,
     ProcessGlobalComponent,
     ProcessVariableFormComponent,
-    UsersComponent
+    UsersComponent,
+    VariablesDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -80,6 +84,8 @@ import { UsersComponent } from './global/users/users.component';
         deps: [HttpClient]
       }
     }),
+    SparrowBpmApiModule,
+    SparrowBpmApiImplJbpmModule
   ],
   providers: [
     [ProcessQueriesService, ProcessInstancesService, ProcessInstanceAdministrationService, CommonApiService],
@@ -100,7 +106,9 @@ import { UsersComponent } from './global/users/users.component';
       provide: ErrorHandler,
       useClass: GlobalErrorHandlerService,
     },
-    {provide: BASE_PATH, useValue: environment.bpmApi}
+    { provide: BASE_PATH, useValue: environment.bpmApi },
+    { provide: BPM_BASE_PATH1, useValue: environment.bpmApi },
+    { provide: BPM_API_TOKEN, useClass: SparrowBpmApiImplJbpmService }
   ],
   bootstrap: [AppComponent]
 })

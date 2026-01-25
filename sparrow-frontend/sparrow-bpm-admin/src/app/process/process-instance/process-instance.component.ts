@@ -8,6 +8,7 @@ import _ from 'lodash'
 import { MatDialog } from '@angular/material/dialog';
 import { ProcessVariableFormComponent } from '../process-variable-form/process-variable-form.component';
 import { UsersComponent } from 'src/app/global/users/users.component';
+import { VariablesDialogComponent } from 'src/app/variables-dialog/variables-dialog.component';
 
 @Component({
   selector: 'app-process-instance',
@@ -16,6 +17,16 @@ import { UsersComponent } from 'src/app/global/users/users.component';
   providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService]
 })
 export class ProcessInstanceComponent implements OnInit {
+  updateTaskVariables(node: any) {
+    this.dialog.open(VariablesDialogComponent,{data: this.taskOutputs[node.workItemId],width: '100%',}).afterClosed().subscribe((res:any)=>{
+      if(res){
+        const containerId = this.process.externalId
+        console.log('update task output', res)
+        this.taskInstanceService.saveContent(containerId,node.taskId,res).subscribe()
+        // this.processInstanceService.setTaskOutputContentByTaskId(containerId, node['work-item-id'], JSON.parse(res.value)).subscribe()
+      }
+    });
+  }
   deleteAssignment(taskId: number, reassignmentId: any) {
     this.taskInstanceAdminService.cancelReassignment(this.process.externalId, taskId, reassignmentId).subscribe();
   }
@@ -28,6 +39,8 @@ export class ProcessInstanceComponent implements OnInit {
   taskPotOwners: any = {}
   taskAssignments: any[] = []
   activeTasksByWorkItemId: any = {}
+
+  taskOutputs: Record<number, any> = {}
 
   updateVaraible() {
     this.dialog.open(ProcessVariableFormComponent, {
@@ -266,6 +279,21 @@ export class ProcessInstanceComponent implements OnInit {
           }
         })
         this.nodeInstances = nodeInstances
+        console.log('nodeInstances', nodeInstances)
+        //获取output变量
+        nodeInstances.forEach((node: any) => {
+          if (node.workItemId && node.type == 1) {
+            this.processService.getTaskByWorkItemId(node.workItemId).subscribe((res: any) => {
+              const taskId = res['task-id']
+              node.taskId = taskId
+              this.taskInstanceService.getTaskOutputContentByTaskId(containerId, taskId).subscribe(res => {
+                console.log('task output content', res)
+                this.taskOutputs[node.workItemId] = res
+              })
+            })
+          }
+        })
+
       })
     })
   }
