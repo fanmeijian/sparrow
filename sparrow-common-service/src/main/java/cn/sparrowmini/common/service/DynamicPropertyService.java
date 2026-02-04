@@ -1,9 +1,7 @@
 package cn.sparrowmini.common.service;
 
 import cn.sparrowmini.common.model.dynamic.DynamicProperty;
-import cn.sparrowmini.common.model.dynamic.DynamicPropertyValue;
 import cn.sparrowmini.common.repository.DynamicPropertyRepository;
-import cn.sparrowmini.common.repository.DynamicPropertyValueRepository;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.beans.factory.annotation.Autowired;
