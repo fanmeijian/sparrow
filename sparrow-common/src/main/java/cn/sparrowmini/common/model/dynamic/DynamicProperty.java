@@ -113,9 +113,15 @@ public class DynamicProperty extends BaseState implements Serializable {
 
 
     @Data
+    @NoArgsConstructor
     public static class DynamicPropertyId implements Serializable {
         private String entityType;
         private String propertyKey;
+
+        public DynamicPropertyId(String entityType, String propertyKey) {
+            this.entityType = entityType;
+            this.propertyKey = propertyKey;
+        }
     }
 
 }
