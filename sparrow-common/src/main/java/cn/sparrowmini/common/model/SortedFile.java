@@ -12,7 +12,8 @@ import java.io.Serializable;
 
 
 /**
- * 用于做排序的关联表
+ * 用于做排序的关联表，
+ * 用于与file对象直接关联
  */
 @Embeddable
 @Data
@@ -21,7 +22,7 @@ import java.io.Serializable;
 public class SortedFile implements Serializable {
     private int seq;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private String fileId;
     private String name;
     private long size;
