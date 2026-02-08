@@ -1,12 +1,14 @@
 package cn.sparrowmini.common.model;
 
+import cn.sparrowmini.common.JsonUtils;
 import cn.sparrowmini.common.listener.BaseTreeListener;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.BeanUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -51,7 +53,12 @@ public class BaseTree extends BaseUuidEntity {
     protected List<Object> children = new ArrayList<>();
 
     public BaseTree(BaseTree baseTree, long childCount){
-        BeanUtils.copyProperties(baseTree, this);
+        try {
+            JsonUtils.getMapper().updateValue(baseTree,this);
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        }
+
         this.childCount = childCount;
         if(this.childCount>0){
             expandable=true;

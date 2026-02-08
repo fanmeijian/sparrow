@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.io.FilenameUtils;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
@@ -18,7 +19,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @MappedSuperclass
-public class BaseFile extends BaseOpLog implements Serializable {
+public abstract class BaseFile extends BaseOpLog implements Serializable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Id
     @GeneratedValue
@@ -34,7 +35,15 @@ public class BaseFile extends BaseOpLog implements Serializable {
     @Column(length = 1000)
     protected String url;
 
+    private String fileName;
+
     @ElementCollection
     protected Set<String> catalog;
 
+    @PreUpdate
+    @PrePersist
+    public void preSave(){
+        String ext = FilenameUtils.getExtension(this.name);
+        this.fileName = String.join("." ,this.hash,ext);
+    }
 }

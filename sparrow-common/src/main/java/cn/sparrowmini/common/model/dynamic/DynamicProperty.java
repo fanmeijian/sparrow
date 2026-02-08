@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = TablePrefix.NAME + "dynamic_property", uniqueConstraints = @UniqueConstraint(columnNames = {"entityType","propertyKey"}))
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "entityType", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
 @IdClass(DynamicPropertyId.class)
 public class DynamicProperty extends BaseState implements Serializable {
 //    @Id
@@ -51,7 +51,6 @@ public class DynamicProperty extends BaseState implements Serializable {
 
     @Id
     private String propertyKey; // 属性的唯一标识，如 "age", "color"
-
 
 
     private String name;
@@ -71,6 +70,9 @@ public class DynamicProperty extends BaseState implements Serializable {
 
     @Lob
     private String providerScript;
+
+    @Transient
+    private List<ProviderDataValue> providerData_;
 
     public List<ProviderDataValue> getProviderData_() {
         if(providerType == null){
@@ -104,6 +106,17 @@ public class DynamicProperty extends BaseState implements Serializable {
         this.type = type;
     }
 
+    public String getEntityType() {
+        if (this.entityType == null) {
+            // 获取当前实例类上的 DiscriminatorValue 注解
+            DiscriminatorValue dv = this.getClass().getAnnotation(DiscriminatorValue.class);
+            if (dv != null) {
+                return dv.value();
+            }
+        }
+        return entityType;
+    }
+
     @Data
     @Embeddable
     public static class ProviderData implements Serializable {
@@ -111,16 +124,14 @@ public class DynamicProperty extends BaseState implements Serializable {
         private String value;
     }
 
-
-    @Data
-    @NoArgsConstructor
-    public static class DynamicPropertyId implements Serializable {
-        private String entityType;
-        private String propertyKey;
-
-        public DynamicPropertyId(String entityType, String propertyKey) {
-            this.entityType = entityType;
-            this.propertyKey = propertyKey;
+    @PrePersist
+    public void prePersist() {
+        if (this.entityType == null) {
+            DiscriminatorValue dv =
+                    this.getClass().getAnnotation(DiscriminatorValue.class);
+            if (dv != null) {
+                this.entityType = dv.value();
+            }
         }
     }
 
