@@ -1,5 +1,6 @@
 package cn.sparrowmini.common.service;
 
+import cn.sparrowmini.common.constant.StorageTypeEnum;
 import cn.sparrowmini.common.model.ApiResponse;
 import cn.sparrowmini.common.model.BaseFile;
 import org.springframework.data.domain.Page;
@@ -13,7 +14,7 @@ import java.util.Map;
 public interface StorageService {
     public <T extends BaseFile> byte[] download(T file);
 
-    public <T extends BaseFile> T upload(InputStream file, String fileName);
+    public <T extends BaseFile> T upload(InputStream file, String fileName, Class<T> clazz);
 
     public <T extends BaseFile> void remove(T file);
 
@@ -25,5 +26,8 @@ public interface StorageService {
 
     public <T extends BaseFile> Page<T> getFileList(Pageable pageable, String filter);
 
-    public <T extends BaseFile> ApiResponse<List<T>> createFile(List<Map<String, Object>> fileList);
+    public List<String> createFile(List<Map<String, Object>> fileList);
+
+    // 判断当前实现类支持哪种存储类型
+    StorageTypeEnum getStorageType();
 }

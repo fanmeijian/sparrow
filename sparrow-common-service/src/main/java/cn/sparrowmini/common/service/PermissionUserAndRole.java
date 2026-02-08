@@ -12,7 +12,7 @@ public final class PermissionUserAndRole {
 
 	public static boolean isSuperSysAdmin(String username, Collection<String> roles){
 		if (username.equalsIgnoreCase(PermissionUserAndRole.ROOT_USER)
-				|| roles.stream().anyMatch(a -> a.equalsIgnoreCase(PermissionUserAndRole.ROLE_SUPER_SYSADMIN))) {
+				|| roles.stream().anyMatch(a -> a.equalsIgnoreCase("ROLE_" + PermissionUserAndRole.ROLE_SUPER_SYSADMIN)|| a.equalsIgnoreCase(PermissionUserAndRole.ROLE_SUPER_SYSADMIN))) {
 			return true;
 		}
 		return false;

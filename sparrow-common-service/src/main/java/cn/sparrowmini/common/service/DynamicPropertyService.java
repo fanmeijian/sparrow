@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.service;
 
 import cn.sparrowmini.common.model.dynamic.DynamicProperty;
+import cn.sparrowmini.common.model.dynamic.DynamicPropertyId;
 import cn.sparrowmini.common.repository.DynamicPropertyRepository;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -8,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -16,14 +19,25 @@ public class DynamicPropertyService {
     @Autowired
     private List<DynamicPropertyRepository<? extends DynamicProperty, ?>> dynamicPropertyRepositories;
 
-    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz,String id) {
+    @Autowired
+    private DynamicPropertyRepository<DynamicProperty, DynamicPropertyId> dynamicPropertyRepository;
+
+    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz,DynamicPropertyId id) {
         return getRepository(clazz).findById(id).orElseThrow();
     }
 
+    @Transactional
+    public void deleteDynamicProperty(Collection<DynamicPropertyId> ids) {
+        dynamicPropertyRepository.deleteAllById(ids);
+    }
+
+    @Transactional
     public void saveProperty(DynamicProperty dynamicProperty) {
-        DynamicProperty.DynamicPropertyId dynamicPropertyId = new DynamicProperty.DynamicPropertyId(dynamicProperty.getEntityType(), dynamicProperty.getPropertyKey());
-        DynamicProperty dynamicPropertyRef = getRepository(dynamicProperty.getClass()).getReferenceById(dynamicPropertyId);
-        if(dynamicPropertyRef!=null){
+        DynamicPropertyRepository<? extends DynamicProperty,DynamicPropertyId>  repository = this.getRepository(dynamicProperty.getClass());
+        DynamicProperty dynamicPropertyRef=dynamicProperty;
+        if(repository.existsByKey(dynamicProperty.getPropertyKey())){
+            DynamicPropertyId dynamicPropertyId = new DynamicPropertyId(dynamicProperty.getEntityType(), dynamicProperty.getPropertyKey());
+            dynamicPropertyRef = repository.getReferenceById(dynamicPropertyId);
             try {
                 JsonUtils.getMapper().updateValue(dynamicPropertyRef, dynamicProperty);
                 dynamicPropertyRef.setEntityType(dynamicProperty.getEntityType());
@@ -31,8 +45,6 @@ public class DynamicPropertyService {
             } catch (JsonMappingException e) {
                 throw new RuntimeException(e);
             }
-        }else {
-            dynamicPropertyRef= dynamicProperty;
         }
         getRepository(dynamicProperty.getClass()).save(dynamicProperty);
     }

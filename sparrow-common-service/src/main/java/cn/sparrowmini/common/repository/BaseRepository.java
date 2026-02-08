@@ -123,6 +123,7 @@ public interface BaseRepository<T, ID>
 
     List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat);
 
+    @Transactional
     default List<ID> upsert(List<Map<String, Object>> entitiesMap){
         return upsert(entitiesMap, false);
     }
