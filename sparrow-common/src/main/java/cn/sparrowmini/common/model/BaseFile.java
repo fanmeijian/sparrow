@@ -1,12 +1,11 @@
 package cn.sparrowmini.common.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import cn.sparrowmini.common.listener.BaseFileEntityListener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.io.FilenameUtils;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
@@ -19,6 +18,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @MappedSuperclass
+@EntityListeners({BaseFileEntityListener.class})
 public abstract class BaseFile extends BaseOpLog implements Serializable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Id
@@ -40,10 +40,5 @@ public abstract class BaseFile extends BaseOpLog implements Serializable {
     @ElementCollection
     protected Set<String> catalog;
 
-    @PreUpdate
-    @PrePersist
-    public void preSave(){
-        String ext = FilenameUtils.getExtension(this.name);
-        this.fileName = String.join("." ,this.hash,ext);
-    }
+
 }

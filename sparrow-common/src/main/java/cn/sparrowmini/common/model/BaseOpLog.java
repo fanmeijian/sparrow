@@ -10,12 +10,12 @@ import java.time.OffsetDateTime;
 
 @MappedSuperclass
 public abstract class BaseOpLog {
-	@Column(name = "created_date", insertable = true, updatable = false,columnDefinition = "TIMESTAMP")
+	@Column(name = "created_date", insertable = true, updatable = false)
 	@CreationTimestamp
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private OffsetDateTime createdDate; // 创建时间
 
-	@Column(name = "modified_date", insertable = true, updatable = true,columnDefinition = "TIMESTAMP")
+	@Column(name = "modified_date", insertable = true, updatable = true)
 	@UpdateTimestamp
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private OffsetDateTime modifiedDate; // 最后更新时间
