@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.rest;
 
 import cn.sparrowmini.common.model.BaseFile;
+import cn.sparrowmini.common.model.SprFile;
 import cn.sparrowmini.common.service.StorageService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class FileController {
     @ResponseBody
     public <T extends BaseFile> T upload(@RequestParam("file") MultipartFile file) {
         try(InputStream inputStream = file.getInputStream()){
-            return storageService.upload(inputStream, file.getOriginalFilename());
+            return (T) storageService.upload(inputStream, file.getOriginalFilename(), SprFile.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
