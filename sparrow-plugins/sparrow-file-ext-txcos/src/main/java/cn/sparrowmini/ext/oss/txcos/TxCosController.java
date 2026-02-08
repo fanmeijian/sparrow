@@ -1,9 +1,17 @@
 package cn.sparrowmini.ext.oss.txcos;
 
 import cn.sparrowmini.common.model.ApiResponse;
+import cn.sparrowmini.common.repository.FileRepository;
 import cn.sparrowmini.common.service.CommonJpaService;
 import cn.sparrowmini.common.service.DownloadPermission;
 import cn.sparrowmini.common.service.StorageService;
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.auth.BasicCOSCredentials;
+import com.qcloud.cos.auth.COSCredentials;
+import com.qcloud.cos.http.HttpMethodName;
+import com.qcloud.cos.http.HttpProtocol;
+import com.qcloud.cos.region.Region;
 import com.tencent.cloud.CosStsClient;
 import com.tencent.cloud.Response;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,10 +26,8 @@ import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.net.URL;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -32,19 +38,11 @@ public class TxCosController {
     @Autowired
     private TxCosConfig config;
 
-
-    @Autowired
-    private HttpServletRequest httpServletRequest;
-
-    @Autowired
-    private HttpServletResponse response;
-
-
     @Autowired
     private StorageService storageService;
 
     @Autowired
-    private CommonJpaService commonJpaService;
+    private FileRepository fileRepository;
 
     @GetMapping(value = "/uploadTmpKeys", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -75,8 +73,8 @@ public class TxCosController {
     @PostMapping("/create-files")
     @ResponseBody
     @ResponseStatus(code = HttpStatus.CREATED)
-    public ApiResponse<List<TxCosFile>> createFile(@RequestBody List<Map<String, Object>> files) {
-        return storageService.createFile(files);
+    public ApiResponse<List<String>> createFile(@RequestBody List<Map<String, Object>> files) {
+        return new ApiResponse<>(storageService.createFile(files));
     }
 
     @GetMapping("/{fileId}")
@@ -95,7 +93,50 @@ public class TxCosController {
     @ResponseBody
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void deleteFile(@RequestParam("id") Set<String> ids) {
-        commonJpaService.deleteEntity(TxCosFile.class, ids);
+        fileRepository.deleteAllById(ids);
+    }
+
+    @GetMapping("/{fileId}/download")
+    @ResponseBody
+    public byte[] download(@PathVariable String fileId) {
+        TxCosFile file = storageService.getFileInfo(fileId);
+        return storageService.download(file);
+    }
+
+    @GetMapping("/{fileId}/download-url")
+    @ResponseBody
+    public ApiResponse<String> downloadUrl(@PathVariable String fileId) {
+        TxCosFile file = storageService.getFileInfo(fileId);
+        // 调用 COS 接口之前必须保证本进程存在一个 COSClient 实例，如果没有则创建
+        // 详细代码参见本页：创建 COSClient
+        COSClient cosClient = createCOSClient();
+
+        // 存储桶的命名格式为 BucketName-APPID，此处填写的存储桶名称必须为此格式
+        String bucketName = file.getBucket();
+        // 对象键(Key)是对象在存储桶中的唯一标识。详情请参见 [对象键](https://cloud.tencent.com/document/product/436/13324)
+        String key = String.join("",file.getPath(), file.getFileName());
+
+        // 设置签名过期时间(可选), 若未进行设置则默认使用 ClientConfig 中的签名过期时间(1小时)
+        // 这里设置签名在半个小时后过期
+        Date expirationDate = new Date(System.currentTimeMillis() + 30 * 60 * 1000);
+
+        // 填写本次请求的参数，需与实际请求相同，能够防止用户篡改此签名的 HTTP 请求的参数
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("param1", "value1");
+
+        // 填写本次请求的头部，需与实际请求相同，能够防止用户篡改此签名的 HTTP 请求的头部
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("header1", "value1");
+
+        // 请求的 HTTP 方法，上传请求用 PUT，下载请求用 GET，删除请求用 DELETE
+        HttpMethodName method = HttpMethodName.GET;
+
+        URL url = cosClient.generatePresignedUrl(bucketName, key, expirationDate, method, headers, params);
+        System.out.println(url.toString());
+
+        // 确认本进程不再使用 cosClient 实例之后，关闭即可
+        cosClient.shutdown();
+        return new ApiResponse<>(url.toString());
     }
 
     private Response getTmpkey(String fileName, String[] allowActions, String path) {
@@ -134,12 +175,47 @@ public class TxCosController {
 
             config.put("allowActions", allowActions);
 
-            Response response = CosStsClient.getCredential(config);
-
-            return response;
+            return CosStsClient.getCredential(config);
         } catch (Exception e) {
             throw new IllegalArgumentException("no valid secret !");
         }
+    }
+
+    private COSClient createCOSClient() {
+        // 设置用户身份信息。
+        // SECRETID 和 SECRETKEY 请登录访问管理控制台 https://console.cloud.tencent.com/cam/capi
+        // 进行查看和管理
+        String secretId = this.config.getSecretId();// 用户的 SecretId，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参见
+        // https://cloud.tencent.com/document/product/598/37140
+        String secretKey = this.config.getSecretKey();// 用户的 SecretKey，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参见
+        // https://cloud.tencent.com/document/product/598/37140
+        COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
+
+        // ClientConfig 中包含了后续请求 COS 的客户端设置：
+        ClientConfig clientConfig = new ClientConfig();
+
+        // 设置 bucket 的地域
+        // COS_REGION 请参见 https://cloud.tencent.com/document/product/436/6224
+        clientConfig.setRegion(new Region(this.config.getRegion()));
+
+        // 设置请求协议, http 或者 https
+        // 5.6.53 及更低的版本，建议设置使用 https 协议
+        // 5.6.54 及更高版本，默认使用了 https
+        clientConfig.setHttpProtocol(HttpProtocol.https);
+
+        // 以下的设置，是可选的：
+
+        // 设置 socket 读取超时，默认 30s
+        clientConfig.setSocketTimeout(30 * 1000);
+        // 设置建立连接超时，默认 30s
+        clientConfig.setConnectionTimeout(30 * 1000);
+
+        // 如果需要的话，设置 http 代理，ip 以及 port
+//		clientConfig.setHttpProxyIp("httpProxyIp");
+//		clientConfig.setHttpProxyPort(80);
+
+        // 生成 cos 客户端。
+        return new COSClient(cred, clientConfig);
     }
 
 }

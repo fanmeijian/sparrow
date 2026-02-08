@@ -1,7 +1,9 @@
 package cn.sparrowmini.ext.oss.txcos;
 
+import cn.sparrowmini.common.constant.StorageTypeEnum;
 import cn.sparrowmini.common.model.ApiResponse;
 import cn.sparrowmini.common.model.BaseFile;
+import cn.sparrowmini.common.repository.FileRepository;
 import cn.sparrowmini.common.service.CommonJpaService;
 import cn.sparrowmini.common.service.StorageService;
 import com.qcloud.cos.COSClient;
@@ -21,10 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +40,7 @@ public class TxCosStorageService implements StorageService {
     private TxCosConfig config;
 
     @Autowired
-    private CommonJpaService commonJpaService;
+    private TxFileRepository txFileRepository;
 
     @Autowired
     private HttpServletRequest httpServletRequest;
@@ -50,7 +55,7 @@ public class TxCosStorageService implements StorageService {
         String bucketName = file.getBucket();
         // 对象键(Key)是对象在存储桶中的唯一标识。详情请参见
         // [对象键](https://cloud.tencent.com/document/product/436/13324)
-        String key = file.getName();
+        String key = String.join("",file.getPath(), file.getFileName());
 
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
         InputStream cosObjectInput = null;
@@ -92,7 +97,7 @@ public class TxCosStorageService implements StorageService {
     }
 
     @Override
-    public < T extends BaseFile> T upload(InputStream inputStream, String fileName) {
+    public < T extends BaseFile> T upload(InputStream inputStream, String fileName, Class<T> clazz) {
 
         // 调用 COS 接口之前必须保证本进程存在一个 COSClient 实例，如果没有则创建
         // 详细代码参见本页：简单操作 -> 创建 COSClient
@@ -106,20 +111,26 @@ public class TxCosStorageService implements StorageService {
 
         try {
             byte data[] = inputStream.readAllBytes();
+            // 业务逻辑：创建具体的实体类实例
+            T cosFile = clazz.getDeclaredConstructor().newInstance();
             String key = DigestUtils.md5Hex(data).toUpperCase();
 
-            TxCosFile cosFile = new TxCosFile();
-            cosFile.setBucket(this.config.getBucket());
-            cosFile.setRegion(this.config.getRegion());
+
+            if (cosFile instanceof TxCosFile) {
+                ((TxCosFile)cosFile).setBucket(this.config.getBucket());
+                ((TxCosFile)cosFile).setRegion(this.config.getRegion());
+                ((TxCosFile)cosFile).setFileName(fileName);
+            }
+
             cosFile.setName(key);
-            cosFile.setFileName(fileName);
+
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             // 上传的流如果能够获取准确的流长度，则推荐一定填写 content-length
             // 如果确实没办法获取到，则下面这行可以省略，但同时高级接口也没办法使用分块上传了
             objectMetadata.setContentLength(inputStream.available());
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, inputStream, objectMetadata);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, new ByteArrayInputStream(data), objectMetadata);
 
             // 设置存储类型（如有需要，不需要请忽略此行代码）, 默认是标准(Standard), 低频(standard_ia)
             // 更多存储类型请参见 https://cloud.tencent.com/document/product/436/33417
@@ -132,6 +143,8 @@ public class TxCosStorageService implements StorageService {
             return (T) cosFile;
         } catch (IOException |CosClientException e) {
             log.error(e.getMessage(), e);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
         // 确认本进程不再使用 cosClient 实例之后，关闭即可
         cosClient.shutdown();
@@ -193,17 +206,23 @@ public class TxCosStorageService implements StorageService {
 
     @Override
     public <T extends BaseFile> T getFileInfo(String id) {
-        return (T) commonJpaService.getEntity(TxCosFile.class,id);
+        return (T) txFileRepository.findById(id).orElseThrow();
     }
 
     @Override
     public <T extends BaseFile> Page<T> getFileList(Pageable pageable, String filter) {
-        return (Page<T>) commonJpaService.getEntityList(TxCosFile.class,pageable,filter);
+        return (Page<T>) txFileRepository.findAll(pageable,filter);
+    }
+
+    @Transactional
+    @Override
+    public List<String> createFile(List<Map<String, Object>> fileList) {
+        return txFileRepository.upsert(fileList);
     }
 
     @Override
-    public <T extends BaseFile> ApiResponse<List<T>> createFile(List<Map<String, Object>> fileList) {
-        return new ApiResponse<>(commonJpaService.upsertEntity(TxCosFile.class,fileList));
+    public StorageTypeEnum getStorageType() {
+        return StorageTypeEnum.TX_COS;
     }
 
 }
