@@ -12,7 +12,7 @@ public class TxCosConfig {
 
 	private String secretId;
 	private String secretKey;
-	private String region;
-	private String bucket;
+	private String[] region;
+	private String[] bucket;
 	private String[] allowPrefixes;
 }
