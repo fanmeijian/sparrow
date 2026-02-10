@@ -5,6 +5,7 @@ import cn.sparrowmini.common.model.dynamic.DynamicPropertyId;
 import cn.sparrowmini.common.repository.DynamicPropertyRepository;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jakarta.persistence.DiscriminatorValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,16 @@ public class DynamicPropertyService {
     private DynamicPropertyRepository<DynamicProperty, DynamicPropertyId> dynamicPropertyRepository;
 
     public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz,DynamicPropertyId id) {
+        return getRepository(clazz).findById(id).orElseThrow();
+    }
+
+    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz, String propertyKey) {
+        DiscriminatorValue dv = clazz.getAnnotation(DiscriminatorValue.class);
+        if (dv == null) {
+            throw new IllegalStateException("实体类 " + clazz.getSimpleName() + " 缺少 @DiscriminatorValue 注解");
+        }
+        String entityType = dv.value();
+        DynamicPropertyId id = new DynamicPropertyId(entityType,propertyKey);
         return getRepository(clazz).findById(id).orElseThrow();
     }
 
