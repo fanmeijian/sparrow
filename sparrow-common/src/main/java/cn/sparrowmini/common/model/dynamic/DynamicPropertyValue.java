@@ -1,39 +1,117 @@
 package cn.sparrowmini.common.model.dynamic;
 
 import cn.sparrowmini.common.model.BaseState;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.*;
-import org.glassfish.jaxb.core.v2.model.core.ID;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
-import java.io.Serializable;
+
+/**
+ * 简化版的动态属性，
+ * @param <T> 实体类型
+ * @param <ID> 实体的ID类型
+ *
+ * @Entity
+ * @Table(name = TablePrefix.NAME + "article_property_value")
+ * public class ArticlePropertyValue extends DynamicPropertyValue<Article,String> {
+ *
+ *     @JsonIgnore
+ *     @ManyToOne
+ *     @JoinColumn(name = "businessId", insertable = false, updatable = false)
+ *     private Article article;
+ *
+ *     public ArticlePropertyValue(String businessId, Object value, DynamicProperty articleProperty) {
+ *         super(businessId,value, articleProperty);
+ *
+ *     }
+ *
+ * }
+ *
+ *     @OneToMany(mappedBy = "businessObject", cascade = CascadeType.REMOVE)
+ *     private List<ArticlePropertyValue> propertyValues;
+ */
+@EntityListeners(DynamicPropertyValueListener.class)
 @Getter
 @Setter
+@NoArgsConstructor
 @MappedSuperclass
-public abstract class DynamicPropertyValue<T,ID> extends BaseState {
-    private T value;
+public abstract class DynamicPropertyValue<T, ID> extends BaseState {
 
-    @EmbeddedId
-    private DynamicPropertyValueId<ID> id = new DynamicPropertyValueId<>();
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    protected String id;
 
-    public DynamicPropertyValue(){
+    @JsonIgnore
+    private String stringValue;
+    @JsonIgnore
+    private Integer intValue;
+    @JsonIgnore
+    private Boolean booleanValue;
 
+    @Column(name = "propertyKey", insertable = false, updatable = false)
+    private String key;
+
+    @JsonProperty("name")
+    private String getName(){
+        return dynamicProperty.getName();
     }
 
-    public DynamicPropertyValue(String propertyKey, ID businessId, T value){
-        this.id = new DynamicPropertyValueId<>(propertyKey, businessId);
+    @Transient
+    private Object value;
+
+    public Object getValue() {
+        if(value == null){
+            DynamicPropertyTypeEnum type= dynamicProperty.getType();
+            switch (type) {
+                case String-> {
+                    return  this.stringValue;
+                }
+                case Integer -> {
+                    return   this.intValue;
+                }
+            }
+        }
+        return value;
+    }
+
+    private ID businessId;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "businessId", insertable = false, updatable = false)
+    private T businessObject;
+
+    @JsonIgnore
+    @Embedded
+    private DynamicPropertyId dynamicPropertyId;
+
+    @JsonIgnore
+    @OneToOne
+    @JoinColumns({
+            @JoinColumn(name = "entityType", insertable = false, updatable = false),
+            @JoinColumn(name = "propertyKey", insertable = false, updatable = false)
+    })
+    private DynamicProperty dynamicProperty;
+
+
+    public DynamicPropertyValue(ID businessId, Object value, DynamicProperty dynamicProperty) {
+        this.businessId = businessId;
+        Class<?> clazz = dynamicProperty.getClass();
+        DiscriminatorValue dv = clazz.getAnnotation(DiscriminatorValue.class);
+        if (dv == null) {
+            throw new IllegalStateException("实体类 " + clazz.getSimpleName() + " 缺少 @DiscriminatorValue 注解");
+        }
+        this.dynamicProperty = dynamicProperty;
+        String entityType = dv.value();
+        String propertyKey = dynamicProperty.getPropertyKey();
+        this.dynamicPropertyId = new DynamicPropertyId(entityType, propertyKey);
         this.value = value;
     }
 
-    @Embeddable
-    @Data
-    @NoArgsConstructor
-    public static class DynamicPropertyValueId<ID> implements Serializable {
-        private String propertyKey; // 属性的唯一标识，如 "age", "color"
-        private ID businessId;
-
-        public DynamicPropertyValueId(String propertyKey, ID businessId) {
-            this.propertyKey = propertyKey;
-            this.businessId = businessId;
-        }
-    }
 }

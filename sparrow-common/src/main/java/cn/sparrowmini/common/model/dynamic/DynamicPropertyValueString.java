@@ -1,14 +1,18 @@
 package cn.sparrowmini.common.model.dynamic;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@MappedSuperclass
-public abstract class DynamicPropertyValueString<DT ,ID> extends  DynamicPropertyValue<String,ID> {
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "businessId", insertable = false, updatable = false)
-    private DT businessObject;
+import java.io.Serializable;
+
+@NoArgsConstructor
+@Data
+@Embeddable
+public class DynamicPropertyValueString implements Serializable {
+    private String value;
+
+    public DynamicPropertyValueString(String value) {
+        this.value = value;
+    }
 }

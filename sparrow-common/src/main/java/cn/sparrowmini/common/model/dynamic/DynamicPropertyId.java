@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Embeddable
 @Data
 @NoArgsConstructor
-public class DynamicPropertyId implements Serializable {
+public final class DynamicPropertyId implements Serializable {
     private String entityType;  // 对应鉴别值列
     private String propertyKey; // 属性的唯一标识，如 "age", "color"
 
