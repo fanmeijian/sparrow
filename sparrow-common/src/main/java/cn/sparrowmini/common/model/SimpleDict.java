@@ -19,12 +19,10 @@ import java.io.Serializable;
 @Table(name = TablePrefix.NAME + "simple_dict")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "entityType", discriminatorType = DiscriminatorType.STRING)
-public class SimpleDict implements Serializable {
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    protected String id;
+public class SimpleDict extends BaseUuidEntity implements Serializable {
+
+    @Column(insertable = false, updatable = false)
+    private String entityType;
 
     private String name;
     private String code;
