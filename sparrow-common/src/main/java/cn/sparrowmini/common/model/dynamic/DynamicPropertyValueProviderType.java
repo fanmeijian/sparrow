@@ -5,5 +5,6 @@ public enum DynamicPropertyValueProviderType {
     INPUT,
     URL,
     SCRIPT,
+    DICT,
     ;
 }

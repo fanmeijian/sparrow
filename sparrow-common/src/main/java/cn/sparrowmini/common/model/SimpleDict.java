@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * 简易的字典，用于按实体区分
@@ -24,6 +25,11 @@ public class SimpleDict extends BaseUuidEntity implements Serializable {
     @Column(insertable = false, updatable = false)
     private String entityType;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<String> catalogIds;
+
     private String name;
     private String code;
+
+    private String remark;
 }

@@ -86,7 +86,9 @@ public class DynamicProperty extends BaseState implements Serializable {
             case SCRIPT:
                 list = (List<ProviderData>) MVEL.eval(providerScript, vars);
                 break;
+            case DICT:
 
+                break;
             default: list = providerData;
             break;
         }
@@ -117,11 +119,17 @@ public class DynamicProperty extends BaseState implements Serializable {
         return entityType;
     }
 
+    @NoArgsConstructor
     @Data
     @Embeddable
     public static class ProviderData implements Serializable {
         private String label;
         private String value;
+
+        public ProviderData(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
     }
 
     @PrePersist

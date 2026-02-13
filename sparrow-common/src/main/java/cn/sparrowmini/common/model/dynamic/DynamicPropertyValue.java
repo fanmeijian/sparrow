@@ -87,7 +87,7 @@ public abstract class DynamicPropertyValue<T, ID> extends BaseState {
     @JoinColumn(name = "businessId", insertable = false, updatable = false)
     private T businessObject;
 
-    @JsonIgnore
+//    @JsonIgnore
     @Embedded
     private DynamicPropertyId dynamicPropertyId;
 
