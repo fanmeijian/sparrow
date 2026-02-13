@@ -68,6 +68,20 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
 
     Optional<S> findByCode(String code);
 
+    /**
+     * 根据代码或ID获取
+     * @param parent
+     * @return
+     */
+    default Page<S> findByParent(ID parentId, Pageable pageable){
+        ID parentId_ = parentId;
+        if(existsByCode(parentId_.toString())) {
+            S parent = findByCode(parentId_.toString()).get();
+            parentId_ = (ID)parent.getId();
+        }
+        return findByParentId(parentId_, pageable);
+    }
+
     Page<S> findByParentId(ID parentId, Pageable pageable);
 
     Page<S> findByParentId(ID parentId, Pageable pageable, Specification<S> spec);

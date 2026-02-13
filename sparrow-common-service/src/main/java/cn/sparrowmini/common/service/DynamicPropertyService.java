@@ -1,19 +1,22 @@
 package cn.sparrowmini.common.service;
 
-import cn.sparrowmini.common.model.dynamic.DynamicProperty;
-import cn.sparrowmini.common.model.dynamic.DynamicPropertyId;
+import cn.sparrowmini.common.model.Dict;
+import cn.sparrowmini.common.model.dynamic.*;
+import cn.sparrowmini.common.repository.DictRepository;
 import cn.sparrowmini.common.repository.DynamicPropertyRepository;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.persistence.DiscriminatorValue;
+import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DynamicPropertyService {
@@ -22,6 +25,9 @@ public class DynamicPropertyService {
 
     @Autowired
     private DynamicPropertyRepository<DynamicProperty, DynamicPropertyId> dynamicPropertyRepository;
+
+    @Autowired
+    DictRepository dictRepository;
 
     public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz,DynamicPropertyId id) {
         return getRepository(clazz).findById(id).orElseThrow();
@@ -35,6 +41,40 @@ public class DynamicPropertyService {
         String entityType = dv.value();
         DynamicPropertyId id = new DynamicPropertyId(entityType,propertyKey);
         return getRepository(clazz).findById(id).orElseThrow();
+    }
+
+    public <T extends DynamicProperty> List<ProviderDataValue> getProviderDataValue(T dynamicProperty) {
+        final DynamicPropertyValueProviderType providerType = dynamicProperty.getProviderType();
+        if(providerType == null){
+            return new ArrayList<>();
+        }
+        final List<DynamicProperty.ProviderData> providerData = dynamicProperty.getProviderData();
+        final String providerScript = dynamicProperty.getProviderScript();
+        List<DynamicProperty.ProviderData> list = new ArrayList<>();
+        Map<String, Object> vars = new HashMap<>();
+        // 将 ProviderData 的 Class 对象传进去，脚本里可以直接用
+        vars.put("ProviderData", cn.sparrowmini.common.model.dynamic.DynamicProperty.ProviderData.class);
+        switch (providerType) {
+            case SCRIPT:
+                list = (List<DynamicProperty.ProviderData>) MVEL.eval(providerScript, vars);
+                break;
+            case DICT:
+                List<Dict> dicts = dictRepository.findByParent(dynamicProperty.getUrl(), PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+                List<DynamicProperty.ProviderData> list1 = dicts.stream().map(m->new DynamicProperty.ProviderData(m.getName(), m.getCode())).toList();
+                list = list1;
+                break;
+            default: list = providerData;
+                break;
+        }
+        List<ProviderDataValue> list2 = List.of();
+        final DynamicPropertyTypeEnum type = dynamicProperty.getType();
+        if(type.equals(DynamicPropertyTypeEnum.Integer)){
+            list2 = list.stream().map(m->new ProviderDataValue(m.getLabel(),Integer.parseInt(m.getValue()))).collect(Collectors.toList());
+
+        }else{
+            list2=list.stream().map(m->new ProviderDataValue(m.getLabel(), m.getValue())).collect(Collectors.toList());
+        }
+        return list2;
     }
 
     @Transactional
@@ -58,6 +98,10 @@ public class DynamicPropertyService {
             }
         }
         getRepository(dynamicProperty.getClass()).save(dynamicProperty);
+    }
+
+    public List<? extends DynamicProperty> queryDynamicPropertyByKeys(Class<? extends DynamicProperty> clazz, Collection<String> keys) {
+        return getRepository(clazz).findByKeys(keys);
     }
 
     public Page<? extends DynamicProperty> queryDynamicProperty(Class<? extends DynamicProperty> clazz, Pageable pageable) {

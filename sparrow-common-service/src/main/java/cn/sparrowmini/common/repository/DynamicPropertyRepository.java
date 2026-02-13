@@ -2,9 +2,27 @@ package cn.sparrowmini.common.repository;
 
 import cn.sparrowmini.common.model.dynamic.DynamicProperty;
 import cn.sparrowmini.common.model.dynamic.DynamicPropertyId;
+import cn.sparrowmini.common.model.dynamic.DynamicProperty_;
 import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public interface DynamicPropertyRepository<T extends DynamicProperty,ID> extends BaseRepository<T,ID>{
+
+//    @Query("select s from DynamicProperty s where s.propertyKey in (:keys)")
+    default List<T> findByKeys(Collection<String> keys){
+        Specification<T>  specification = (root, criteriaQuery, criteriaBuilder) -> {
+            return criteriaBuilder.and(root.get(DynamicProperty_.PROPERTY_KEY).in(keys));
+        };
+        return findAll(specification);
+    }
+
     default boolean existsByKey(String key) {
         // 1. 获取当前 Repository 接口定义的具体实体类 T
         Class<T> domainClass = domainType();
