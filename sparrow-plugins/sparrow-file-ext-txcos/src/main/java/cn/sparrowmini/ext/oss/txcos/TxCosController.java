@@ -92,8 +92,8 @@ public class TxCosController {
 
     @GetMapping("/{fileId}/download-url")
     @ResponseBody
-    public ApiResponse<String> downloadUrl(@PathVariable String fileId) {
-        String url = txCosService.getDownloadUrl(fileId);
+    public ApiResponse<String> downloadUrl(@PathVariable String fileId, @RequestParam Map<String, Object> params) {
+        String url = txCosService.getDownloadUrl(fileId, params);
         return new ApiResponse<>(url);
     }
 

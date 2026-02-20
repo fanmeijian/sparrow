@@ -1,6 +1,7 @@
 package cn.sparrowmini.ext.oss.txcos;
 
 import cn.sparrowmini.common.model.ApiResponse;
+import cn.sparrowmini.common.service.FilePermissionService;
 import cn.sparrowmini.common.service.StorageService;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -37,6 +38,9 @@ public class TxCosService {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired(required = false)
+    private FilePermissionService filePermissionService;
 
     public void upload(InputStream inputStream, TempKeyRequestBody body){
 
@@ -76,8 +80,12 @@ public class TxCosService {
         cosClient.shutdown();
     }
 
-    public String getDownloadUrl(String fileId){
+    public String getDownloadUrl(String fileId, Map<String, Object> params_) {
             TxCosFile file = storageService.getFileInfo(fileId);
+            if(filePermissionService!=null && !filePermissionService.canDownload(file, params_)) {
+                throw new RuntimeException(String.format("没有下载权限 %s",file.getName()));
+            }
+
             // 调用 COS 接口之前必须保证本进程存在一个 COSClient 实例，如果没有则创建
             // 详细代码参见本页：创建 COSClient
             COSClient cosClient = createCOSClient(file.getRegion());
@@ -110,6 +118,9 @@ public class TxCosService {
     }
 
     public Response getUploadKey(TempKeyRequestBody body){
+        if(filePermissionService!=null && !filePermissionService.canUpload(null)){
+            throw new RuntimeException("没有上传权限");
+        }
         String[] allowActions = new String[]{
                 // 简单上传
                 "name/cos:PutObject",
