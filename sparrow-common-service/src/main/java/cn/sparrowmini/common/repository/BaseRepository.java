@@ -38,6 +38,17 @@ public interface BaseRepository<T, ID>
         );
     }
 
+    /**
+     * 按属性查找
+     * @param field 属性名
+     * @param value 属性值
+     * @param pageable
+     * @return
+     */
+    default Page<T> findBy(Object value, Pageable pageable,String... field) {
+        return findAll(specificationEqual(String.join(".",field),value), pageable);
+    }
+
     default Page<?> findAll(Pageable pageable, String filter, String projectClassName) {
         Specification<T> specification = filterSpecification(filter);
         if(projectClassName != null) {
