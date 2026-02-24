@@ -52,6 +52,27 @@
               ],
               "outputHashing": "all"
             },
+            "chnplc": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "100mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.chnplc.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "docker": {
               "budgets": [
                 {
