@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.service;
 
 import cn.sparrowmini.common.model.Dict;
+import cn.sparrowmini.common.model.Dict_;
 import cn.sparrowmini.common.model.dynamic.*;
 import cn.sparrowmini.common.repository.DictRepository;
 import cn.sparrowmini.common.repository.DynamicPropertyRepository;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +61,7 @@ public class DynamicPropertyService {
                 list = (List<DynamicProperty.ProviderData>) MVEL.eval(providerScript, vars);
                 break;
             case DICT:
-                List<Dict> dicts = dictRepository.findByParent(dynamicProperty.getUrl(), PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+                List<Dict> dicts = dictRepository.findByParent(dynamicProperty.getUrl(), PageRequest.of(0, Integer.MAX_VALUE).withSort(Sort.by(Sort.Order.asc(Dict_.SEQ)))).getContent();
                 List<DynamicProperty.ProviderData> list1 = dicts.stream().map(m->new DynamicProperty.ProviderData(m.getName(), m.getCode())).toList();
                 list = list1;
                 break;
