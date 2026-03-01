@@ -132,11 +132,18 @@ public interface BaseRepository<T, ID>
         return findAllProjection(pageable, null, projectionClass);
     }
 
+    List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass);
+
     List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat);
 
     @Transactional
     default List<ID> upsert(List<Map<String, Object>> entitiesMap){
         return upsert(entitiesMap, false);
+    }
+
+    @Transactional
+    default List<ID> upsert(List<Map<String, Object>> entitiesMap, Class<T> domainClass) {
+        return upsert(entitiesMap, false, domainClass);
     }
 
     default Specification<T> filterSpecification(String filter) {

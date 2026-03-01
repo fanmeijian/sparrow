@@ -233,10 +233,9 @@ public class BaseRepositoryImpl<T, ID>
         return PageableExecutionUtils.getPage(finalResult, pageable, countTypedQuery::getSingleResult);
     }
 
-
     @Override
     @Transactional
-    public List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat) {
+    public List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass) {
         ObjectMapper mapper = JsonUtils.getMapper();
         // 允许 null 覆盖
         mapper.setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.SET));
@@ -261,7 +260,7 @@ public class BaseRepositoryImpl<T, ID>
                     }
                 } else {
                     //不存在
-                    entity = mapper.convertValue(entityMap, domainType());
+                    entity = mapper.convertValue(entityMap,domainClass == null? domainType(): domainClass);
                     //如果id不是自动生成的，则需要手动设置id
                     Field idField = idField();
                     if (!idField.isAnnotationPresent(GeneratedValue.class)) {
@@ -277,7 +276,7 @@ public class BaseRepositoryImpl<T, ID>
                     }
                 }
             } else {
-                entity = mapper.convertValue(entityMap, domainType());
+                entity = mapper.convertValue(entityMap, domainClass == null? domainType(): domainClass);
             }
 
             // 🔑 递归处理关联
@@ -290,6 +289,12 @@ public class BaseRepositoryImpl<T, ID>
 
         saveAll(entities);
         return entities.stream().map(this::getId).toList();
+    }
+
+    @Override
+    @Transactional
+    public List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat) {
+        return upsert(entitiesMap, withStat, null);
     }
 
 
