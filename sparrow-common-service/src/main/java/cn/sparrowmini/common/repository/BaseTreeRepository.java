@@ -15,6 +15,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -209,6 +210,26 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
             }
         });
         return new PageImpl<>(root, pageable, rootPage.getTotalElements());
+    }
+
+    @Query("select t.id from #{#entityName} t where t.parentId=:parentId ")
+    List<ID> getChildrenId(ID parentId);
+
+    default List<ID> getAllChildrenId(ID parentId) {
+        List<ID> allChildren = new ArrayList<>();
+
+        // 1. 获取当前层级的直接子节点
+        List<ID> directChildren = getChildrenId(parentId);
+
+        if (directChildren != null && !directChildren.isEmpty()) {
+            allChildren.addAll(directChildren);
+
+            // 2. 递归获取每个子节点的子节点
+            for (ID childId : directChildren) {
+                allChildren.addAll(getAllChildrenId(childId));
+            }
+        }
+        return allChildren;
     }
 
     S getReferenceByCode(String code);
