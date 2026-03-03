@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @NoRepositoryBean
 public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRepository<S, ID> {
@@ -230,6 +229,22 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
             }
         }
         return allChildren;
+    }
+
+    @Query("select t.parentId from #{#entityName} t where t.id=:id ")
+    ID getParentId(ID id);
+
+    default List<ID> getAllParentId(ID id) {
+        List<ID> allParentId = new ArrayList<>();
+
+        // 1. 获取当前层级的直接子节点
+        ID directParentId = getParentId(id);
+
+        if (directParentId != null) {
+            allParentId.addAll(List.of(directParentId));
+            allParentId.addAll(getAllParentId(directParentId));
+        }
+        return allParentId;
     }
 
     S getReferenceByCode(String code);
