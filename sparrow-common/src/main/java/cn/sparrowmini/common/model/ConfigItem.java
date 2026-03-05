@@ -14,7 +14,7 @@ import java.lang.reflect.Constructor;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = TablePrefix.NAME + "config_item", uniqueConstraints = @UniqueConstraint(columnNames = {"dtype","code"}))
+@Table(name = TablePrefix.NAME + "config_item", uniqueConstraints = @UniqueConstraint(columnNames = {"dtype","catalogId","code"}))
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
 public class ConfigItem extends BaseUuidEntity {
