@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+
 
 /**
  * 简化版的动态属性，
@@ -53,6 +56,8 @@ public abstract class DynamicPropertyValue<T, ID> extends BaseState {
     private Integer intValue;
     @JsonIgnore
     private Boolean booleanValue;
+    @JsonIgnore
+    private OffsetDateTime dateValue;
 
     @Column(name = "propertyKey", insertable = false, updatable = false)
     private String key;
@@ -74,6 +79,9 @@ public abstract class DynamicPropertyValue<T, ID> extends BaseState {
                 }
                 case Integer -> {
                     return   this.intValue;
+                }
+                case Date -> {
+                    return   this.dateValue;
                 }
             }
         }
