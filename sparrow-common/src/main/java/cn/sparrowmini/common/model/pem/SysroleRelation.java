@@ -3,6 +3,7 @@ package cn.sparrowmini.common.model.pem;
 import cn.sparrowmini.common.model.BaseUuidEntity;
 import cn.sparrowmini.common.model.TablePrefix;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
