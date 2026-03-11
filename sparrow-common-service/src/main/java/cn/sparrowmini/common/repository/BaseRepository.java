@@ -190,6 +190,18 @@ public interface BaseRepository<T, ID>
         };
     }
 
+    default Specification<T> specLike(String field,String value) {
+        return (root, query, cb) -> {
+            Path<?> path = root;
+
+            for(String part : field.split("\\.")) {
+                path = path.get(part);
+            }
+
+            return cb.like(path.as(String.class),value);
+        };
+    }
+
     @SuppressWarnings("unchecked")
     default ID getId(T entity) {
         BeanWrapper wrapper = new BeanWrapperImpl(entity);
