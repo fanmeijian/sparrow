@@ -18,5 +18,9 @@ public class DynamicPropertyValueListener {
             case Boolean -> entity.setBooleanValue((Boolean) v);
             case Date -> entity.setDateValue(OffsetDateTime.parse(v.toString()));
         }
+
+        if(entity.getDynamicProperty().getProviderType().equals(DynamicPropertyValueProviderType.DICT)){
+            entity.setDictCode(entity.getStringValue());
+        }
     }
 }

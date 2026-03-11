@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.model.dynamic;
 
 import cn.sparrowmini.common.model.BaseState;
+import cn.sparrowmini.common.model.Dict;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -86,6 +87,19 @@ public abstract class DynamicPropertyValue<T, ID> extends BaseState {
             }
         }
         return value;
+    }
+
+
+    private String dictCode;
+
+    @JsonIgnore
+    @JoinColumn(name = "dictCode", insertable = false, updatable = false,referencedColumnName = "code")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Dict dict;
+
+    @JsonProperty
+    public String getDictName() {
+        return dict!=null? dict.getName(): null;
     }
 
     private ID businessId;

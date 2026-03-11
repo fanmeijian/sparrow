@@ -1,7 +1,9 @@
 package cn.sparrowmini.common.model.dynamic;
 
 import cn.sparrowmini.common.model.BaseState;
+import cn.sparrowmini.common.model.Dict;
 import cn.sparrowmini.common.model.TablePrefix;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -61,7 +63,6 @@ public class DynamicProperty extends BaseState implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private DynamicPropertyValueProviderType providerType;
-
 
     private String url;
 
