@@ -136,4 +136,10 @@ public abstract class DynamicPropertyValue<T, ID> extends BaseState {
         this.value = value;
     }
 
+    public DynamicPropertyValue(ID businessId, Object value, DynamicPropertyId dynamicPropertyId) {
+        this.businessId = businessId;
+        this.dynamicPropertyId = dynamicPropertyId;
+        this.value = value;
+    }
+
 }

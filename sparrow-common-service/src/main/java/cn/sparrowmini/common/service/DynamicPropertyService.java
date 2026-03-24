@@ -1,5 +1,6 @@
 package cn.sparrowmini.common.service;
 
+import cn.sparrowmini.common.SprCache;
 import cn.sparrowmini.common.model.Dict;
 import cn.sparrowmini.common.model.Dict_;
 import cn.sparrowmini.common.model.dynamic.*;
@@ -7,7 +8,11 @@ import cn.sparrowmini.common.repository.DictRepository;
 import cn.sparrowmini.common.repository.DynamicPropertyRepository;
 import cn.sparrowmini.common.util.JsonUtils;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jakarta.annotation.Resource;
 import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Metamodel;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +28,12 @@ import java.util.stream.Collectors;
 @Service
 public class DynamicPropertyService {
     @Autowired
+    SprCache cache;
+
+    @Resource
+    private EntityManager entityManager;
+
+    @Autowired
     private List<DynamicPropertyRepository<? extends DynamicProperty, ?>> dynamicPropertyRepositories;
 
     @Autowired
@@ -31,7 +42,26 @@ public class DynamicPropertyService {
     @Autowired
     DictRepository dictRepository;
 
-    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz,DynamicPropertyId id) {
+    @Resource
+    private DynamicPropertyRepository<? extends DynamicProperty,DynamicPropertyId> dynamicPropertyRepository1;
+
+    public Page<DynamicProperty> getDynamicPropertyList(Pageable pageable, String filter) {
+        return dynamicPropertyRepository.findAll(pageable, filter);
+    }
+
+
+    public <T extends DynamicProperty> void saveDynamicProperty(String entityType, Map<String, Object> dynamicProperty) {
+
+        Class<T> dynamicPropertyClass = (Class<T>) cache.getEntityClass(entityType);
+        T entity = JsonUtils.getMapper().convertValue(dynamicProperty, dynamicPropertyClass);
+        dynamicPropertyRepository.save(entity);
+    }
+
+    public <T extends DynamicProperty> void saveDynamicProperty(T dynamicProperty) {
+        dynamicPropertyRepository.save(dynamicProperty);
+    }
+
+    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz, DynamicPropertyId id) {
         return getRepository(clazz).findById(id).orElseThrow();
     }
 
@@ -41,13 +71,14 @@ public class DynamicPropertyService {
             throw new IllegalStateException("实体类 " + clazz.getSimpleName() + " 缺少 @DiscriminatorValue 注解");
         }
         String entityType = dv.value();
-        DynamicPropertyId id = new DynamicPropertyId(entityType,propertyKey);
-        return getRepository(clazz).findById(id).orElseThrow();
+        DynamicPropertyId id = new DynamicPropertyId(entityType, propertyKey);
+//        return getRepository(clazz).findById(id).orElseThrow();
+        return dynamicPropertyRepository1.findById(id).orElseThrow();
     }
 
     public <T extends DynamicProperty> List<ProviderDataValue> getProviderDataValue(T dynamicProperty) {
         final DynamicPropertyValueProviderType providerType = dynamicProperty.getProviderType();
-        if(providerType == null){
+        if (providerType == null) {
             return new ArrayList<>();
         }
         final List<DynamicProperty.ProviderData> providerData = dynamicProperty.getProviderData();
@@ -62,19 +93,20 @@ public class DynamicPropertyService {
                 break;
             case DICT:
                 List<Dict> dicts = dictRepository.findByParent(dynamicProperty.getUrl(), PageRequest.of(0, Integer.MAX_VALUE).withSort(Sort.by(Sort.Order.asc(Dict_.SEQ)))).getContent();
-                List<DynamicProperty.ProviderData> list1 = dicts.stream().map(m->new DynamicProperty.ProviderData(m.getName(), m.getCode())).toList();
+                List<DynamicProperty.ProviderData> list1 = dicts.stream().map(m -> new DynamicProperty.ProviderData(m.getName(), m.getCode())).toList();
                 list = list1;
                 break;
-            default: list = providerData;
+            default:
+                list = providerData;
                 break;
         }
         List<ProviderDataValue> list2 = List.of();
         final DynamicPropertyTypeEnum type = dynamicProperty.getType();
-        if(type.equals(DynamicPropertyTypeEnum.Integer)){
-            list2 = list.stream().map(m->new ProviderDataValue(m.getLabel(),Integer.parseInt(m.getValue()))).collect(Collectors.toList());
+        if (type.equals(DynamicPropertyTypeEnum.Integer)) {
+            list2 = list.stream().map(m -> new ProviderDataValue(m.getLabel(), Integer.parseInt(m.getValue()))).collect(Collectors.toList());
 
-        }else{
-            list2=list.stream().map(m->new ProviderDataValue(m.getLabel(), m.getValue())).collect(Collectors.toList());
+        } else {
+            list2 = list.stream().map(m -> new ProviderDataValue(m.getLabel(), m.getValue())).collect(Collectors.toList());
         }
         return list2;
     }
@@ -86,9 +118,9 @@ public class DynamicPropertyService {
 
     @Transactional
     public void saveProperty(DynamicProperty dynamicProperty) {
-        DynamicPropertyRepository<? extends DynamicProperty,DynamicPropertyId>  repository = this.getRepository(dynamicProperty.getClass());
-        DynamicProperty dynamicPropertyRef=dynamicProperty;
-        if(repository.existsByKey(dynamicProperty.getPropertyKey())){
+        DynamicPropertyRepository<? extends DynamicProperty, DynamicPropertyId> repository = this.getRepository(dynamicProperty.getClass());
+        DynamicProperty dynamicPropertyRef = dynamicProperty;
+        if (repository.existsByKey(dynamicProperty.getPropertyKey())) {
             DynamicPropertyId dynamicPropertyId = new DynamicPropertyId(dynamicProperty.getEntityType(), dynamicProperty.getPropertyKey());
             dynamicPropertyRef = repository.getReferenceById(dynamicPropertyId);
             try {
@@ -107,15 +139,15 @@ public class DynamicPropertyService {
     }
 
     public Page<? extends DynamicProperty> queryDynamicProperty(Class<? extends DynamicProperty> clazz, Pageable pageable) {
-       return getRepository(clazz).findAll(pageable);
+        return getRepository(clazz).findAll(pageable);
     }
 
-    private  DynamicPropertyRepository<? extends DynamicProperty, ?> getRepository(DynamicProperty dynamicProperty) {
-       return getRepository(dynamicProperty.getClass());
+    private DynamicPropertyRepository<? extends DynamicProperty, ?> getRepository(DynamicProperty dynamicProperty) {
+        return getRepository(dynamicProperty.getClass());
     }
 
     private <T extends DynamicProperty, ID> DynamicPropertyRepository<T, ID> getRepository(Class<? extends DynamicProperty> clazz) {
-        return (DynamicPropertyRepository<T, ID>)dynamicPropertyRepositories.stream()
+        return (DynamicPropertyRepository<T, ID>) dynamicPropertyRepositories.stream()
                 .filter(f -> clazz.equals(f.domainType()))
                 .findFirst().orElseThrow();
     }
@@ -124,7 +156,7 @@ public class DynamicPropertyService {
     private <T extends DynamicProperty, ID> void executeSave(DynamicProperty value) {
         // We cast the value to the repository's expected type T
         // This is safe because we filtered by domainType() in the previous step
-        ((DynamicPropertyRepository<T, ID>)getRepository(value)).save((T) value);
+        ((DynamicPropertyRepository<T, ID>) getRepository(value)).save((T) value);
     }
 
 }

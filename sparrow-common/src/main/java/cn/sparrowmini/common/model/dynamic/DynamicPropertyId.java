@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.model.dynamic;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,15 @@ public final class DynamicPropertyId implements Serializable {
 
     public DynamicPropertyId(String entityType, String propertyKey) {
         this.entityType = entityType;
+        this.propertyKey = propertyKey;
+    }
+
+    public DynamicPropertyId(Class<? extends DynamicProperty> clazz, String propertyKey) {
+        DiscriminatorValue dv = clazz.getAnnotation(DiscriminatorValue.class);
+        if (dv == null) {
+            throw new IllegalStateException("实体类 " + clazz.getSimpleName() + " 缺少 @DiscriminatorValue 注解");
+        }
+        this.entityType = dv.value();
         this.propertyKey = propertyKey;
     }
 
