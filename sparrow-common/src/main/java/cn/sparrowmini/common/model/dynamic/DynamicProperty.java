@@ -66,6 +66,7 @@ public class DynamicProperty extends BaseState implements Serializable {
 
     private String url;
 
+    @CollectionTable(name = TablePrefix.NAME + "dynamic_property_provider_data")
     @ElementCollection
     private List<ProviderData> providerData;
 
