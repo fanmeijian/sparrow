@@ -61,6 +61,10 @@ public class DynamicPropertyService {
         dynamicPropertyRepository.save(dynamicProperty);
     }
 
+    public DynamicProperty getDynamicProperty(DynamicPropertyId id) {
+        return dynamicPropertyRepository1.findById(id).orElseThrow();
+    }
+
     public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz, DynamicPropertyId id) {
         return getRepository(clazz).findById(id).orElseThrow();
     }
