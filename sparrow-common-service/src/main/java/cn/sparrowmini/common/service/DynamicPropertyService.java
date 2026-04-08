@@ -14,11 +14,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.Metamodel;
 import org.mvel2.MVEL;
+import org.mvel2.optimizers.dynamic.DynamicAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,11 +41,12 @@ public class DynamicPropertyService {
     @Autowired
     private DynamicPropertyRepository<DynamicProperty, DynamicPropertyId> dynamicPropertyRepository;
 
+
     @Autowired
     DictRepository dictRepository;
 
     @Resource
-    private DynamicPropertyRepository<? extends DynamicProperty,DynamicPropertyId> dynamicPropertyRepository1;
+    private DynamicPropertyRepository<? extends DynamicProperty, DynamicPropertyId> dynamicPropertyRepository1;
 
     public Page<DynamicProperty> getDynamicPropertyList(Pageable pageable, String filter) {
         return dynamicPropertyRepository.findAll(pageable, filter);
@@ -143,7 +146,10 @@ public class DynamicPropertyService {
     }
 
     public Page<? extends DynamicProperty> queryDynamicProperty(Class<? extends DynamicProperty> clazz, Pageable pageable) {
-        return getRepository(clazz).findAll(pageable);
+//        return getRepository(clazz).findAll(pageable);
+        String discriminator = clazz.getAnnotation(DiscriminatorValue.class).value();
+        Specification<DynamicProperty> specification = dynamicPropertyRepository.specificationEqual(DynamicProperty_.ENTITY_TYPE, discriminator);
+        return dynamicPropertyRepository.findAll(specification, pageable);
     }
 
     private DynamicPropertyRepository<? extends DynamicProperty, ?> getRepository(DynamicProperty dynamicProperty) {

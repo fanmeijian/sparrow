@@ -114,7 +114,7 @@ public abstract class DynamicPropertyValue<T, ID> extends BaseState {
     private DynamicPropertyId dynamicPropertyId;
 
     @JsonIgnore
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
             @JoinColumn(name = "entityType", insertable = false, updatable = false),
             @JoinColumn(name = "propertyKey", insertable = false, updatable = false)
