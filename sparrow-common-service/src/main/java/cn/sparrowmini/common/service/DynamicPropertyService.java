@@ -68,11 +68,11 @@ public class DynamicPropertyService {
         return dynamicPropertyRepository1.findById(id).orElseThrow();
     }
 
-    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz, DynamicPropertyId id) {
-        return getRepository(clazz).findById(id).orElseThrow();
+    public <T extends DynamicProperty> T getDynamicProperty(Class<? extends DynamicProperty> clazz, DynamicPropertyId id) {
+        return (T)getRepository(clazz).findById(id).orElseThrow();
     }
 
-    public DynamicProperty getDynamicProperty(Class<? extends DynamicProperty> clazz, String propertyKey) {
+    public <T extends DynamicProperty> T getDynamicProperty(Class<? extends DynamicProperty> clazz, String propertyKey) {
         DiscriminatorValue dv = clazz.getAnnotation(DiscriminatorValue.class);
         if (dv == null) {
             throw new IllegalStateException("实体类 " + clazz.getSimpleName() + " 缺少 @DiscriminatorValue 注解");
@@ -80,7 +80,7 @@ public class DynamicPropertyService {
         String entityType = dv.value();
         DynamicPropertyId id = new DynamicPropertyId(entityType, propertyKey);
 //        return getRepository(clazz).findById(id).orElseThrow();
-        return dynamicPropertyRepository1.findById(id).orElseThrow();
+        return (T)dynamicPropertyRepository1.findById(id).orElseThrow();
     }
 
     public <T extends DynamicProperty> List<ProviderDataValue> getProviderDataValue(T dynamicProperty) {

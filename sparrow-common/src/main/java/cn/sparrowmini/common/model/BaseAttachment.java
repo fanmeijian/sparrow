@@ -21,7 +21,7 @@ public abstract class BaseAttachment<F extends SprFile,T, ID> extends BaseState{
     private F file;
 
     @JsonIgnore
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "businessObjectId", updatable = false, insertable = false)
     private T businessObject;
 

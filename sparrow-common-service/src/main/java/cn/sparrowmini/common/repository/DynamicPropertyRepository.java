@@ -12,8 +12,11 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface DynamicPropertyRepository<T extends DynamicProperty,ID> extends BaseRepository<T,ID>{
+
+    Optional<T> findByPropertyKey(String key);
 
 //    @Query("select s from DynamicProperty s where s.propertyKey in (:keys)")
     default List<T> findByKeys(Collection<String> keys){
