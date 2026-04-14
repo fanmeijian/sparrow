@@ -13,6 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
+        <antlr.version>4.13.0</antlr.version>
 	</properties>
 
 	<dependencyManagement>
@@ -33,7 +34,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.13.1</version>
+            <version>${antlr.version}</version>
         </dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.module</groupId>
@@ -48,6 +49,12 @@
 			<groupId>cn.sparrowmini</groupId>
 			<artifactId>sparrow-common</artifactId>
 			<version>2.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
@@ -62,26 +69,6 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
         </dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.hibernate.orm</groupId>-->
-<!--			<artifactId>hibernate-processor</artifactId>-->
-<!--			<version>${hibernate.version}</version>-->
-<!--		</dependency>-->
-
-<!--		&lt;!&ndash; QueryDSL JPA 支持 &ndash;&gt;-->
-<!--		<dependency>-->
-<!--			<groupId>com.querydsl</groupId>-->
-<!--			<artifactId>querydsl-jpa</artifactId>-->
-<!--			<version>5.1.0</version> &lt;!&ndash; 支持 Hibernate 6/7 &ndash;&gt;-->
-<!--		</dependency>-->
-
-<!--		&lt;!&ndash; QueryDSL 注解处理器（用于生成 Q 类） &ndash;&gt;-->
-<!--		<dependency>-->
-<!--			<groupId>com.querydsl</groupId>-->
-<!--			<artifactId>querydsl-apt</artifactId>-->
-<!--			<version>5.1.0</version>-->
-<!--			<scope>provided</scope>-->
-<!--		</dependency>-->
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -136,7 +123,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.13.1</version>
+                <version>${antlr.version}</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
