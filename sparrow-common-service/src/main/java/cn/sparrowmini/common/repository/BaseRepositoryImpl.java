@@ -155,7 +155,10 @@ public class BaseRepositoryImpl<T, ID>
         List<Selection<?>> selections = ProjectionHelper.buildEntitySelection(
                 root, domainClass,projectionClass);
         query.multiselect(selections);
-        query.where(finalPredicate);
+        if(finalPredicate!=null){
+            query.where(finalPredicate);
+        }
+
 
         // 排序
         Sort sort = pageable.getSort();
@@ -227,7 +230,12 @@ public class BaseRepositoryImpl<T, ID>
                 : predicate != null ? predicate
                 : cb.conjunction();
         countQuery.select(cb.count(countRoot));
-        countQuery.where(countPredicate);
+        if(countPredicate==null){
+            countQuery.where(cb.conjunction());
+        }else{
+            countQuery.where(countPredicate);
+        }
+
         TypedQuery<Long> countTypedQuery = em.createQuery(countQuery);
 
         return PageableExecutionUtils.getPage(finalResult, pageable, countTypedQuery::getSingleResult);
