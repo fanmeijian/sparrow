@@ -6,8 +6,8 @@ services:
     ports:
       - "8202:80"
     environment:
-      - API_BASE=http://localhost:8200
-      - PEM_BASE=http://localhost:8200
-      - REALM=sportunione-prd
-      - CLIENT_ID=sport-web
+      - API_BASE=http://localhost:8601/chnplc-service
+      - PEM_BASE=http://localhost:8601/chnplc-service
+      - REALM=chnplc
+      - CLIENT_ID=chnplc-web
       - KEYCLOAK_API_BASE=https://keycloak.linkair-tech.cn
