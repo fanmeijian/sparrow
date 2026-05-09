@@ -137,6 +137,11 @@ public interface BaseRepository<T, ID>
     List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat);
 
     @Transactional
+    default ID upsert(Map<String, Object> entitiesMap){
+        return upsert(List.of(entitiesMap), false).get(0);
+    }
+
+    @Transactional
     default List<ID> upsert(List<Map<String, Object>> entitiesMap){
         return upsert(entitiesMap, false);
     }

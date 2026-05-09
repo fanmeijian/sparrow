@@ -26,6 +26,10 @@ public interface DynamicPropertyRepository<T extends DynamicProperty,ID> extends
         return findAll(specification);
     }
 
+    default boolean existsByKey(String entityType,String key) {
+        return existsById((ID) new DynamicPropertyId(entityType, key));
+    }
+
     default boolean existsByKey(String key) {
         // 1. 获取当前 Repository 接口定义的具体实体类 T
         Class<T> domainClass = domainType();

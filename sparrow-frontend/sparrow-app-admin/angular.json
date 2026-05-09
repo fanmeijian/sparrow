@@ -113,6 +113,9 @@
             },
             "development": {
               "browserTarget": "sparrow-app-admin:build:development"
+            },
+            "chnplc": {
+              "browserTarget": "sparrow-app-admin:build:development"
             }
           },
           "defaultConfiguration": "development"

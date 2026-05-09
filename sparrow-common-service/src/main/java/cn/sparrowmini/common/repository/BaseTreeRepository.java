@@ -190,9 +190,8 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
     }
 
     default Page<S> getAllChildren(ID parentId_, Pageable pageable_) {
-        Pageable pageable__= PageRequest.of(0,Integer.MAX_VALUE);
-        pageable__.getSort().and(Sort.by(BaseTree_.seq.getName()));
-        Pageable pageable = pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000 ? pageable__ : pageable_;
+        Pageable unPage= PageRequest.of(0,Integer.MAX_VALUE).withSort(Sort.by(Sort.Order.asc(BaseTree_.SEQ)));
+        Pageable pageable = pageable_ == null || pageable_.isUnpaged() || pageable_.getPageSize() >= 2000 ? unPage : pageable_;
         ID parentId = parentId_;
 
         if(parentId_ != null && existsByCode(parentId_.toString())) {
@@ -202,13 +201,53 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
         List<S> root = rootPage.getContent();
         root.forEach(r -> {
             if (countByParentId((ID) r.getId()) > 0) {
-                List<?> children = getAllChildren((ID) r.getId(), pageable).getContent();
-                r.getChildren().addAll(children);
-                r.setChildCount(children.size());
+                getAllChildren_(r);
+//                List<S> children = getAllChildren((ID) r.getId(), pageable).getContent();
+//                r.getChildren().addAll(children);
+//                r.setChildCount(children.size());
 
             }
         });
         return new PageImpl<>(root, pageable, rootPage.getTotalElements());
+    }
+
+    private void getAllChildren_(S parent){
+        ID parentId_ = (ID)parent.getId();
+        ID parentId = parentId_;
+        Pageable unPage= PageRequest.of(0,Integer.MAX_VALUE).withSort(Sort.by(Sort.Order.asc(BaseTree_.SEQ)));
+
+        if(parentId_ != null && existsByCode(parentId_.toString())) {
+            parentId = (ID)findByCode(parentId_.toString()).get().getId();
+        }
+        Page<S> rootPage = findByParentId(parentId, unPage);
+        List<S> root = rootPage.getContent();
+        parent.getChildren().addAll(root);
+        root.forEach(r -> {
+            if (countByParentId((ID) r.getId()) > 0) {
+                getAllChildren_(r);
+            }
+        });
+    }
+
+
+    @Query("select t.code from #{#entityName} t left join #{#entityName} p on p.id=t.parentId where p.code=:parentCode")
+    List<String> getChildrenCode(String parentCode);
+
+    default List<String> getAllChildrenCode(String parentCode) {
+        List<String> allChildren = new ArrayList<>();
+
+        // 1. 获取当前层级的直接子节点
+        List<String> directChildren = getChildrenCode(parentCode);
+
+        if (directChildren != null && !directChildren.isEmpty()) {
+            allChildren.addAll(directChildren);
+
+            // 2. 递归获取每个子节点的子节点
+            for (String childCode : directChildren) {
+                allChildren.addAll(getAllChildrenCode(childCode));
+            }
+        }
+        return allChildren;
     }
 
     @Query("select t.id from #{#entityName} t where t.parentId=:parentId ")

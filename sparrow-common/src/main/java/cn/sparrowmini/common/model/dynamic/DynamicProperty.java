@@ -127,10 +127,13 @@ public class DynamicProperty extends BaseState implements Serializable {
     public static class ProviderData implements Serializable {
         private String label;
         private String value;
+//        private long childCount;
+//        private List<ProviderData> children;
 
         public ProviderData(String label, String value) {
             this.label = label;
             this.value = value;
+//            this.childCount = childCount;
         }
     }
 

@@ -1,6 +1,7 @@
 package cn.sparrowmini.common.service;
 
 import cn.sparrowmini.common.SprCache;
+import cn.sparrowmini.common.model.BaseTree;
 import cn.sparrowmini.common.model.Dict;
 import cn.sparrowmini.common.model.Dict_;
 import cn.sparrowmini.common.model.dynamic.*;
@@ -11,10 +12,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.annotation.Resource;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.metamodel.EntityType;
-import jakarta.persistence.metamodel.Metamodel;
 import org.mvel2.MVEL;
-import org.mvel2.optimizers.dynamic.DynamicAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -56,7 +54,20 @@ public class DynamicPropertyService {
     public <T extends DynamicProperty> void saveDynamicProperty(String entityType, Map<String, Object> dynamicProperty) {
 
         Class<T> dynamicPropertyClass = (Class<T>) cache.getEntityClass(entityType);
-        T entity = JsonUtils.getMapper().convertValue(dynamicProperty, dynamicPropertyClass);
+        String propertyKey = dynamicProperty.get("propertyKey").toString();
+
+        T entity = null;
+
+        if (dynamicPropertyRepository.existsByKey(entityType, propertyKey)) {
+            entity = (T) dynamicPropertyRepository.getReferenceById(new DynamicPropertyId(entityType, propertyKey));
+            try {
+                JsonUtils.getMapper().updateValue(entity, dynamicProperty);
+            } catch (JsonMappingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            entity = JsonUtils.getMapper().convertValue(dynamicProperty, dynamicPropertyClass);
+        }
         dynamicPropertyRepository.save(entity);
     }
 
@@ -69,7 +80,7 @@ public class DynamicPropertyService {
     }
 
     public <T extends DynamicProperty> T getDynamicProperty(Class<? extends DynamicProperty> clazz, DynamicPropertyId id) {
-        return (T)getRepository(clazz).findById(id).orElseThrow();
+        return (T) getRepository(clazz).findById(id).orElseThrow();
     }
 
     public <T extends DynamicProperty> T getDynamicProperty(Class<? extends DynamicProperty> clazz, String propertyKey) {
@@ -80,7 +91,7 @@ public class DynamicPropertyService {
         String entityType = dv.value();
         DynamicPropertyId id = new DynamicPropertyId(entityType, propertyKey);
 //        return getRepository(clazz).findById(id).orElseThrow();
-        return (T)dynamicPropertyRepository1.findById(id).orElseThrow();
+        return (T) dynamicPropertyRepository1.findById(id).orElseThrow();
     }
 
     public <T extends DynamicProperty> List<ProviderDataValue> getProviderDataValue(T dynamicProperty) {
@@ -90,7 +101,10 @@ public class DynamicPropertyService {
         }
         final List<DynamicProperty.ProviderData> providerData = dynamicProperty.getProviderData();
         final String providerScript = dynamicProperty.getProviderScript();
+        final DynamicPropertyTypeEnum type = dynamicProperty.getType();
+
         List<DynamicProperty.ProviderData> list = new ArrayList<>();
+        List<ProviderDataValue> list2 = new ArrayList<>();
         Map<String, Object> vars = new HashMap<>();
         // 将 ProviderData 的 Class 对象传进去，脚本里可以直接用
         vars.put("ProviderData", cn.sparrowmini.common.model.dynamic.DynamicProperty.ProviderData.class);
@@ -99,16 +113,15 @@ public class DynamicPropertyService {
                 list = (List<DynamicProperty.ProviderData>) MVEL.eval(providerScript, vars);
                 break;
             case DICT:
-                List<Dict> dicts = dictRepository.findByParent(dynamicProperty.getUrl(), PageRequest.of(0, Integer.MAX_VALUE).withSort(Sort.by(Sort.Order.asc(Dict_.SEQ)))).getContent();
-                List<DynamicProperty.ProviderData> list1 = dicts.stream().map(m -> new DynamicProperty.ProviderData(m.getName(), m.getCode())).toList();
-                list = list1;
-                break;
+                List<Dict> dicts = dictRepository.getAllChildren(dynamicProperty.getUrl(), PageRequest.of(0, Integer.MAX_VALUE).withSort(Sort.by(Sort.Order.asc(Dict_.SEQ)))).getContent();
+                convertDict2ProviderData(dicts, list2,type);
+                return list2;
             default:
                 list = providerData;
                 break;
         }
-        List<ProviderDataValue> list2 = List.of();
-        final DynamicPropertyTypeEnum type = dynamicProperty.getType();
+
+
         if (type.equals(DynamicPropertyTypeEnum.Integer)) {
             list2 = list.stream().map(m -> new ProviderDataValue(m.getLabel(), Integer.parseInt(m.getValue()))).collect(Collectors.toList());
 
@@ -116,6 +129,23 @@ public class DynamicPropertyService {
             list2 = list.stream().map(m -> new ProviderDataValue(m.getLabel(), m.getValue())).collect(Collectors.toList());
         }
         return list2;
+    }
+
+    private void convertDict2ProviderData(List<?> dicts, List<ProviderDataValue> list2, DynamicPropertyTypeEnum type) {
+        dicts.forEach(dict_->{
+            Dict dict =  (Dict) dict_;
+            ProviderDataValue providerDataValue = new ProviderDataValue();
+            providerDataValue.setLabel(dict.getName());
+            Object value = type.equals(DynamicPropertyTypeEnum.Integer)?Integer.parseInt(dict.getCode()): dict.getCode() ;
+            providerDataValue.setValue(value);
+            list2.add(providerDataValue);
+            providerDataValue.setChildren(new ArrayList<>());
+            if(!dict.getChildren().isEmpty()){
+                providerDataValue.setChildCount(dict.getChildren().size());
+                convertDict2ProviderData(dict.getChildren(),providerDataValue.getChildren(),type);
+            }
+        });
+
     }
 
     @Transactional

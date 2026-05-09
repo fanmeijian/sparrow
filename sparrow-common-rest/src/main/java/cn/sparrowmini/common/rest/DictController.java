@@ -31,7 +31,7 @@ public class DictController {
     @PatchMapping("/move")
     @ResponseBody
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public void moveNode(@RequestParam Object currentId, @RequestParam Object nextId, String className) {
+    public void moveNode(@RequestParam Object currentId, @RequestParam Object nextId) {
         commonTreeService.moveNode(currentId, nextId, Dict.class);
     }
 
@@ -44,7 +44,7 @@ public class DictController {
      */
     @GetMapping("/children")
     @ResponseBody
-    public <T extends BaseTree, P extends BaseTreeDto> Page<?> getChildren(String parentId, Pageable pageable, String className, String projectionClassName, String filter, boolean withChildren) {
+    public <T extends BaseTree, P extends BaseTreeDto> Page<?> getChildren(String parentId, Pageable pageable, String projectionClassName, String filter, boolean withChildren) {
         Class<Dict> domainClass = Dict.class;
         Class<P> projectionClass = null;
         try {
@@ -72,7 +72,7 @@ public class DictController {
      */
     @GetMapping
     @ResponseBody
-    public <T extends BaseTree> T getNode(@RequestParam Object id, String className) {
+    public <T extends BaseTree> T getNode(@RequestParam Object id) {
         Class<T> domainClass = (Class<T>) Dict.class;
         return commonTreeService.getNode(id, domainClass);
     }
@@ -86,7 +86,7 @@ public class DictController {
     @PostMapping()
     @ResponseBody
     @ResponseStatus(code = HttpStatus.CREATED)
-    public <T extends BaseTree, ID> ApiResponse<List<ID>> saveNode(@RequestBody List<Map<String, Object>> entitiesMap, String className) {
+    public <T extends BaseTree, ID> ApiResponse<List<ID>> saveNode(@RequestBody List<Map<String, Object>> entitiesMap) {
         Class<T> domainClass = (Class<T>) Dict.class;
 
         return commonTreeService.saveNode(entitiesMap, domainClass);
@@ -100,7 +100,7 @@ public class DictController {
     @DeleteMapping("")
     @ResponseBody
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public <T extends BaseTree, ID> void deleteNode(@RequestParam("id") Set<ID> ids, String className) {
+    public <T extends BaseTree, ID> void deleteNode(@RequestParam("id") Set<ID> ids) {
         Class<T> domainClass = (Class<T>) Dict.class;
 
         commonTreeService.deleteNode(ids, domainClass);
