@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+<rdf:RDF xmlns="http://cn.liyuan.chnplc/ontology/cms#"
+     xml:base="http://cn.liyuan.chnplc/ontology/cms"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <owl:Ontology rdf:about="http://cn.liyuan.chnplc/ontology/cms">
+        <rdfs:comment>CMS Article Category and Standards Ontology for Chnplc</rdfs:comment>
+    </owl:Ontology>
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- 基类：文章 -->
+    <owl:Class rdf:about="#Article"/>
+
+    <!-- 子类：产品类文章 -->
+    <owl:Class rdf:about="#ProductArticle">
+        <rdfs:subClassOf rdf:resource="#Article"/>
+        <rdfs:label xml:lang="zh">产品类文章</rdfs:label>
+    </owl:Class>
+
+    <!-- 子类：方案类文章 -->
+    <owl:Class rdf:about="#SolutionArticle">
+        <rdfs:subClassOf rdf:resource="#Article"/>
+        <rdfs:label xml:lang="zh">方案类文章</rdfs:label>
+    </owl:Class>
+
+    <!-- 子类：送检类文章 -->
+    <owl:Class rdf:about="#InspectionArticle">
+        <rdfs:subClassOf rdf:resource="#Article"/>
+        <rdfs:label xml:lang="zh">送检类文章</rdfs:label>
+    </owl:Class>
+
+    <!-- 标准基类 -->
+    <owl:Class rdf:about="#ProductStandard">
+        <rdfs:label xml:lang="zh">产品标准</rdfs:label>
+    </owl:Class>
+
+    <!-- 国际标准 -->
+    <owl:Class rdf:about="#InternationalStandard">
+        <rdfs:subClassOf rdf:resource="#ProductStandard"/>
+        <rdfs:label xml:lang="zh">国际标准</rdfs:label>
+    </owl:Class>
+
+    <!-- 海外标准 -->
+    <owl:Class rdf:about="#OverseasStandard">
+        <rdfs:subClassOf rdf:resource="#ProductStandard"/>
+        <rdfs:label xml:lang="zh">海外标准</rdfs:label>
+    </owl:Class>
+
+    <!-- 地方标准 -->
+    <owl:Class rdf:about="#LocalStandard">
+        <rdfs:subClassOf rdf:resource="#ProductStandard"/>
+        <rdfs:label xml:lang="zh">地方标准</rdfs:label>
+    </owl:Class>
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- 关联属性：产品文章引用了某种标准 -->
+    <owl:ObjectProperty rdf:about="#hasStandard">
+        <rdfs:label xml:lang="zh">拥有标准</rdfs:label>
+        <rdfs:domain rdf:resource="#ProductArticle"/>
+        <rdfs:range rdf:resource="#ProductStandard"/>
+    </owl:ObjectProperty>
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <!-- 发布机构 (仅国际标准) -->
+    <owl:DatatypeProperty rdf:about="#pubOrg">
+        <rdfs:label xml:lang="zh">发布机构</rdfs:label>
+        <rdfs:domain rdf:resource="#InternationalStandard"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- 标准号 (仅国际标准) -->
+    <owl:DatatypeProperty rdf:about="#stdNo">
+        <rdfs:label xml:lang="zh">标准号</rdfs:label>
+        <rdfs:domain rdf:resource="#OverseasStandard"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- 发布地区 (仅海外标准) -->
+    <owl:DatatypeProperty rdf:about="#pubRegion">
+        <rdfs:label xml:lang="zh">发布地区</rdfs:label>
+        <rdfs:domain rdf:resource="#ProductArticle"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- 发布时间 (国际标准和海外标准共有) -->
+    <owl:DatatypeProperty rdf:about="#pubDate">
+        <rdfs:label xml:lang="zh">发布时间</rdfs:label>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#InternationalStandard"/>
+                    <rdf:Description rdf:about="#OverseasStandard"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+
+</rdf:RDF>

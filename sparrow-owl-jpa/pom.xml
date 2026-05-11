@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.sparrowmini</groupId>
-	<artifactId>sparrow-owl</artifactId>
+	<artifactId>sparrow-owl-jpa</artifactId>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 	<properties>
@@ -12,8 +12,23 @@
 		<junit-platform.version>5.3.1</junit-platform.version>
 	</properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.5.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 	<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>apache-jena-libs</artifactId>
@@ -21,6 +36,17 @@
             <type>pom</type>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>cn.sparrowmini</groupId>
+            <artifactId>sparrow-owl</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+		<dependency>
+            <groupId>cn.sparrowmini</groupId>
+            <artifactId>sparrow-common-service</artifactId>
+            <version>2.1.0</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -32,12 +58,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.11.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.20.0-rc1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
