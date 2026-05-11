@@ -22,6 +22,7 @@ import java.util.Set;
 @Table(name = TablePrefix.NAME + "file")
 public class SparrowFile extends BaseFile implements Serializable {
 
+    private String fileName;
     @ElementCollection
     @JoinTable(name = TablePrefix.NAME + "file_catalog")
     private Set<String> catalog;

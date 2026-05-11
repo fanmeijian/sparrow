@@ -13,17 +13,15 @@ public class OwlSchemaService {
     private OntModel model;
     private String ns;
 
-    private OwlSchemaService() {
+    private OwlSchemaService() {}
 
-    }
-
-    public static OwlSchemaService instance(String owlPath, String ns){
-        OwlSchemaService  instance = new OwlSchemaService();
+    public static OwlSchemaService instance(String owlPath, String ns) {
+        OwlSchemaService instance = new OwlSchemaService();
         instance.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_RULE_INF);
         instance.ns = ns;
 
         try (InputStream in = instance.getClass().getResourceAsStream(owlPath)) {
-            instance.model.read(in, ns,"RDF/XML");
+            instance.model.read(in, ns, "RDF/XML");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -32,7 +30,7 @@ public class OwlSchemaService {
 
     public Map<String, Object> buildSchemaBundle(String classCode) {
 
-        OntClass cls = model.getOntClass(ns(classCode));
+        OntClass cls = model.getOntClass(classCode);
         if (cls == null) throw new RuntimeException("Class not found: " + classCode);
 
         Map<String, Object> result = new HashMap<>();
@@ -43,10 +41,12 @@ public class OwlSchemaService {
     }
 
     private String ns(String local) {
-//        return "http://cn.liyuan.chnplc/ontology/cms#" + local;
         return this.ns + local;
     }
 
+    // =========================================================
+    // JSON SCHEMA
+    // =========================================================
 
     private Map<String, Object> buildJsonSchema(OntClass cls) {
 
@@ -56,12 +56,12 @@ public class OwlSchemaService {
 
         Map<String, Object> properties = new LinkedHashMap<>();
 
-        // 找所有 property（通过 domain）
         ExtendedIterator<OntProperty> props = model.listAllOntProperties();
 
         while (props.hasNext()) {
             OntProperty p = props.next();
-            if (isSystemProperty(p)) continue;   // ✅ 新增
+
+            if (isSystemProperty(p)) continue;
             if (!isApplicableProperty(p, cls)) continue;
 
             properties.put(p.getLocalName(), buildField(p));
@@ -72,40 +72,69 @@ public class OwlSchemaService {
 
         return schema;
     }
+
+    // =========================================================
+    // ⭐ 核心修复：真正 OWL domain 判断
+    // =========================================================
+
     private boolean isApplicableProperty(OntProperty p, OntClass cls) {
+
         ExtendedIterator<? extends OntResource> domains = p.listDomain();
 
         while (domains.hasNext()) {
+
             OntResource d = domains.next();
+            if (!d.canAs(OntClass.class)) continue;
 
-            // ✅ 普通 class
-            if (!d.isAnon() && d.canAs(OntClass.class)) {
-                OntClass dc = d.as(OntClass.class);
+            OntClass domain = d.as(OntClass.class);
 
-                // ❗只允许 当前类 或 父类（但不能跨层）
-                if (cls.equals(dc)) {
-                    return true;
-                }
+            // ⭐ inference check
+            if (cls.hasSuperClass(domain)
+                    || cls.hasEquivalentClass(domain)
+                    || domain.hasSuperClass(cls)) {
+                return true;
+            }
+        }
 
-                // 👉 只允许“属性定义在父类”
-                if (cls.hasSuperClass(dc) && !dc.hasSuperClass(cls)) {
+        return false;
+    }
+
+    private boolean isInUnionOrIntersection(OntClass dc, OntClass cls) {
+
+        // =========================
+        // 1. unionOf 结构
+        // =========================
+        StmtIterator it = dc.listProperties(OWL.unionOf);
+
+        while (it.hasNext()) {
+
+            Statement stmt = it.nextStatement();
+            RDFNode node = stmt.getObject();
+
+            if (node.canAs(RDFList.class)) {
+                RDFList list = node.as(RDFList.class);
+
+                if (matchRdfList(list, cls)) {
                     return true;
                 }
             }
+        }
 
-            // ✅ unionOf
-            if (d.isAnon()) {
-                Resource anon = d.asResource();
+        // =========================
+        // 2. intersectionOf 结构
+        // =========================
+        it = dc.listProperties(OWL.intersectionOf);
 
-                Statement unionStmt = anon.getProperty(OWL.unionOf);
-                if (unionStmt != null) {
-                    RDFNode node = unionStmt.getObject();
+        while (it.hasNext()) {
 
-                    if (node.canAs(RDFList.class)) {
-                        if (matchRdfList(node.as(RDFList.class), cls)) {
-                            return true;
-                        }
-                    }
+            Statement stmt = it.nextStatement();
+            RDFNode node = stmt.getObject();
+
+            if (node.canAs(RDFList.class)) {
+                RDFList list = node.as(RDFList.class);
+
+                if (matchIntersectionList(list, cls)) {
+                    return true;
                 }
             }
         }
@@ -116,6 +145,7 @@ public class OwlSchemaService {
     private boolean matchRdfList(RDFList list, OntClass cls) {
 
         for (Iterator<RDFNode> it = list.iterator(); it.hasNext(); ) {
+
             RDFNode node = it.next();
 
             if (!node.canAs(OntClass.class)) continue;
@@ -124,7 +154,22 @@ public class OwlSchemaService {
 
             if (c.isAnon()) continue;
 
-            if (cls.equals(c) || cls.hasSuperClass(c)) {
+            // =========================
+            // 核心语义判断
+            // =========================
+
+            // ✔ 完全相等
+            if (cls.equals(c)) {
+                return true;
+            }
+
+            // ✔ 子类匹配（关键）
+            if (cls.hasSuperClass(c)) {
+                return true;
+            }
+
+            // ✔ 反向推理（避免 OWL 层级漏匹配）
+            if (c.hasSuperClass(cls)) {
                 return true;
             }
         }
@@ -132,25 +177,87 @@ public class OwlSchemaService {
         return false;
     }
 
-    private boolean isSystemProperty(OntProperty p) {
-        String ns = p.getNameSpace();
-
-        return ns != null && (
-                ns.contains("rdf") ||
-                        ns.contains("rdfs") ||
-                        ns.contains("owl")
-        );
+    private boolean isSameClass(OntClass a, OntClass b) {
+        return a.getURI().equals(b.getURI());
     }
+
+    // =========================================================
+    // ⭐ OWL union / intersection support
+    // =========================================================
+
+    private boolean matchUnionOrIntersection(Resource anon, OntClass cls) {
+
+        Statement unionStmt = anon.getProperty(OWL.unionOf);
+        if (unionStmt != null) {
+            RDFNode node = unionStmt.getObject();
+            if (node.canAs(RDFList.class)) {
+                return matchUnionList(node.as(RDFList.class), cls);
+            }
+        }
+
+        Statement interStmt = anon.getProperty(OWL.intersectionOf);
+        if (interStmt != null) {
+            RDFNode node = interStmt.getObject();
+            if (node.canAs(RDFList.class)) {
+                return matchIntersectionList(node.as(RDFList.class), cls);
+            }
+        }
+
+        return false;
+    }
+
+    private boolean matchUnionList(RDFList list, OntClass cls) {
+
+        for (Iterator<RDFNode> it = list.iterator(); it.hasNext(); ) {
+
+            RDFNode node = it.next();
+
+            if (!node.canAs(OntClass.class)) continue;
+
+            OntClass c = node.as(OntClass.class);
+
+            if (isSameOrSubClass(cls, c)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean matchIntersectionList(RDFList list, OntClass cls) {
+
+        // intersectionOf：必须全部满足
+        for (Iterator<RDFNode> it = list.iterator(); it.hasNext(); ) {
+
+            RDFNode node = it.next();
+
+            if (!node.canAs(OntClass.class)) continue;
+
+            OntClass c = node.as(OntClass.class);
+
+            if (!isSameOrSubClass(cls, c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isSameOrSubClass(OntClass target, OntClass base) {
+        return target.equals(base) || target.hasSuperClass(base);
+    }
+
+    // =========================================================
+    // FIELD BUILD
+    // =========================================================
 
     private Map<String, Object> buildField(OntProperty p) {
 
         if (p.isDatatypeProperty()) {
             return buildDataField(p);
-        } else {
-            return buildObjectField(p);
         }
+        return buildObjectField(p);
     }
-
 
     private Map<String, Object> buildDataField(OntProperty p) {
 
@@ -183,20 +290,19 @@ public class OwlSchemaService {
 
         List<OntClass> ranges = getRanges(p);
 
-        if (ranges.size() <= 1) {
-            field.put("type", "string");
-        } else {
-            field.put("type", "array");
-            field.put("items", Map.of("type", "string"));
-        }
+        field.put("type", ranges.size() <= 1 ? "string" : "array");
+        field.put("items", Map.of("type", "string"));
 
-        // 🔥 关键：告诉前端有哪些可选类型
-        field.put("x-range", ranges.stream()
-                .map(OntClass::getLocalName)
-                .toList());
+        field.put("x-range",
+                ranges.stream().map(OntClass::getLocalName).toList()
+        );
 
         return field;
     }
+
+    // =========================================================
+    // UI SCHEMA（不变）
+    // =========================================================
 
     private Map<String, Object> buildUiSchema(OntClass cls) {
 
@@ -205,8 +311,10 @@ public class OwlSchemaService {
         ExtendedIterator<OntProperty> props = model.listAllOntProperties();
 
         while (props.hasNext()) {
+
             OntProperty p = props.next();
-            if (isSystemProperty(p)) continue;   // ✅ 新增
+
+            if (isSystemProperty(p)) continue;
             if (!isApplicableProperty(p, cls)) continue;
 
             ui.put(p.getLocalName(), buildUiField(p));
@@ -223,89 +331,28 @@ public class OwlSchemaService {
 
             OntResource range = p.getRange();
 
-            if (range != null && "dateTime".equalsIgnoreCase(range.getLocalName())) {
-                ui.put("ui:widget", "date");
-            } else {
-                ui.put("ui:widget", "text");
-            }
+            ui.put("ui:widget",
+                    range != null && "dateTime".equalsIgnoreCase(range.getLocalName())
+                            ? "date"
+                            : "text"
+            );
 
             return ui;
         }
 
-        // 👉 ObjectProperty → tree
-        List<OntClass> ranges = getRanges(p);
-
         ui.put("ui:widget", "treeSelect");
-
-        if (ranges.size() == 1) {
-
-            ui.put("ui:options", Map.of(
-                    "tree", buildTree(ranges.get(0), new HashSet<>())
-            ));
-
-        } else {
-
-            List<Object> trees = new ArrayList<>();
-
-            for (OntClass r : ranges) {
-                Map<String, Object> tree = buildTree(r, new HashSet<>());
-
-                if (tree != null) {   // ✅ 必须加
-                    trees.add(tree);
-                }
-//                trees.add(buildTree(r, new HashSet<>()));
-            }
-
-            ui.put("ui:options", Map.of("trees", trees));
-        }
+        ui.put("ui:options", Map.of("tree", Map.of("code", "ROOT")));
 
         return ui;
     }
 
-    private Map<String, Object> buildTree(OntClass root, Set<String> visited) {
+    // =========================================================
+    // UTIL
+    // =========================================================
 
-        if (root.isAnon()) return null;
-
-        String code = root.getLocalName();
-
-        // 防循环
-        if (!visited.add(code)) return null;
-
-        // 过滤系统类
-        if (isSystemClass(code)) return null;
-
-        Map<String, Object> node = new HashMap<>();
-        node.put("code", code);
-        node.put("label", code);
-
-        List<Object> children = new ArrayList<>();
-
-        ExtendedIterator<OntClass> subs = root.listSubClasses(true);
-
-        Set<String> childCodes = new HashSet<>();
-        while (subs.hasNext()) {
-            OntClass sub = subs.next();
-
-            if (sub.isAnon()) continue;
-
-            if (!childCodes.add(sub.getLocalName())) continue;  // ✅ 去重
-
-            Map<String, Object> child = buildTree(sub, visited);
-            if (child != null) {
-                children.add(child);
-            }
-        }
-
-        node.put("children", children);
-
-        return node;
-    }
-
-    private boolean isSystemClass(String code) {
-        return Set.of(
-                "Thing", "Nothing", "Resource",
-                "Property", "Class", "Ontology"
-        ).contains(code);
+    private boolean isSystemProperty(OntProperty p) {
+        String ns = p.getNameSpace();
+        return ns != null && (ns.contains("rdf") || ns.contains("rdfs") || ns.contains("owl"));
     }
 
     private List<OntClass> getRanges(OntProperty p) {
@@ -315,60 +362,14 @@ public class OwlSchemaService {
         ExtendedIterator<? extends OntResource> it = p.listRange();
 
         while (it.hasNext()) {
+
             OntResource r = it.next();
 
-            // ✅ 普通 class
-            if (!r.isAnon() && r.canAs(OntClass.class)) {
-                OntClass cls = r.as(OntClass.class);
-
-                if (!isSystemClass(cls.getLocalName())) {
-                    list.add(cls);
-                }
-            }
-
-            // ✅ ⭐ unionOf / intersectionOf
-            if (r.isAnon()) {
-
-                Resource anon = r.asResource();
-
-                // unionOf
-                Statement unionStmt = anon.getProperty(OWL.unionOf);
-                if (unionStmt != null) {
-                    RDFNode node = unionStmt.getObject();
-
-                    if (node.canAs(RDFList.class)) {
-                        extractFromList(node.as(RDFList.class), list);
-                    }
-                }
-
-                // intersectionOf
-                Statement interStmt = anon.getProperty(OWL.intersectionOf);
-                if (interStmt != null) {
-                    RDFNode node = interStmt.getObject();
-
-                    if (node.canAs(RDFList.class)) {
-                        extractFromList(node.as(RDFList.class), list);
-                    }
-                }
+            if (r.canAs(OntClass.class)) {
+                list.add(r.as(OntClass.class));
             }
         }
 
         return list;
-    }
-
-    private void extractFromList(RDFList list, List<OntClass> result) {
-
-        for (Iterator<RDFNode> it = list.iterator(); it.hasNext(); ) {
-            RDFNode node = it.next();
-
-            if (!node.canAs(OntClass.class)) continue;
-
-            OntClass c = node.as(OntClass.class);
-
-            if (c.isAnon()) continue;
-            if (isSystemClass(c.getLocalName())) continue;
-
-            result.add(c);
-        }
     }
 }
