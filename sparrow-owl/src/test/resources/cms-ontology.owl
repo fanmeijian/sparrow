@@ -1,74 +1,39 @@
 <?xml version="1.0"?>
-<!DOCTYPE rdf:RDF [
-    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
-    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
-    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
-    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
-]>
-
 <rdf:RDF xmlns="http://cn.liyuan.chnplc/ontology/cms#"
      xml:base="http://cn.liyuan.chnplc/ontology/cms"
-     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:ui="http://example.org/ui#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
-
     <owl:Ontology rdf:about="http://cn.liyuan.chnplc/ontology/cms">
         <rdfs:comment>CMS Article Category and Standards Ontology for Chnplc</rdfs:comment>
     </owl:Ontology>
+    
+
 
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // Classes
+    // Annotation properties
     //
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    <!-- 基类：文章 -->
-    <owl:Class rdf:about="#Article"/>
+    
 
-    <!-- 子类：产品类文章 -->
-    <owl:Class rdf:about="#ProductArticle">
-        <rdfs:subClassOf rdf:resource="#Article"/>
-        <rdfs:label xml:lang="zh">产品类文章</rdfs:label>
-    </owl:Class>
 
-    <!-- 子类：方案类文章 -->
-    <owl:Class rdf:about="#SolutionArticle">
-        <rdfs:subClassOf rdf:resource="#Article"/>
-        <rdfs:label xml:lang="zh">方案类文章</rdfs:label>
-    </owl:Class>
+    <!-- http://example.org/ui#isVisibleInFilter -->
 
-    <!-- 子类：送检类文章 -->
-    <owl:Class rdf:about="#InspectionArticle">
-        <rdfs:subClassOf rdf:resource="#Article"/>
-        <rdfs:label xml:lang="zh">送检类文章</rdfs:label>
-    </owl:Class>
+    <owl:AnnotationProperty rdf:about="http://example.org/ui#isVisibleInFilter"/>
+    
 
-    <!-- 标准基类 -->
-    <owl:Class rdf:about="#ProductStandard">
-        <rdfs:label xml:lang="zh">产品标准</rdfs:label>
-    </owl:Class>
 
-    <!-- 国际标准 -->
-    <owl:Class rdf:about="#InternationalStandard">
-        <rdfs:subClassOf rdf:resource="#ProductStandard"/>
-        <rdfs:label xml:lang="zh">国际标准</rdfs:label>
-    </owl:Class>
+    <!-- http://example.org/ui#isVisibleInNavigation -->
 
-    <!-- 海外标准 -->
-    <owl:Class rdf:about="#OverseasStandard">
-        <rdfs:subClassOf rdf:resource="#ProductStandard"/>
-        <rdfs:label xml:lang="zh">海外标准</rdfs:label>
-    </owl:Class>
-
-    <!-- 地方标准 -->
-    <owl:Class rdf:about="#LocalStandard">
-        <rdfs:subClassOf rdf:resource="#ProductStandard"/>
-        <rdfs:label xml:lang="zh">地方标准</rdfs:label>
-    </owl:Class>
+    <owl:AnnotationProperty rdf:about="http://example.org/ui#isVisibleInNavigation"/>
+    
 
 
     <!-- 
@@ -79,55 +44,158 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    <!-- 关联属性：产品文章引用了某种标准 -->
-    <owl:ObjectProperty rdf:about="#hasStandard">
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasStandard -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasStandard">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#ProductArticle"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#ProductStandard"/>
         <rdfs:label xml:lang="zh">拥有标准</rdfs:label>
-        <rdfs:domain rdf:resource="#ProductArticle"/>
-        <rdfs:range rdf:resource="#ProductStandard"/>
     </owl:ObjectProperty>
+    
 
 
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // Data Properties
+    // Data properties
     //
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    <!-- 发布机构 (仅国际标准) -->
-    <owl:DatatypeProperty rdf:about="#pubOrg">
-        <rdfs:label xml:lang="zh">发布机构</rdfs:label>
-        <rdfs:domain rdf:resource="#InternationalStandard"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
+    
 
-    <!-- 标准号 (仅国际标准) -->
-    <owl:DatatypeProperty rdf:about="#stdNo">
-        <rdfs:label xml:lang="zh">标准号</rdfs:label>
-        <rdfs:domain rdf:resource="#OverseasStandard"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
 
-    <!-- 发布地区 (仅海外标准) -->
-    <owl:DatatypeProperty rdf:about="#pubRegion">
-        <rdfs:label xml:lang="zh">发布地区</rdfs:label>
-        <rdfs:domain rdf:resource="#ProductArticle"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
+    <!-- http://cn.liyuan.chnplc/ontology/cms#pubDate -->
 
-    <!-- 发布时间 (国际标准和海外标准共有) -->
-    <owl:DatatypeProperty rdf:about="#pubDate">
-        <rdfs:label xml:lang="zh">发布时间</rdfs:label>
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#pubDate">
         <rdfs:domain>
             <owl:Class>
                 <owl:unionOf rdf:parseType="Collection">
-                    <rdf:Description rdf:about="#InternationalStandard"/>
-                    <rdf:Description rdf:about="#OverseasStandard"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#OverseasStandard"/>
                 </owl:unionOf>
             </owl:Class>
         </rdfs:domain>
-        <rdfs:range rdf:resource="&xsd;dateTime"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label xml:lang="zh">发布时间</rdfs:label>
     </owl:DatatypeProperty>
+    
 
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#pubOrg -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#pubOrg">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">发布机构</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#pubRegion -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#pubRegion">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#ProductArticle"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">发布地区</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#stdNo -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#stdNo">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#OverseasStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准号</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Article -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Article"/>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#InspectionArticle -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#InspectionArticle">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Article"/>
+        <rdfs:label xml:lang="zh">送检类文章</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#InternationalStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#ProductStandard"/>
+        <rdfs:label xml:lang="zh">国际标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#LocalStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#LocalStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#ProductStandard"/>
+        <rdfs:label xml:lang="zh">地方标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#OverseasStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#OverseasStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#ProductStandard"/>
+        <rdfs:label xml:lang="zh">海外标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ProductArticle -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ProductArticle">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Article"/>
+        <rdfs:label xml:lang="zh">产品类文章</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ProductStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ProductStandard">
+        <ui:isVisibleInFilter rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</ui:isVisibleInFilter>
+        <ui:isVisibleInNavigation rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</ui:isVisibleInNavigation>
+        <rdfs:label xml:lang="zh">产品标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SolutionArticle -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SolutionArticle">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Article"/>
+        <rdfs:label xml:lang="zh">方案类文章</rdfs:label>
+    </owl:Class>
 </rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi -->
+

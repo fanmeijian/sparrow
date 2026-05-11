@@ -5,6 +5,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Test {
     @org.junit.jupiter.api.Test
+    public void test6() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        String owlPath = "/cms-ontology.owl";
+        String ns = "http://cn.liyuan.chnplc/ontology/cms#";
+        OwlParserService owlParserService = OwlParserService
+                .builder()
+                .ns(ns)
+                .ontologyPath(owlPath)
+                .build();
+        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("ProductStandard")));
+
+    }
+
+    @org.junit.jupiter.api.Test
+    public void test5() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        String owlPath = "/cms-ontology.owl";
+        String ns = "http://cn.liyuan.chnplc/ontology/cms#";
+        OwlParserService owlParserService = OwlParserService
+                .builder()
+                .ns(ns)
+                .ontologyPath(owlPath)
+                .build();
+        System.out.println(mapper.writeValueAsString(owlParserService.getOwlClass("ProductStandard")));
+
+    }
+
+    @org.junit.jupiter.api.Test
     public void test4() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         String owlPath = "/cms-ontology.owl";
@@ -14,7 +42,7 @@ public class Test {
                 .ns(ns)
                 .ontologyPath(owlPath)
                 .build();
-        System.out.println(mapper.writeValueAsString(owlParserService.getChildClasses("ProductStandard")));
+        System.out.println(mapper.writeValueAsString(owlParserService.getChildClasses("ProductArticle")));
     }
 
     @org.junit.jupiter.api.Test

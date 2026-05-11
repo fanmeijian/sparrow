@@ -1,6 +1,6 @@
 package cn.sparrowmini.owl.jpa;
 
-import cn.sparrowmini.owl.jpa.service.OwlParserService;
+import cn.sparrowmini.owl.OwlParserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.jena.ontapi.OntModelFactory;

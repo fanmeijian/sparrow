@@ -3,9 +3,11 @@ package cn.sparrowmini.owl;
 import lombok.Builder;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
+import org.apache.jena.ontapi.model.OntAnnotationProperty;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontology.AnnotationProperty;
 import org.apache.jena.rdf.model.Resource;
 
 import java.io.InputStream;
@@ -47,7 +49,38 @@ public class OwlParserService {
         return owlClassV2Trees;
     }
 
-    public List<OwlClassV2> getChildClasses(String className) {
+    public List<OwlClassV2Tree> getClassTree(String className) {
+        OntClass.Named cls = model.getOntClass(this.ns + className);
+        if (cls == null) throw new RuntimeException("Class not found: " + this.ns + className);
+        return this.getClassTree(cls);
+    }
+
+    private List<OwlClassV2Tree> getClassTree(OntClass.Named cls) {
+        OwlClassV2Tree owlClassV2Tree = OwlClassV2Tree.builder()
+                .name(cls.getLocalName())
+                .label(cls.getLabel())
+                .build();
+        buildOwlClassV2Tree(owlClassV2Tree, cls);
+        return owlClassV2Tree.getChildren();
+    }
+
+    public OwlClassV2 getOwlClass(String className) {
+        OntClass.Named cls = model.getOntClass(this.ns + className);
+        if (cls == null) throw new RuntimeException("Class not found: " + this.ns + className);
+
+        return getOwlClass(cls);
+    }
+
+    private OwlClassV2 getOwlClass(OntClass ontClass){
+        return OwlClassV2.builder()
+                .name(ontClass.getLocalName())
+                .label(ontClass.getLabel())
+                .properties(getProperties(ontClass.asNamed()))
+                .build();
+    }
+
+
+    public List<OwlClassV2>  getChildClasses(String className) {
         OntClass.Named cls = model.getOntClass(this.ns + className);
         if (cls == null) throw new RuntimeException("Class not found: " + this.ns + className);
         return this.getChildClasses(cls);
@@ -89,7 +122,16 @@ public class OwlParserService {
     }
 
     private List<OwlPropertyV2> getProperties(OntClass.Named ontClass) {
-        return ontClass.properties().map(prop -> OwlPropertyV2.builder()
+        // 2. 获取自定义的 Annotation Property 引用
+
+        List<OwlPropertyV2> annotations = model.annotationProperties().map(prop->OwlPropertyV2.builder()
+                .name(prop.getLocalName())
+                .label(prop.getLabel())
+                .type(OwlPropertyTypeEnum.ANNOTATION)
+                .ranges(ontClass.getProperty(prop)!=null? List.of(ontClass.getProperty(prop).getLiteral().getString()): null)
+                .build()
+        ).collect(Collectors.toList());
+        List<OwlPropertyV2> propertyV2s = ontClass.properties().map(prop -> OwlPropertyV2.builder()
                         .name(prop.getLocalName())
                         .label(prop.getLabel())
                         .type(prop.canAs(OntObjectProperty.class) ? OwlPropertyTypeEnum.OBJECT : OwlPropertyTypeEnum.DATA)
@@ -97,6 +139,8 @@ public class OwlParserService {
                         .build()
                 )
                 .collect(Collectors.toList()); // 使用 collect 显式归集
+        propertyV2s.addAll(annotations);
+        return propertyV2s;
 
     }
 
