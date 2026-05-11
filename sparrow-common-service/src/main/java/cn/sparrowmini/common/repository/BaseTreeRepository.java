@@ -222,6 +222,7 @@ public interface BaseTreeRepository<S extends BaseTree, ID> extends BaseStateRep
         Page<S> rootPage = findByParentId(parentId, unPage);
         List<S> root = rootPage.getContent();
         parent.getChildren().addAll(root);
+        parent.setChildCount(rootPage.getTotalElements());
         root.forEach(r -> {
             if (countByParentId((ID) r.getId()) > 0) {
                 getAllChildren_(r);
