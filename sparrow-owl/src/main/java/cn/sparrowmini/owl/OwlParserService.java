@@ -128,7 +128,7 @@ public class OwlParserService {
                 .name(prop.getLocalName())
                 .label(prop.getLabel())
                 .type(OwlPropertyTypeEnum.ANNOTATION)
-                .ranges(ontClass.getProperty(prop)!=null? List.of(ontClass.getProperty(prop).getLiteral().getString()): null)
+                .ranges(ontClass.getProperty(prop)!=null? List.of(ontClass.getProperty(prop).getLiteral().getValue()): null)
                 .build()
         ).collect(Collectors.toList());
         List<OwlPropertyV2> propertyV2s = ontClass.properties().map(prop -> OwlPropertyV2.builder()

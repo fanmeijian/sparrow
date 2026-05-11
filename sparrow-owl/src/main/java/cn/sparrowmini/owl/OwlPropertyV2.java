@@ -13,5 +13,5 @@ public class OwlPropertyV2 {
     private String name;
     private String label;
     private OwlPropertyTypeEnum type;
-    private List<String> ranges;
+    private List<?> ranges;
 }
