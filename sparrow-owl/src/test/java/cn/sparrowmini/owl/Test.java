@@ -1,9 +1,7 @@
-package cn.sparrowmini.owl.jpa;
+package cn.sparrowmini.owl;
 
-import cn.sparrowmini.owl.OwlParserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.jena.ontapi.model.*;
 
 public class Test {
     @org.junit.jupiter.api.Test
