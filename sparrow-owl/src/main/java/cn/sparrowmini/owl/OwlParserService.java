@@ -7,6 +7,7 @@ import org.apache.jena.ontapi.model.OntAnnotationProperty;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntObjectProperty;
+import org.apache.jena.ontapi.model.OntProperty;
 import org.apache.jena.ontology.AnnotationProperty;
 import org.apache.jena.rdf.model.Resource;
 
@@ -56,12 +57,13 @@ public class OwlParserService {
     }
 
     private List<OwlClassV2Tree> getClassTree(OntClass.Named cls) {
-        OwlClassV2Tree owlClassV2Tree = OwlClassV2Tree.builder()
-                .name(cls.getLocalName())
-                .label(cls.getLabel())
-                .build();
-        buildOwlClassV2Tree(owlClassV2Tree, cls);
-        return owlClassV2Tree.getChildren();
+//        OwlClassV2Tree owlClassV2Tree = OwlClassV2Tree.builder()
+//                .name(cls.getLocalName())
+//                .label(cls.getLabel())
+//                .build();
+//        buildOwlClassV2Tree(owlClassV2Tree, cls);
+//        return owlClassV2Tree.getChildren();
+        return buildOwlClassV2Tree(cls);
     }
 
     public OwlClassV2 getOwlClass(String className) {
@@ -107,9 +109,44 @@ public class OwlParserService {
 
     }
 
+    private List<OwlClassV2Tree> getChildren(OntClass ontClass) {
+        List<OwlClassV2Tree> children = new ArrayList<>();
+
+        ontClass.subClasses().forEach(subClass -> {
+            OwlClassV2Tree child = OwlClassV2Tree.builder()
+                    .name(subClass.getLocalName())
+                    .label(subClass.getLabel())
+                    .build();
+            child.setChildren(new ArrayList<>());
+            if(subClass.subClasses().findAny().isPresent()){
+                System.out.println(subClass.getLabel()+"--"+subClass.subClasses().toList().size());
+                child.getChildren().addAll(buildOwlClassV2Tree(subClass));
+            }
+
+            children.add(child);
+        });
+        return children;
+    }
+
+    private List<OwlClassV2Tree> buildOwlClassV2Tree(OntClass ontClass) {
+        List<OwlClassV2Tree> children = new ArrayList<>();
+        ontClass.subClasses(true).forEach(subClass -> {
+            OwlClassV2Tree child = OwlClassV2Tree.builder()
+                    .name(subClass.getLocalName())
+                    .label(subClass.getLabel())
+                    .children(new ArrayList<>())
+                    .build();
+            child.setProperties(this.getProperties(subClass.asNamed()));
+            child.getChildren().addAll(buildOwlClassV2Tree(subClass));
+            children.add(child);
+        });
+        return children;
+    }
+
     private void buildOwlClassV2Tree(OwlClassV2Tree owlClassV2Tree, OntClass ontClass) {
         List<OwlClassV2Tree> children = new ArrayList<>();
-        ontClass.subClasses().forEach(subClass -> {
+        System.out.println(ontClass.getLabel()+"--"+ontClass.subClasses().toList().size());
+        ontClass.subClasses(true).forEach(subClass -> {
             OwlClassV2Tree child = OwlClassV2Tree.builder()
                     .name(subClass.getLocalName())
                     .label(subClass.getLabel())
@@ -136,12 +173,37 @@ public class OwlParserService {
                         .label(prop.getLabel())
                         .type(prop.canAs(OntObjectProperty.class) ? OwlPropertyTypeEnum.OBJECT : OwlPropertyTypeEnum.DATA)
                         .ranges(prop.ranges().map(Resource::getLocalName).toList())
+                        .uiType(extractUiType(prop))
                         .build()
                 )
                 .collect(Collectors.toList()); // 使用 collect 显式归集
+        
+        
+//        List<OwlPropertyV2> propertyV2s = ontClass.properties()
+//                .map(prop -> OwlPropertyV2.builder()
+//                        .name(prop.getLocalName())
+//                        .label(prop.getLabel())
+//                        .type(prop.canAs(OntObjectProperty.class) ? OwlPropertyTypeEnum.OBJECT : OwlPropertyTypeEnum.DATA)
+//                        .ranges(prop.ranges().map(Resource::getLocalName).toList())
+//                        .uiType(extractUiType(prop)) // 干净的单行调用，编译器绝不会报错
+//                        .build()
+//                )
+//                .collect(Collectors.toList());
+        
         propertyV2s.addAll(annotations);
         return propertyV2s;
 
     }
 
+ // 抽取出来的私有辅助方法
+    private String extractUiType(OntProperty prop) {
+        var stmtIter = prop.listProperties();
+        while (stmtIter.hasNext()) {
+            var stmt = stmtIter.next();
+            if ("uiType".equals(stmt.getPredicate().getLocalName())) {
+                return stmt.getObject().asLiteral().getString();
+            }
+        }
+        return null;
+    }
 }

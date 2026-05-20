@@ -12,6 +12,7 @@ import java.util.List;
 public class OwlPropertyV2 {
     private String name;
     private String label;
+    private String uiType;
     private OwlPropertyTypeEnum type;
     private List<?> ranges;
 }

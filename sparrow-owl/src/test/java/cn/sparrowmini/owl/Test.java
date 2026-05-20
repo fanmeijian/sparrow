@@ -14,7 +14,7 @@ public class Test {
                 .ns(ns)
                 .ontologyPath(owlPath)
                 .build();
-        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("ProductStandard")));
+        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("PowerStandard")));
 
     }
 
@@ -28,7 +28,7 @@ public class Test {
                 .ns(ns)
                 .ontologyPath(owlPath)
                 .build();
-        System.out.println(mapper.writeValueAsString(owlParserService.getOwlClass("ProductStandard")));
+        System.out.println(mapper.writeValueAsString(owlParserService.getOwlClass("M_001")));
 
     }
 
