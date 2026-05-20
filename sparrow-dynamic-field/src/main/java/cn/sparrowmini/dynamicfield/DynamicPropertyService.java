@@ -1,13 +1,10 @@
-package cn.sparrowmini.common.service;
+package cn.sparrowmini.dynamicfield;
 
-import cn.sparrowmini.common.SprCache;
-import cn.sparrowmini.common.model.BaseTree;
 import cn.sparrowmini.common.model.Dict;
 import cn.sparrowmini.common.model.Dict_;
-import cn.sparrowmini.common.model.dynamic.*;
 import cn.sparrowmini.common.repository.DictRepository;
-import cn.sparrowmini.common.repository.DynamicPropertyRepository;
 import cn.sparrowmini.common.util.JsonUtils;
+import cn.sparrowmini.dynamicfield.model.*;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import jakarta.annotation.Resource;
 import jakarta.persistence.DiscriminatorValue;
@@ -107,7 +104,7 @@ public class DynamicPropertyService {
         List<ProviderDataValue> list2 = new ArrayList<>();
         Map<String, Object> vars = new HashMap<>();
         // 将 ProviderData 的 Class 对象传进去，脚本里可以直接用
-        vars.put("ProviderData", cn.sparrowmini.common.model.dynamic.DynamicProperty.ProviderData.class);
+        vars.put("ProviderData", DynamicProperty.ProviderData.class);
         switch (providerType) {
             case SCRIPT:
                 list = (List<DynamicProperty.ProviderData>) MVEL.eval(providerScript, vars);

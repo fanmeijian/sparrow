@@ -1,6 +1,6 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

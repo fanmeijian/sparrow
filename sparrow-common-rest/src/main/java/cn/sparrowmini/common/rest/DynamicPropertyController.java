@@ -2,7 +2,6 @@ package cn.sparrowmini.common.rest;
 
 import cn.sparrowmini.common.model.dynamic.DynamicProperty;
 import cn.sparrowmini.common.model.dynamic.DynamicPropertyId;
-import cn.sparrowmini.common.service.DynamicPropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

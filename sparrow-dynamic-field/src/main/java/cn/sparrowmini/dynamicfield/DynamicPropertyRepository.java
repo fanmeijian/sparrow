@@ -1,20 +1,18 @@
-package cn.sparrowmini.common.repository;
+package cn.sparrowmini.dynamicfield;
 
-import cn.sparrowmini.common.model.dynamic.DynamicProperty;
-import cn.sparrowmini.common.model.dynamic.DynamicPropertyId;
-import cn.sparrowmini.common.model.dynamic.DynamicProperty_;
+
+import cn.sparrowmini.common.repository.BaseRepository;
+import cn.sparrowmini.dynamicfield.model.DynamicProperty;
+import cn.sparrowmini.dynamicfield.model.DynamicPropertyId;
+import cn.sparrowmini.dynamicfield.model.DynamicProperty_;
 import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.Query;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface DynamicPropertyRepository<T extends DynamicProperty,ID> extends BaseRepository<T,ID>{
+public interface DynamicPropertyRepository<T extends DynamicProperty,ID> extends BaseRepository<T,ID> {
 
     Optional<T> findByPropertyKey(String key);
 

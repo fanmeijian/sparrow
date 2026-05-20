@@ -1,4 +1,4 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
 import cn.sparrowmini.common.model.BaseState;
 import cn.sparrowmini.common.model.Dict;
@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 

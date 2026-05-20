@@ -1,9 +1,8 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 public class DynamicPropertyValueListener {

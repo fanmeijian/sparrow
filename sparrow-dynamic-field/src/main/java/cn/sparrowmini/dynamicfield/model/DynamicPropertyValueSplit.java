@@ -1,4 +1,4 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
 import cn.sparrowmini.common.model.BaseState;
 import com.fasterxml.jackson.annotation.JsonIgnore;

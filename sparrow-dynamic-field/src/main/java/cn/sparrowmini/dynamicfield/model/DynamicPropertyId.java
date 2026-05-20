@@ -1,6 +1,5 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embeddable;
 import lombok.Data;

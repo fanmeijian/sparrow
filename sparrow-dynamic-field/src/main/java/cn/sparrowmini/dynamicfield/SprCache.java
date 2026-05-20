@@ -1,6 +1,6 @@
-package cn.sparrowmini.common;
+package cn.sparrowmini.dynamicfield;
 
-import cn.sparrowmini.common.model.dynamic.DynamicProperty;
+import cn.sparrowmini.dynamicfield.model.DynamicProperty;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.EntityManager;

@@ -1,16 +1,12 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
 import cn.sparrowmini.common.model.BaseState;
-import cn.sparrowmini.common.model.Dict;
 import cn.sparrowmini.common.model.TablePrefix;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
 import org.mvel2.MVEL;
 
 import java.io.Serializable;
@@ -83,7 +79,7 @@ public class DynamicProperty extends BaseState implements Serializable {
         List<ProviderData> list = new ArrayList<>();
         Map<String, Object> vars = new HashMap<>();
         // 将 ProviderData 的 Class 对象传进去，脚本里可以直接用
-        vars.put("ProviderData", cn.sparrowmini.common.model.dynamic.DynamicProperty.ProviderData.class);
+        vars.put("ProviderData", DynamicProperty.ProviderData.class);
         switch (providerType) {
             case SCRIPT:
                 list = (List<ProviderData>) MVEL.eval(providerScript, vars);

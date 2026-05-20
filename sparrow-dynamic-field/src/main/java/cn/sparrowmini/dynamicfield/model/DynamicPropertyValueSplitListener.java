@@ -1,4 +1,4 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;

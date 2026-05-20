@@ -1,4 +1,4 @@
-package cn.sparrowmini.common.model.dynamic;
+package cn.sparrowmini.dynamicfield.model;
 
 public enum DynamicPropertyTypeEnum {
     Integer,
