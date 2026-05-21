@@ -172,6 +172,17 @@ public interface BaseRepository<T, ID>
     }
 
 
+    default Specification<T> specHasAny(String field, Collection<String> collections) {
+        return (root, query, cb) -> {
+            if (collections == null || collections.isEmpty()) {
+                return cb.conjunction();
+            }
+            Join<T, String> join = root.join(field);
+            return join.in(collections);
+        };
+    }
+
+    @Deprecated
     default Specification<T> specificationEqual(String field, Object value) {
         return (root, query, cb) -> {
             Path<?> path = root;
