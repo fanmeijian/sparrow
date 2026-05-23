@@ -59,7 +59,7 @@ public class Test {
                 .build();
 //        System.out.println(mapper.writeValueAsString(owlParserService.getChildClasses("M_001")));
 //        System.out.println(mapper.writeValueAsString(owlParserService.getAllChildren("M_001")));
-        System.out.println(mapper.writeValueAsString(owlParserService.getOwlClass("M_003_001")));
+        System.out.println(mapper.writeValueAsString(owlParserService.getOwlClass("M_001")));
 
     }
 

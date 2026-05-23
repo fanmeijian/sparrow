@@ -11,6 +11,8 @@ import org.apache.jena.ontapi.model.OntObjectProperty;
 import org.apache.jena.ontapi.model.OntProperty;
 import org.apache.jena.ontology.AnnotationProperty;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.io.InputStream;
@@ -31,6 +33,8 @@ public class OwlParserService {
     private final List<OwlPropertyV2> allProperties = new ArrayList<>();
     private final List<OwlClassV2> allClasses = new ArrayList<>();
     private final static Map<String, List<OwlClassV2Tree>> classCache = new ConcurrentHashMap<>();
+    private final static Map<String, List<String>> allChildrenIds = new ConcurrentHashMap<>();
+    private final static List<OwlClassV2Tree> rootClassTree = new ArrayList<>();
 
     private OwlParserService() {
     }
@@ -42,20 +46,25 @@ public class OwlParserService {
         try (InputStream in = getClass().getResourceAsStream(ontologyPath)) {
             model.read(in, ns, "RDF/XML");
 //            rawModel.read(in, ns, "RDF/XML");
+            this.allClasses.addAll(getAllClass());
+            this.getRootClasses();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public List<OwlClassV2> getAllClass() {
-        return model.classes()
+        return allClasses.isEmpty()? model.classes()
                 .filter(f -> f.getLabel() != null)
                 .map(prop ->
                         OwlClassV2.builder()
                                 .name(prop.getLocalName())
                                 .label(prop.getLabel())
+                                .properties(getProperties(prop))
+                                .rangeProperties(getAllRangeProperties(prop).stream().map(Resource::getLocalName).collect(Collectors.toList()))
                                 .build()
-                ).collect(Collectors.toList());
+                ).collect(Collectors.toList())
+                : allClasses;
     }
 
     public List<OwlPropertyV2> getAllProperties() {
@@ -66,6 +75,8 @@ public class OwlParserService {
                             OwlPropertyV2.builder()
                                     .name(prop.getLocalName())
                                     .label(prop.getLabel())
+                                    .ranges(prop.ranges().map(Resource::getLocalName).collect(Collectors.toList()))
+                                    .domains(prop.domains().map(Resource::getLocalName).collect(Collectors.toList()))
                                     .type(prop.canAs(OntObjectProperty.class) ? OwlPropertyTypeEnum.OBJECT : OwlPropertyTypeEnum.DATA)
                                     .build()
                     ).collect(Collectors.toList());
@@ -76,15 +87,20 @@ public class OwlParserService {
     }
 
     public List<OwlClassV2Tree> getRootClasses() {
-        List<OwlClassV2Tree> owlClassV2Trees = new ArrayList<>();
-        model.classes().filter(OntClass::isHierarchyRoot).forEach(c -> {
-            OwlClassV2Tree owlClassV2Tree = OwlClassV2Tree.builder()
-                    .name(c.getLocalName())
-                    .label(c.getLabel())
-                    .build();
-            buildOwlClassV2Tree(owlClassV2Tree, c);
-            owlClassV2Trees.add(owlClassV2Tree);
-        });
+        List<OwlClassV2Tree> owlClassV2Trees = rootClassTree;
+        if(owlClassV2Trees.isEmpty()){
+            model.classes().filter(
+                    cls->cls.isHierarchyRoot()&& cls.getNameSpace().startsWith(this.ns)
+            ).forEach(c -> {
+                OwlClassV2Tree owlClassV2Tree = OwlClassV2Tree.builder()
+                        .name(c.getLocalName())
+                        .label(c.getLabel())
+                        .build();
+                buildOwlClassV2Tree(owlClassV2Tree, c);
+                owlClassV2Trees.add(owlClassV2Tree);
+            });
+        }
+
         return owlClassV2Trees;
     }
 
@@ -122,6 +138,7 @@ public class OwlParserService {
                 .name(ontClass.getLocalName())
                 .label(ontClass.getLabel())
                 .properties(getProperties(ontClass.asNamed()))
+                .rangeProperties(getAllRangeProperties(ontClass).stream().map(Resource::getLocalName).collect(Collectors.toList()))
                 .build();
     }
 
@@ -139,6 +156,16 @@ public class OwlParserService {
         OntClass.Named cls = model.getOntClass(this.ns + className);
         if (cls == null) throw new RuntimeException("Class not found: " + this.ns + className);
         return this.getAllChildren(cls);
+    }
+
+    public List<String> getAllChildrenIds(String className){
+        List<String> ids =allChildrenIds.get(className);
+        if(ids==null){
+            ids=getAllChildren(className).stream().map(OwlClassV2::getName).toList();
+            allChildrenIds.put(className,ids);
+        }
+        return ids;
+
     }
 
     public List<OwlClassV2> getAllChildren(OntClass.Named ontClass) {
@@ -255,8 +282,10 @@ public class OwlParserService {
 
     private void buildOwlClassV2Tree(OwlClassV2Tree owlClassV2Tree, OntClass ontClass) {
         List<OwlClassV2Tree> children = new ArrayList<>();
-        System.out.println(ontClass.getLabel() + "--" + ontClass.subClasses().toList().size());
-        ontClass.subClasses(true).forEach(subClass -> {
+//        System.out.println(ontClass.getLabel() + "--" + ontClass.subClasses().toList().size());
+        ontClass.subClasses(true)
+                .filter(cls->cls.getNameSpace().startsWith(this.ns))
+                .forEach(subClass -> {
             OwlClassV2Tree child = OwlClassV2Tree.builder()
                     .name(subClass.getLocalName())
                     .label(subClass.getLabel())
@@ -278,9 +307,10 @@ public class OwlParserService {
                 .ranges(ontClass.getProperty(prop) != null ? List.of(ontClass.getProperty(prop).getLiteral().getValue()) : null)
                 .build()
         ).collect(Collectors.toList());
+//        System.out.println(ontClass.getLocalName() + "--" + ontClass.getLabel() + getAllRangeProperties(ontClass).stream().map(m->m.getLocalName()).collect(Collectors.toSet()));
+
 //        ontClass.properties().toList().forEach(property -> {
-//            property.domains().map(m->m.getLocalName()).collect(Collectors.toSet());
-//            System.out.println(ontClass.getLabel() + "--" + property.getLabel() + property.getLocalName() + "---" + property.declaringClasses(true).map(m->m.getLocalName()).collect(Collectors.toSet()));
+////            System.out.println(ontClass.getLabel() + "--" + property.getLabel() + property.getLocalName() + "---" + property.declaringClasses(true).map(m->m.getLocalName()).collect(Collectors.toSet()));
 //        });
         List<OwlPropertyV2> propertyV2s = ontClass.properties().map(prop -> OwlPropertyV2.builder()
                         .name(prop.getLocalName())
@@ -339,5 +369,30 @@ public class OwlParserService {
 //        boolean isEquivalent = subClass.equivalentClasses().findAny().isPresent();
 //        return !isEquivalent || hasExplicitStatement;
         return hasExplicitStatement;
+    }
+
+    private List<OntProperty> getAllRangeProperties(
+            OntClass clazz) {
+
+        List<OntProperty> props = new ArrayList<>();
+
+        StmtIterator it = model.listStatements(
+                null,
+                RDFS.range,
+                clazz
+        );
+
+        while (it.hasNext()) {
+
+            Statement stmt = it.next();
+
+            Resource propRes = stmt.getSubject();
+
+            if (propRes.canAs(OntProperty.class)) {
+                props.add(propRes.as(OntProperty.class));
+            }
+        }
+
+        return props;
     }
 }

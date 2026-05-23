@@ -67,6 +67,7 @@ public abstract class DynamicFieldValue<T, ID> extends BaseState {
 
     public Object getValue() {
         if (value == null) {
+            if(type == null) return this.stringValue;
             switch (type) {
                 case String -> {
                     return this.stringValue;

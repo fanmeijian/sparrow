@@ -12,5 +12,6 @@ import java.util.List;
 public class OwlClassV2 {
     private String name;
     private String label;
+    List<String> rangeProperties;
     private List<OwlPropertyV2> properties;
 }
