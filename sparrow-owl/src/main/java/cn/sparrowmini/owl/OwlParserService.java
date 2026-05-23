@@ -17,6 +17,7 @@ import org.apache.jena.vocabulary.RDFS;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -146,9 +147,13 @@ public class OwlParserService {
     public List<OwlClassV2> getChildClasses(String className) {
         OntClass.Named cls = model.getOntClass(this.ns + className);
 
-        System.out.println("className" + cls.subClasses().count() + cls.equivalentClasses().map(m -> m.getLabel()).toList());
-        if (cls == null) throw new RuntimeException("Class not found: " + this.ns + className);
-        return this.getChildClasses(cls);
+//        System.out.println("className" + cls.subClasses().count() + cls.equivalentClasses().map(m -> m.getLabel()).toList());
+//        if (cls == null) throw new RuntimeException("Class not found: " + this.ns + className);
+        if(cls!=null){
+            return this.getChildClasses(cls);
+        }else{
+            return Collections.emptyList();
+        }
 
     }
 
