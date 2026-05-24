@@ -47,7 +47,9 @@ public class OwlParserService {
         try (InputStream in = getClass().getResourceAsStream(ontologyPath)) {
             model.read(in, ns, "RDF/XML");
 //            rawModel.read(in, ns, "RDF/XML");
+            System.out.printf("....init all classes for %s...%n",ns);
             this.allClasses.addAll(getAllClass());
+            System.out.printf("....init class tree for %s...%n",ns);
             this.getRootClasses();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -98,6 +100,8 @@ public class OwlParserService {
                         .label(c.getLabel())
                         .build();
                 buildOwlClassV2Tree(owlClassV2Tree, c);
+//                owlClassV2Tree.setChildren(new ArrayList<>());
+//                owlClassV2Tree.getChildren().addAll(this.getClassTree(c));
                 owlClassV2Trees.add(owlClassV2Tree);
             });
         }
@@ -294,8 +298,9 @@ public class OwlParserService {
             OwlClassV2Tree child = OwlClassV2Tree.builder()
                     .name(subClass.getLocalName())
                     .label(subClass.getLabel())
+                    .direct(isDirectSubClass(ontClass, subClass))
                     .build();
-            children.add(child);
+                    children.add(child);
             buildOwlClassV2Tree(child, subClass);
         });
         owlClassV2Tree.setChildren(children);
@@ -356,6 +361,24 @@ public class OwlParserService {
             }
         }
         return null;
+    }
+
+    private boolean isDirectSubClass(OntClass parent, OntClass child) {
+        var baseModel = model.asInferenceModel().getRawModel();
+        // 如果开启了推理，MemberType 也会被当作子类返回。
+        // 此时我们去原始模型里看一眼：到底谁真正声明了 "subClassOf 当前父类"
+        boolean hasExplicitStatement = baseModel.contains(
+                baseModel.createStatement(
+                        baseModel.getResource(child.getURI()),
+                        RDFS.subClassOf,
+                        baseModel.getResource(parent.getURI())
+                )
+        );
+//                    System.out.println(subClass.equivalentClasses().count() + "hasExplicitStatement = " + hasExplicitStatement + "--" + subClass.getLabel() + "--" + ontClass.getLabel());
+        // 只有显式声明了父子关系的类（如 M_009）才放行
+//        boolean isEquivalent = subClass.equivalentClasses().findAny().isPresent();
+//        return !isEquivalent || hasExplicitStatement;
+        return hasExplicitStatement;
     }
 
     private boolean isDirectDefine(Resource rang, OntProperty ontProp) {

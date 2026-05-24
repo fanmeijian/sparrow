@@ -53,6 +53,15 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasBusinessType -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasBusinessType">
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label>业务类型</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#hasCommunicationType -->
 
     <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCommunicationType">
@@ -70,7 +79,10 @@
 
     <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCompanyStandard">
         <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
         <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_007"/>
+        <uiType>Tree</uiType>
         <rdfs:label>企业标准</rdfs:label>
     </owl:ObjectProperty>
     
@@ -80,8 +92,39 @@
 
     <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasDeviceType">
         <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
         <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
         <rdfs:label>设备类型</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasInspectCompany -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasInspectCompany">
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#SongJianCompany"/>
+        <rdfs:label>送检企业</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasInspectStatus -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasInspectStatus">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_001"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InspectStatus"/>
+        <rdfs:label>送检状态</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasLanguage -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasLanguage">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_001"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_002"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>标准语言</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -91,9 +134,49 @@
     <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasPublishVersion">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
         <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PublishVersion"/>
         <uiType>Select</uiType>
         <rdfs:label>发布版本</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasQualifyCompany -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasQualifyCompany">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_002"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InspectCompany"/>
+        <rdfs:label>验厂企业</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasQualifyStatus -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasQualifyStatus">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_002"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#SongJianStatus"/>
+        <rdfs:label>验厂状态</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasSector -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasSector">
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_005"/>
+        <rdfs:label>行业标准</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasSplit -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasSplit">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label>分册</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -110,12 +193,32 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasTeamCompany -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasTeamCompany">
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_006"/>
+        <rdfs:label>团队标准</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#hasTendorStatus -->
 
     <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasTendorStatus">
         <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
         <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TenderStatus"/>
         <rdfs:label>招标状态</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasYear -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasYear">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label>年份</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -180,8 +283,9 @@
 
     <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_005">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
         <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
-        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_001"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <uiType>Calendar</uiType>
         <rdfs:label>发布时间</rdfs:label>
@@ -234,6 +338,8 @@
 
     <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_010">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:label>实施日期</rdfs:label>
     </owl:DatatypeProperty>
@@ -394,6 +500,8 @@
 
     <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_026">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:label>修订时间</rdfs:label>
     </owl:DatatypeProperty>
@@ -404,6 +512,7 @@
 
     <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_027">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_001"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:label>招标状态时间</rdfs:label>
     </owl:DatatypeProperty>
@@ -440,6 +549,16 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_032 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_032">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label>状态时间</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
@@ -451,11 +570,74 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#AE -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#AE">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>阿联酋</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#AR -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#AR">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>阿根廷</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#AREA -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#AREA">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
         <rdfs:label>地区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#AT -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#AT">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>奥地利</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#AU -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#AU">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>澳大利亚</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BD -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BD">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>孟加拉国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BE -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BE">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>比利时</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BR -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BR">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>巴西</rdfs:label>
     </owl:Class>
     
 
@@ -594,6 +776,43 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CA -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CA">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>加拿大</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CH -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CH">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>瑞士</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CL -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CL">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>智利</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CN -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CN">
+        <owl:equivalentClass rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_004"/>
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>中国</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#COMPANY -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#COMPANY">
@@ -670,6 +889,24 @@
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CommunicationType">
         <rdfs:label>通信方式</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DE -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DE">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>德国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DK -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DK">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>丹麦</rdfs:label>
     </owl:Class>
     
 
@@ -809,6 +1046,60 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#EG -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#EG">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>埃及</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ES -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ES">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>西班牙</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#FI -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#FI">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>芬兰</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#FR -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#FR">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>法国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#GB -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#GB">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>英国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#HK -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#HK">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>中国香港</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#IC_001 -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#IC_001">
@@ -845,6 +1136,42 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ID -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ID">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>印度尼西亚</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IE -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#IE">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>爱尔兰</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IL -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#IL">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>以色列</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IN -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#IN">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>印度</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#IS_001 -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#IS_001">
@@ -872,6 +1199,15 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IT -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#IT">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>意大利</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#InspectCompany -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#InspectCompany">
@@ -888,10 +1224,83 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#JP -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#JP">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>日本</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#KR -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#KR">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>韩国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#KZ -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#KZ">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>哈萨克斯坦</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#LK -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#LK">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>斯里兰卡</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#MN -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#MN">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>蒙古</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#MO -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#MO">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>中国澳门</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#MONTH -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#MONTH">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label>月度</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#MX -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#MX">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>墨西哥</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#MY -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#MY">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>马来西亚</rdfs:label>
     </owl:Class>
     
 
@@ -1382,6 +1791,33 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#NL -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#NL">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>荷兰</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#NO -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#NO">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>挪威</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#NZ -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#NZ">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>新西兰</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#OTHER -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#OTHER">
@@ -1396,6 +1832,33 @@
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PERSONAL">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#MemberType"/>
         <rdfs:label>个人用户</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PH -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PH">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>菲律宾</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PK -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PK">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>巴基斯坦</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PL -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PL">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>波兰</rdfs:label>
     </owl:Class>
     
 
@@ -1598,24 +2061,6 @@
     
 
 
-    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_023 -->
-
-    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_023">
-        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_004"/>
-        <rdfs:label>广东标准</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_024 -->
-
-    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_024">
-        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_004"/>
-        <rdfs:label>吉林标准</rdfs:label>
-    </owl:Class>
-    
-
-
     <!-- http://cn.liyuan.chnplc/ontology/cms#PS_025 -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_025">
@@ -1719,6 +2164,304 @@
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_001">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>国网总部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_0010 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_0010">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>山西电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>华北分部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>华中分部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>华东分部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>西北分部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>东北分部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>冀北电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>河北电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label> 国网区域</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_011 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_011">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>山东电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_012 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_012">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>江苏电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_013 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_013">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>浙江电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_014 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_014">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>福建电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_015 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_015">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>湖北电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_016 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_016">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>湖南电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_017 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_017">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>河南电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_018 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_018">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>江西电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_019 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_019">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>四川电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_020 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_020">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>辽宁电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_021 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_021">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>安徽电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_022 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_022">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>吉林电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_023 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_023">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>西藏电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_024 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_024">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>黑龙江电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_025 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_025">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>蒙东电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_026 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_026">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>北京电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_027 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_027">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>陕西电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_028 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_028">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>甘肃电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_029 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_029">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>青海电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_030 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_030">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>宁夏电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_031 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_031">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>新疆电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_032 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_032">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>重庆电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_033 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_033">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>天津电力</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_035_034 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_035_034">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_035"/>
+        <rdfs:label>上海电力</rdfs:label>
     </owl:Class>
     
 
@@ -1728,6 +2471,78 @@
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_007"/>
         <rdfs:label>南方电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>南网总部</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>广东电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>海南电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>广西电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>云南电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>贵州电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>广州电网</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_036_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_036_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PS_036"/>
+        <rdfs:label>深圳电网</rdfs:label>
     </owl:Class>
     
 
@@ -1786,6 +2601,330 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PT -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PT">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>葡萄牙</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>北京</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_0010 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_0010">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>江苏省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>天津</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>河北省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>山西省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>内蒙古自治区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>辽宁省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>吉林省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>黑龙江省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>上海</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_011 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_011">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>浙江省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_012 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_012">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>安徽省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_013 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_013">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>福建省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_014 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_014">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>江西省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_015 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_015">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>山东省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_016 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_016">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>河南省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_017 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_017">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>湖北省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_018 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_018">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>湖南省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_019 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_019">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>广东省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_020 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_020">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>广西壮族自治区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_021 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_021">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>海南省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_022 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_022">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>重庆</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_023 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_023">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>四川省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_024 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_024">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>贵州省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_025 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_025">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>云南省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_026 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_026">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>西藏自治区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_027 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_027">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>陕西省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_028 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_028">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>甘肃省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_029 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_029">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>青海省</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_030 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_030">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>宁夏回族自治区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_031 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_031">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>新疆维吾尔自治区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_032 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_032">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>台湾</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_033 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_033">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>香港特别行政区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_034 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_034">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>澳门特别行政区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PVN_035 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PVN_035">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CN"/>
+        <rdfs:label>海外</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#PV_001 -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PV_001">
@@ -1831,11 +2970,47 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#RU -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#RU">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>俄罗斯</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SA -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SA">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>沙特阿拉伯</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SE -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SE">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>瑞典</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#SECTOR -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SECTOR">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#MemberType"/>
         <rdfs:label>行业协会</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SG -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SG">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>新加坡</rdfs:label>
     </owl:Class>
     
 
@@ -1984,18 +3159,11 @@
     
 
 
-    <!-- http://cn.liyuan.chnplc/ontology/cms#SP_ANNUAL -->
-
-    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_ANNUAL">
-        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
-    </owl:Class>
-    
-
-
     <!-- http://cn.liyuan.chnplc/ontology/cms#SP_FEN_CE -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_FEN_CE">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label>分册</rdfs:label>
     </owl:Class>
     
 
@@ -2004,6 +3172,7 @@
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_HAFL_YEAR">
         <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label>半年报</rdfs:label>
     </owl:Class>
     
 
@@ -2140,6 +3309,24 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TH -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#TH">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>泰国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TR -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#TR">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>土耳其</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#TS_001 -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_001">
@@ -2239,10 +3426,1141 @@
     
 
 
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TW -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#TW">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>中国台湾</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://cn.liyuan.chnplc/ontology/cms#TenderStatus -->
 
     <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#TenderStatus">
         <rdfs:label>招标状态</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#UA -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#UA">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>乌克兰</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#US -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#US">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>美国</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#VN -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#VN">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>越南</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Year -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Year">
+        <rdfs:label>年份</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ZA -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ZA">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#country"/>
+        <rdfs:label>南非</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#af -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#af">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>南非语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#am -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#am">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>阿姆哈拉语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ar -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ar">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>阿拉伯语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#az -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#az">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>阿塞拜疆语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#be -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#be">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>白俄罗斯语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#bg -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#bg">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>保加利亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#bn -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#bn">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>孟加拉语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#bs -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#bs">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>波斯尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ca -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ca">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>加泰罗尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ceb -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ceb">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>宿务语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#country -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#country">
+        <rdfs:label>国家</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#cs -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#cs">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>捷克语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#cy -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#cy">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>威尔士语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#da -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#da">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>丹麦语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#de -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#de">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>德语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#el -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#el">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>希腊语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#en -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#en">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>英语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#eo -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#eo">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>世界语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#es -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#es">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>西班牙语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#et -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#et">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>爱沙尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#eu -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#eu">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>巴斯克语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#fa -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#fa">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>波斯语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#fi -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#fi">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>芬兰语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#fil -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#fil">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>菲律宾语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#fr -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#fr">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>法语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ga -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ga">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>爱尔兰语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#gl -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#gl">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>加利西亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#gu -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#gu">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>古吉拉特语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ha -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ha">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>豪萨语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#haw -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#haw">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>夏威夷语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#he -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#he">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>希伯来语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hi -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#hi">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>印地语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hmn -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#hmn">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>苗语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hr -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#hr">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>克罗地亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ht -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ht">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>海地克里奥尔语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hu -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#hu">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>匈牙利语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hy -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#hy">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>亚美尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#id -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#id">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>印度尼西亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ig -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ig">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>伊博语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#is -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#is">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>冰岛语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#it -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#it">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>意大利语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ja -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ja">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>日语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#jw -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#jw">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>爪哇语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ka -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ka">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>格鲁吉亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#kk -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#kk">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>哈萨克语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#km -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#km">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>高棉语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#kn -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#kn">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>卡纳达语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ko -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ko">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>韩语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ku -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ku">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>库尔德语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ky -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ky">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>吉尔吉斯语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#la -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#la">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>拉丁语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#lang -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#lang">
+        <rdfs:label>语言</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#lb -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#lb">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>卢森堡语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#lo -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#lo">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>老挝语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#lt -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#lt">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>立陶宛语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#lv -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#lv">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>拉脱维亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#mg -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#mg">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>马达加斯加语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#mi -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#mi">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>毛利语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#mk -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#mk">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>马其顿语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ml -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ml">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>马拉雅拉姆语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#mn -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#mn">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>蒙古语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#mr -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#mr">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>马拉地语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ms -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ms">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>马来语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#mt -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#mt">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>马耳他语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#my -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#my">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>缅甸语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ne -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ne">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>尼泊尔语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#nl -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#nl">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>荷兰语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#no -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#no">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>挪威语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ny -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ny">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>齐切瓦语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#pa -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#pa">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>旁遮普语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#pl -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#pl">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>波兰语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ps -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ps">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>普什图语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#pt -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#pt">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>葡萄牙语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ro -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ro">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>罗马尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ru -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ru">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>俄语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sd -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sd">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>信德语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#si -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#si">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>僧伽罗语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sk -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sk">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>斯洛伐克语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sl -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sl">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>斯洛文尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sm -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sm">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>萨摩亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sn -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sn">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>修纳语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#so -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#so">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>索马里语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sq -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sq">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>阿尔巴尼亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sr -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sr">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>塞尔维亚语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#st -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#st">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>塞索托语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#su -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#su">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>巽他语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sv -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sv">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>瑞典语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#sw -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#sw">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>斯瓦希里语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ta -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ta">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>泰米尔语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#te -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#te">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>泰卢固语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#tg -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#tg">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>塔吉克语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#th -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#th">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>泰语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#tk -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#tk">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>土库曼语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#tl -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#tl">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>他加禄语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#tr -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#tr">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>土耳其语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#tt -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#tt">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>鞑靼语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ug -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ug">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>维吾尔语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#uk -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#uk">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>乌克兰语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#ur -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#ur">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>乌尔都语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#uz -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#uz">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>乌兹别克语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#vi -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#vi">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>越南语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#xh -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#xh">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>科萨语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#yi -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#yi">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>意第绪语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#yo -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#yo">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>约鲁巴语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#zh -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#zh">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>中文</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#zh-CN -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#zh-CN">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>简体中文</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#zh-TW -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#zh-TW">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>繁体中文</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#zu -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#zu">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#lang"/>
+        <rdfs:label>祖鲁语</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2015 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2015">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2015</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2016 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2016">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2016</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2017 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2017">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2017</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2018 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2018">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2018</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2019 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2019">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2019</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2020 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2020">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2020</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2021 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2021">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2021</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2022 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2022">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2022</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2023 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2023">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2023</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2024 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2024">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2024</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2025 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2025">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2025</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#2026 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#2026">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Year"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2026</rdfs:label>
     </owl:Class>
 </rdf:RDF>
 

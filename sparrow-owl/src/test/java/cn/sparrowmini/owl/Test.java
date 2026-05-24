@@ -43,7 +43,10 @@ public class Test {
                 .ns(ns)
                 .ontologyPath(owlPath)
                 .build();
-        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("Menu")));
+
+
+//        System.out.println(mapper.writeValueAsString(owlParserService.getRootClasses()));
+        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("PowerStandard")));
 
     }
 
