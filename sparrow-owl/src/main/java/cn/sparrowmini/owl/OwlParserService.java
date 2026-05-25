@@ -94,12 +94,14 @@ public class OwlParserService {
         if(owlClassV2Trees.isEmpty()){
             model.classes().filter(
                     cls->cls.isHierarchyRoot()&& cls.getNameSpace().startsWith(this.ns)
-            ).forEach(c -> {
+            ).forEach(rootClass -> {
                 OwlClassV2Tree owlClassV2Tree = OwlClassV2Tree.builder()
-                        .name(c.getLocalName())
-                        .label(c.getLabel())
+                        .name(rootClass.getLocalName())
+                        .label(rootClass.getLabel())
+                        .equivalentClasses(rootClass.equivalentClasses().map(OntClass::getLocalName).toList())
+                        .isEquivalentClassesDirect(true)
                         .build();
-                buildOwlClassV2Tree(owlClassV2Tree, c);
+                buildOwlClassV2Tree(owlClassV2Tree, rootClass);
 //                owlClassV2Tree.setChildren(new ArrayList<>());
 //                owlClassV2Tree.getChildren().addAll(this.getClassTree(c));
                 owlClassV2Trees.add(owlClassV2Tree);
@@ -279,6 +281,8 @@ public class OwlParserService {
                     OwlClassV2Tree child = OwlClassV2Tree.builder()
                             .name(subClass.getLocalName())
                             .label(subClass.getLabel())
+                            .equivalentClasses(subClass.equivalentClasses().map(OntClass::getLocalName).toList())
+                            .isEquivalentClassesDirect(subClass.equivalentClasses().anyMatch(s->isDirectSubClass(ontClass,s)))
                             .children(new ArrayList<>())
                             .build();
                     subClass.equivalentClasses();
@@ -299,6 +303,8 @@ public class OwlParserService {
                     .name(subClass.getLocalName())
                     .label(subClass.getLabel())
                     .direct(isDirectSubClass(ontClass, subClass))
+                    .equivalentClasses(subClass.equivalentClasses().map(OntClass::getLocalName).toList())
+                    .isEquivalentClassesDirect(owlClassV2Tree.getEquivalentClasses().stream().anyMatch(s->isDirectSubClass(model.getOntClass(this.ns + s),subClass)))
                     .build();
                     children.add(child);
             buildOwlClassV2Tree(child, subClass);
