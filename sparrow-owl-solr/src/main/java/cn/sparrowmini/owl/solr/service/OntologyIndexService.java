@@ -80,7 +80,6 @@ public class OntologyIndexService {
             indexedOntClass.forEach(ontologyClass -> {
                 ClassType classType = processClazz(model, ontologyClass, indexedProp);
                 System.out.println(count2.getAndDecrement() + "Indexed class: " + classType.getUri());
-                buildPropertyToClassMap(ontologyClass);
                 if (classType != null) {
                     try {
                         solrClient.addBean(COLLECTION_NAME, classType);
@@ -92,7 +91,7 @@ public class OntologyIndexService {
             });
             solrClient.commit(COLLECTION_NAME);
 
-            
+
             List<OntProperty> indexedOntProp = model.properties().toList();
             AtomicLong count1 = new AtomicLong(indexedOntProp.size());
             indexedOntProp.stream()
@@ -116,25 +115,6 @@ public class OntologyIndexService {
         }
     }
 
-    private void buildPropertyToClassMap(OntClass ontClass) {
-        if (ontClass.isAnon() || ontClass.getURI() == null) return;
-        Map<String, Set<String>> propToClassesMap = propertyUsageMap;
-        String classUri = ontClass.getURI();
-
-        // 2. 扫描该类直接关联的属性 (rdfs:domain)
-        ontClass.properties().forEach(prop -> {
-            propToClassesMap.computeIfAbsent(prop.getURI(), k -> new HashSet<>()).add(classUri);
-        });
-
-        // 3. ✨ 顺便扫描该类身上挂载的 Restriction 嵌套属性
-        ontClass.superClasses(false)
-                .filter(f -> f.canAs(OntClass.Restriction.class))
-                .forEach(superCls -> {
-                    propToClassesMap.computeIfAbsent(superCls.as(OntClass.ValueRestriction.class).getProperty().getURI(), k -> new HashSet<>()).add(classUri);
-                });
-
-
-    }
 
     /**
      * Helper method to obtain all necessary information for indexing a property
@@ -184,18 +164,6 @@ public class OntologyIndexService {
         index.addItemFieldName(prop.getLocalName());
         index.addItemFieldName(ItemType.dynamicFieldPart(prop.getURI()));
 
-        // 假设你当前正在迭代处理一个名为 prop 的 OntProperty 对象
-//        String propertyUri = prop.getURI();
-//        if (propertyUri != null) {
-//            // 1. 直接通过图路径获取这个属性所有被使用的 Class 集合（包含直接声明、Union、Restriction 以及它们各自的子类）
-//            Set<String> allUsedInClasses = getPropertyUsedIn(model, propertyUri);
-//
-//            // 2. 灌入你的 Solr 索引对象中
-//            // 假设你的 Solr 字段在 Java DTO 里映射的名字叫 usedIn 或者 getProduct()
-//            index.getProduct().clear(); // 如果需要干净的覆盖
-//            index.getProduct().addAll(allUsedInClasses);
-//        }
-
 
         // 3. 🚀 奇迹时刻：直接从 Map 里以 O(1) 速度抓取直接使用了当前属性的分类
         Set<String> directClasses = propertyUsageMap.getOrDefault(prop.getURI(), Collections.emptySet());
@@ -205,28 +173,6 @@ public class OntologyIndexService {
         index.getProduct().clear();
         index.getProduct().addAll(directClasses);
 
-//        prop.domains()
-//                .filter(domain -> domain.getURI() != null)
-//                .forEach(domain -> {
-//                    Set<String> usage = getUsage(model, model.getOntClass(domain.getURI()));
-//                    index.getProduct().addAll(usage);
-//                });
-
-//        if (prop.domains().findFirst().isPresent()) {
-//            Resource domainRes = prop.domains().findFirst().get();
-//            if (domainRes.getURI() != null) {
-//                // ✨ 彻底修复：Jena 5 获取 Class 的新标准
-//                OntClass domainClass = model.classes()
-//                        .filter(c -> domainRes.getURI().equals(c.getURI()))
-//                        .findFirst()
-//                        .orElse(null);
-//
-//                if (domainClass != null) {
-//                    Set<String> usage = getUsage(model, domainClass);
-//                    index.getProduct().addAll(usage);
-//                }
-//            }
-//        }
 
         List<String> types_ = new ArrayList<>();
         StmtIterator types = prop.listProperties();
@@ -250,64 +196,6 @@ public class OntologyIndexService {
         return index;
     }
 
-//    private Set<String> getUsage(OntModel model, OntClass ontClass) {
-//
-//        Set<String> classes = new HashSet<>();
-//        if ( ontClass.isUnionClass()) {
-//            UnionClass uc = ontClass.asUnionClass();
-//            RDFList list = uc.getOperands();
-//            for ( int i = 0; i < list.size(); i++) {
-//                RDFNode node = list.get(i);
-//                OntClass cls = model.getOntClass(node.asResource().getURI());
-//                if (!cls.isAnon()) {
-//                    classes.add(cls.getURI());
-//                    classes.addAll(getSubClasses(cls));
-
-    /// /					classes.addAll(getSuperClasses(cls));
-//                }
-//            }
-//        }
-//        else {
-//            if (ontClass.isResource() && !ontClass.isAnon()) {
-//                classes.add(ontClass.getURI());
-//                classes.addAll(getSubClasses(ontClass));
-//            }
-//        }
-//
-//        return classes;
-//    }
-
-//
-//    private Set<String> getPropertyUsedIn(OntModel model, String propertyUri) {
-//        Set<String> usedInClasses = new HashSet<>();
-//        if (propertyUri == null) return usedInClasses;
-//
-//        // ✨ 一网打尽：通过 RDFS/OWL 的三种路径，反向寻找所有关联的类定义
-//        String sparqlQuery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT DISTINCT ?class WHERE { { <" + propertyUri + "> rdfs:domain ?class . FILTER(isIRI(?class)) } UNION { <" + propertyUri + "> rdfs:domain ?unionClass . ?unionClass owl:unionOf / rdf:rest* / rdf:first ?class . FILTER(isIRI(?class)) } UNION { ?class rdfs:subClassOf ?restriction . ?restriction owl:onProperty <" + propertyUri + "> . FILTER(isIRI(?class)) } }";
-//
-//        Query query = QueryFactory.create(sparqlQuery);
-//        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
-//            ResultSet results = qexec.execSelect();
-//            while (results.hasNext()) {
-//                QuerySolution solution = results.nextSolution();
-//                if (solution.getResource("class") != null) {
-//                    String classUri = solution.getResource("class").toString();
-//
-//                    // 拿到这个直接关联的类后，顺藤摸瓜，通过你现有的 getUsage 拿到它和它的子类链
-//                    OntClass ontClass = model.classes()
-//                            .filter(c -> classUri.equals(c.getURI()))
-//                            .findFirst()
-//                            .orElse(null);
-//
-//                    if (ontClass != null) {
-//                        // 调用你写好的、支持 Union 展开和 getSubClasses 的完美 getUsage 方法
-//                        usedInClasses.addAll(getUsage(model, ontClass));
-//                    }
-//                }
-//            }
-//        }
-//        return usedInClasses;
-//    }
     private Set<String> getUsage(OntModel model, OntClass ontClass) {
         Set<String> classes = new HashSet<>();
         if (ontClass == null) {
@@ -318,45 +206,6 @@ public class OntologyIndexService {
         return classes;
     }
 
-//    private Set<String> getUsage(OntModel model, OntClass ontClass) {
-//        Set<String> classes = new HashSet<>();
-//        if (ontClass == null) {
-//            return classes;
-//        }
-//
-//        if (ontClass.canAs(OntClass.UnionOf.class)) {
-//            // ✨ 绕过 OntList，直接通过 owl:unionOf 属性去拿最稳固的 RDFList
-//            Statement stmt = ontClass.getProperty(OWL2.unionOf);
-//            if (stmt != null && stmt.getObject().canAs(RDFList.class)) {
-//                RDFList rdfList = stmt.getObject().as(RDFList.class);
-//
-//                // 完美转换为标准的 Java List<RDFNode>
-//                List<RDFNode> javaList = rdfList.asJavaList();
-//                for (RDFNode node : javaList) {
-//                    if (node.isResource() && node.asResource().getURI() != null) {
-//                        String nodeUri = node.asResource().getURI();
-//
-//                        // 从模型中安全过滤提取类
-//                        OntClass cls = model.classes()
-//                                .filter(c -> nodeUri.equals(c.getURI()))
-//                                .findFirst()
-//                                .orElse(null);
-//                        if (cls != null && !cls.isAnon()) {
-//                            classes.add(cls.getURI());
-//                            classes.addAll(getSubClasses(cls));
-//                        }
-//                    }
-//                }
-//            }
-//        } else {
-//            if (!ontClass.isAnon() && ontClass.getURI() != null) {
-//                classes.add(ontClass.getURI());
-//                classes.addAll(getSubClasses(ontClass));
-//            }
-//        }
-//
-//        return classes;
-//    }
 
     private Set<String> getSubClasses(OntClass cls) {
         return cls.subClasses().map(OntClass::getURI).filter(Objects::nonNull).collect(Collectors.toSet());
@@ -534,56 +383,26 @@ public class OntologyIndexService {
     }
 
 
-//    private Set<String> getProperties(final OntClass ontClass, final OntModel model) {
-//        Set<String> properties = new HashSet<>();
-//        if (ontClass.getURI() == null) return properties;
-//
-//        // 1. ✨ Jena 5 的标准新写法：获取包含自身在内的所有超类流/迭代器
-//        // superClasses(false) 相当于旧版的 listSuperClasses(false)
-//        ontClass.superClasses(false).forEach(cls -> {
-//            // 2. 判断是否是匿名限制类 (Restriction)
-//            if (cls.isAnon() && cls.canAs(Restriction.class)) {
-//                Restriction restriction = cls.as(Restriction.class);
-//                if (restriction != null && restriction.getURI() != null) {
-//                    properties.add(restriction.getURI());
-//                }
-//            }
-//        });
-//
-//
-//        // 3. ✨ 别忘了把当前类（ontClass）自身直接定义的 Restriction 也检查一遍
-//        // 因为 superClasses 只包含父类，不包含自己本身
-//        ExtendedIterator<OntClass> directSuper = ontClass.superClasses(true);
-//        // 或者直接遍历当前类作为 subClassOf 的声明：
-//        ontClass.statements(org.apache.jena.vocabulary.RDFS.subClassOf, null)
-//                .mapWith(OntStatement::getObject)
-//                .filterKeep(rdfNode -> rdfNode.canAs(Restriction.class))
-//                .forEachRemaining(rdfNode -> {
-//                    Restriction res = rdfNode.as(Restriction.class);
-//                    if (res.getOnProperty() != null) {
-//                        properties.add(res.getOnProperty().getURI());
-//                    }
-//                });
-//
-//        return properties;
-//    }
 
     private Set<String> getProperties(final OntClass ontClass, final OntModel model) {
         Set<String> properties = new HashSet<>();
-        String className = ontClass.getURI();
-        if (className == null) return properties;
+        String classUri = ontClass.getURI();
+        if (classUri == null) return properties;
+        // 2. 扫描该类直接关联的属性 (rdfs:domain)
+        ontClass.properties().forEach(prop -> {
+            propertyUsageMap.computeIfAbsent(prop.getURI(), k -> new HashSet<>()).add(classUri);
+            properties.add(prop.getURI());
+        });
 
-        String sparqlQuery = "PREFIX ex: <http://www.aidimme.es/FurnitureSectorOntology.owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT ?property ?domain WHERE { {<" + className + "> rdfs:subClassOf* ?domain . ?property rdfs:domain ?domain .} UNION { ?property rdfs:domain ?unionClass . ?unionClass owl:unionOf / rdf:rest* / rdf:first ?domain . <" + className + "> rdfs:subClassOf* ?domain . } UNION { <" + className + "> rdfs:subClassOf* ?domain . ?domain rdfs:subClassOf ?restriction . ?restriction owl:onProperty ?property . } }";
-        Query query = QueryFactory.create(sparqlQuery);
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
-            ResultSet results = qexec.execSelect();
-            while (results.hasNext()) {
-                QuerySolution solution = results.nextSolution();
-                if (solution.getResource("property") != null) {
-                    properties.add(solution.getResource("property").toString());
-                }
-            }
-        }
+        // 3. ✨ 顺便扫描该类身上挂载的 Restriction 嵌套属性
+        ontClass.superClasses(false)
+                .filter(f -> f.canAs(OntClass.Restriction.class))
+                .forEach(superCls -> {
+                    String propertyUri = superCls.as(OntClass.ValueRestriction.class).getProperty().getURI();
+                    propertyUsageMap.computeIfAbsent(propertyUri, k -> new HashSet<>()).add(classUri);
+                    properties.add(propertyUri);
+                });
+
         return properties;
     }
 

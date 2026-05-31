@@ -1,0 +1,2252 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://cn.liyuan.chnplc/ontology/cms#"
+     xml:base="http://cn.liyuan.chnplc/ontology/cms"
+     xmlns:ui="http://example.org/ui#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://cn.liyuan.chnplc/ontology/cms">
+        <rdfs:comment>CMS Article Category and Standards Ontology for Chnplc</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#code -->
+
+    <owl:AnnotationProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#code"/>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasCode -->
+
+    <owl:AnnotationProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCode"/>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasCodeList -->
+
+    <owl:AnnotationProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCodeList"/>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasUnitList -->
+
+    <owl:AnnotationProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasUnitList"/>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#id -->
+
+    <owl:AnnotationProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#id"/>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#uiType -->
+
+    <owl:AnnotationProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#uiType"/>
+    
+
+
+    <!-- http://example.org/ui#isVisibleInFilter -->
+
+    <owl:AnnotationProperty rdf:about="http://example.org/ui#isVisibleInFilter"/>
+    
+
+
+    <!-- http://example.org/ui#isVisibleInNavigation -->
+
+    <owl:AnnotationProperty rdf:about="http://example.org/ui#isVisibleInNavigation"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CodeProperty -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#CodeProperty">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:comment xml:lang="en">Property denoting coded values, linking/containing code values. CodeProperty is a FunctionalProperty and indicates that the property may specify :hasCode and :hasCodeList.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#country -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#country">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#OverseasStandard"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryList"/>
+        <rdfs:label xml:lang="zh">国家/地区</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasBusinessType -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasBusinessType">
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">业务类型</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasCode -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCode">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasCommunicationType -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCommunicationType">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <uiType>Select</uiType>
+        <rdfs:label xml:lang="zh">通讯方式</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasCompanyStandard -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCompanyStandard">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CompanyStandard"/>
+        <uiType>Tree</uiType>
+        <rdfs:label xml:lang="zh">企业标准</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasDeviceType -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasDeviceType">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">设备类型</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasInspectStatus -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasInspectStatus">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_001"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InspectStatusList"/>
+        <rdfs:label xml:lang="zh">送检状态</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasLanguage -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasLanguage">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#OverseasStandard"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#LanguageList"/>
+        <rdfs:label xml:lang="zh">语言</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasMonth -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasMonth">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Month"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#MonthList"/>
+        <rdfs:label xml:lang="zh">月份</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasPublishVersion -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasPublishVersion">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PublishVersionList"/>
+        <uiType>Select</uiType>
+        <rdfs:label xml:lang="zh">发布版本</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasQualifyStatus -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasQualifyStatus">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_002"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TenderStatusList"/>
+        <rdfs:label xml:lang="zh">验厂状态</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasSplit -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasSplit">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label xml:lang="zh">分册</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasStandard -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasStandard">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <uiType>Tree</uiType>
+        <rdfs:label xml:lang="zh">标准类别</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasTendorStatus -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasTendorStatus">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TenderStatusList"/>
+        <rdfs:label xml:lang="zh">招标状态</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#hasYear -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasYear">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#YearList"/>
+        <rdfs:label xml:lang="zh">年份</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#inspectParty -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#inspectParty">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_001"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InspectPartyList"/>
+        <rdfs:label xml:lang="zh">检测机构</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#qualifyParty -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#qualifyParty">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_002"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#QualifyPartyList"/>
+        <rdfs:label xml:lang="zh">验厂机构</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#region -->
+
+    <owl:ObjectProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#region">
+        <rdfs:subPropertyOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#LocalStandard"/>
+        <hasCodeList rdf:resource="http://cn.liyuan.chnplc/ontology/cms#RegionList"/>
+        <rdfs:label xml:lang="zh">地区</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_001 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_001">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准号</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_002 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_002">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">归属组织</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_003 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_003">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准来源</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_004 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_004">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">发布组织</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_005 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_005">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003_001"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <uiType>Calendar</uiType>
+        <rdfs:label xml:lang="zh">发布时间</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_006 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_006">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">出版机构</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_007 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_007">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">国家组织机构</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_008 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_008">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准类别</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_009 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_009">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">中国标准分类号</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_010 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_010">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label xml:lang="zh">实施日期</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_011 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_011">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">国际标准分类号</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_012 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_012">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label xml:lang="zh">上次复审日期</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_013 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_013">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">归口单位</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_014 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_014">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">上次复审结论</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_015 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_015">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">主管部门</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_016 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_016">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">执行单位</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_017 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_017">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">技术归口</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_018 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_018">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">制修订</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_019 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_019">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">批准发布部门</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_020 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_020">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准状态</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_021 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_021">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">国民经济分类</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_022 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_022">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">企业标准代号</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_023 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_023">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">发布企业</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_024 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_024">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准提出部门</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_025 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_025">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准归口部门</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_026 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_026">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_001"/>
+                    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label xml:lang="zh">修订时间</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_027 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_027">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005_001"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label xml:lang="zh">招标状态时间</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_028 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_028">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">网址</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_029 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_029">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">公众号</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_030 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_030">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">联系方式</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#P_032 -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#P_032">
+        <rdfs:domain rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label xml:lang="zh">状态时间</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#StandardName -->
+
+    <owl:DatatypeProperty rdf:about="http://cn.liyuan.chnplc/ontology/cms#StandardName">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label xml:lang="zh">标准名称</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Annual -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Annual">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label xml:lang="zh">年度</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Articles -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Articles">
+        <rdfs:label xml:lang="zh">文章类别</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#AssociationStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#AssociationStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_009"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_010"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_011"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_021"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">团队标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">方案</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">模组</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">产品</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">元器件</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">检测设备</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">封测</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">贴片</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">工装</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">租凭</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_010 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_010">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">送检配套</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_011 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_011">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">第三方检测</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_012 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_012">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">校准检测</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_013 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_013">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">生产设备</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BT_014 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BT_014">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#BusinessType"/>
+        <rdfs:label xml:lang="zh">售后承接</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#BusinessType -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#BusinessType">
+        <rdfs:label xml:lang="zh">业务类型</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">窄带</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">窄带双模</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">宽带载波</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">高速载波</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">宽带双模</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">下一代载波</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CT_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CT_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+        <rdfs:label xml:lang="zh">其他</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CodeList -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CodeList">
+        <rdfs:label xml:lang="zh">字典列表</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CodeType -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CodeType">
+        <rdfs:label xml:lang="zh">字典值</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CommunicationType -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CommunicationType">
+        <rdfs:label xml:lang="zh">通信方式</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CompanyStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CompanyStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:label xml:lang="zh">企业标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CountryStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#CountryStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_009"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_010"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_011"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_013"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">国家标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">通信芯片</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">通信模块</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">智能电表</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">智能开关</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">分支监测单元</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">智能终端</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">光伏隔离开关</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">光伏互交式设备</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">智能微断</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_010 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_010">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">智能插座</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_011 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_011">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">载波运维</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_012 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_012">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">采集器</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_013 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_013">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">转换器</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DT_014 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DT_014">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#DeviceType"/>
+        <rdfs:label xml:lang="zh">智能计量箱</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#DeviceType -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#DeviceType">
+        <rdfs:label xml:lang="zh">设备类型</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#InternationalStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_006"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">国际标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#LocalStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#LocalStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_010"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_011"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_015"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">地方标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#hasStandard"/>
+                <owl:someValuesFrom rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_001"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">方案标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">产品标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">市场信息</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_003_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003"/>
+        <rdfs:label xml:lang="zh">电网市场</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_003_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003"/>
+        <rdfs:label xml:lang="zh">智能家居</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_003_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003"/>
+        <rdfs:label xml:lang="zh">智慧园区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_003_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003"/>
+        <rdfs:label xml:lang="zh">新能源</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_003_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_003_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_003"/>
+        <rdfs:label xml:lang="zh">其它行业</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">会员展厅</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_004_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_004_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_004"/>
+        <rdfs:label xml:lang="zh">公司介绍</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_004_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_004_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_004"/>
+        <rdfs:label xml:lang="zh">产品方案</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_004_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_004_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_004"/>
+        <rdfs:label xml:lang="zh">市场合作</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_004_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_004_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_004"/>
+        <rdfs:label xml:lang="zh">招聘信息</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">送检&amp;验厂</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_005_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_005_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+        <rdfs:label xml:lang="zh">产品送检</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_005_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_005_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_005"/>
+        <rdfs:label xml:lang="zh">资质审核</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">技术交流</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">芯片</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">产品</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">专利</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">应用</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">封测</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">SoC</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">操作系统</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">APP软件</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_006_010 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_006_010">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_006"/>
+        <rdfs:label xml:lang="zh">其它问题</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">行业报告</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:label xml:lang="zh">通信单元</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:label xml:lang="zh">智能电表</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:label xml:lang="zh">量测开关</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:label xml:lang="zh">转换器</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:label xml:lang="zh">智能终端</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_007_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_007_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_007"/>
+        <rdfs:label xml:lang="zh">其他产品</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">动态资讯</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">国家政策</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">社区活动</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">技术动态</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">行业信息</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">行业新闻</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_006 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_006">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">电力动态</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_007 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_007">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">企业快讯</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">公众号</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_008_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_008_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#M_008"/>
+        <rdfs:label xml:lang="zh">市场动态</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#M_011 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#M_011">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">关于社区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Month -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Month">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label xml:lang="zh">月度</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Other -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Other">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label xml:lang="zh">其他</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#OverseasStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#OverseasStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:label xml:lang="zh">海外标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_008 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_008">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:label xml:lang="zh">IEEE</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_009 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_009">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:label xml:lang="zh">ISO</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_011 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_011">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#InternationalStandard"/>
+        <rdfs:label xml:lang="zh">ITU</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_020 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_020">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:label xml:lang="zh">强制性国家标准（GB）</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_021 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_021">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:label xml:lang="zh">推荐性国家标准‌（GB/T）</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_022 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_022">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CountryStandard"/>
+        <rdfs:label xml:lang="zh">国家标准化指导性技术文件‌(GB/Z)</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_025 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_025">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#SectorStandard"/>
+        <rdfs:label xml:lang="zh">DL（电力）标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_026 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_026">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#SectorStandard"/>
+        <rdfs:label xml:lang="zh">YD（通信）标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PowerStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#PowerStandard">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#hasCommunicationType"/>
+                <owl:someValuesFrom rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CommunicationType"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_001"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_002"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_003"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_004"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_005"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#StandardName"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">电力标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Region -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Region">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Split"/>
+        <rdfs:label xml:lang="zh">地区</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SP_001 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_001">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Annual"/>
+        <rdfs:label xml:lang="zh">上册</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SP_002 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_002">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Annual"/>
+        <rdfs:label xml:lang="zh">中册</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SP_003 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_003">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Annual"/>
+        <rdfs:label xml:lang="zh">下册</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SP_004 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_004">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Annual"/>
+        <rdfs:label xml:lang="zh">上半年</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SP_005 -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SP_005">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#Annual"/>
+        <rdfs:label xml:lang="zh">下半年</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#SectorStandard -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#SectorStandard">
+        <rdfs:subClassOf rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PowerStandard"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_009"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_010"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_011"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_017"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://cn.liyuan.chnplc/ontology/cms#P_018"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:label xml:lang="zh">行业标准</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#Split -->
+
+    <owl:Class rdf:about="http://cn.liyuan.chnplc/ontology/cms#Split">
+        <rdfs:label xml:lang="zh">分册</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#CountryList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#CountryList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>CountryListId</id>
+        <rdfs:label xml:lang="zh">国家/地区</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IS_001 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#IS_001">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">送检通知</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IS_002 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#IS_002">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">送检分析</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#IS_003 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#IS_003">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">送检结果</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#InspectPartyList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#InspectPartyList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>InspectPartyListId</id>
+        <rdfs:label xml:lang="zh">检测机构</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#InspectStatusList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#InspectStatusList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#IS_001"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#IS_002"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#IS_003"/>
+        <id>InspectStatusListId</id>
+        <rdfs:label xml:lang="zh">送检状态</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#LanguageList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#LanguageList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>LanguageListId</id>
+        <rdfs:label xml:lang="zh">语言</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#MonthList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#MonthList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>MonthListId</id>
+        <rdfs:label xml:lang="zh">月份</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PS_010 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#PS_010">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">IEC</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PV_001 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#PV_001">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">发布版</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PV_002 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#PV_002">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">审批版</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PV_003 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#PV_003">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">讨论版</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PartyStandardList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#PartyStandardList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>PartyStandardListId</id>
+        <rdfs:label xml:lang="zh">企业标准</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#PublishVersionList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#PublishVersionList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PV_001"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PV_002"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#PV_003"/>
+        <id>PublishVersionListId</id>
+        <rdfs:label xml:lang="zh">发布版本</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#QFS_001 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#QFS_001">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">验厂公告</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#QFS_002 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#QFS_002">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label>验厂分析</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#QFS_003 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#QFS_003">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">验厂结果</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#QualifyPartyList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#QualifyPartyList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>QualifyPartyListId</id>
+        <rdfs:label xml:lang="zh">验厂企业</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#QualifyStatusList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#QualifyStatusList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#QFS_001"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#QFS_002"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#QFS_003"/>
+        <id>QualifyStatusListId</id>
+        <rdfs:label xml:lang="zh">验厂状态</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#RegionList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#RegionList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>RegionListId</id>
+        <rdfs:label xml:lang="zh">地方</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#RegionStandardList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#RegionStandardList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>RegionStandardListId</id>
+        <rdfs:label xml:lang="zh">地方标准</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_001 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_001">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">招标公告</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_002 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_002">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">招标下载</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_003 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_003">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">招标分析表</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_004 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_004">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">澄清</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_005 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_005">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">唱标价</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_006 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_006">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">C值表</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_007 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_007">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">中标公示</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_008 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_008">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">中标公告</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_009 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_009">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">中标分析表</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_010 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_010">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">供货技术规范</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TS_011 -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TS_011">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeType"/>
+        <rdfs:label xml:lang="zh">执行情况</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TeamStandardList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TeamStandardList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>TeamStandardListId</id>
+        <rdfs:label xml:lang="zh">团队标准</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#TenderStatusList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#TenderStatusList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_001"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_002"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_003"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_004"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_005"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_006"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_007"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_008"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_009"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_010"/>
+        <hasCode rdf:resource="http://cn.liyuan.chnplc/ontology/cms#TS_011"/>
+        <id>TenderStatusListId</id>
+        <rdfs:label xml:lang="zh">招标状态</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://cn.liyuan.chnplc/ontology/cms#YearList -->
+
+    <owl:NamedIndividual rdf:about="http://cn.liyuan.chnplc/ontology/cms#YearList">
+        <rdf:type rdf:resource="http://cn.liyuan.chnplc/ontology/cms#CodeList"/>
+        <id>YearListId</id>
+        <rdfs:label xml:lang="zh">年份</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotations
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description rdf:about="http://cn.liyuan.chnplc/ontology/cms#hasCode">
+        <rdfs:comment xml:lang="en">Property denoting a particular code.</rdfs:comment>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi -->
+
