@@ -5,6 +5,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Test {
 
+
+
+    @org.junit.jupiter.api.Test
+    public void test66() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+//        String owlPath = "/FurnitureSectorTaxonomy-v2.5.1.owl";
+//        String ns = "http://www.aidimme.es/FurnitureSectorOntology.owl#";
+        String owlPath = "/cms-ontology.owl";
+        String ns = "http://cn.liyuan.chnplc/ontology/cms#";
+        OwlParserService owlParserService = OwlParserService
+                .builder()
+                .ns(ns)
+                .ontologyPath(owlPath)
+                .build();
+//        System.out.println(mapper.writeValueAsString(owlParserService.printAllClasses()));
+//        owlParserService.printAllClasses();
+//        owlParserService.printAllProperties();
+//        owlParserService.rest("AssociationStandard");
+        owlParserService.printPropertie("P_005");
+    }
+
     @org.junit.jupiter.api.Test
     public void test8() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -43,10 +64,11 @@ public class Test {
                 .ns(ns)
                 .ontologyPath(owlPath)
                 .build();
-
-
+//    System.out.println(mapper.writeValueAsString(owlParserService.rest("")));
+//        owlParserService.rest("M_001");
 //        System.out.println(mapper.writeValueAsString(owlParserService.getRootClasses()));
-        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("PowerStandard")));
+        System.out.println(mapper.writeValueAsString(owlParserService.getOwlClass("M_001")));
+//        System.out.println(mapper.writeValueAsString(owlParserService.getClassTree("M_001")));
 
     }
 
