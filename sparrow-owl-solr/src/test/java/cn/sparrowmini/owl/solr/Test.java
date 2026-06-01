@@ -1,16 +1,7 @@
 package cn.sparrowmini.owl.solr;
 
-import cn.sparrowmini.owl.OwlParserService;
-import cn.sparrowmini.owl.solr.model.ClassType;
-import cn.sparrowmini.owl.solr.model.PropertyType;
 import cn.sparrowmini.owl.solr.service.OntologyIndexService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.jena.base.Sys;
-import org.apache.jena.ontapi.OntModelFactory;
-import org.apache.jena.ontapi.OntSpecification;
-import org.apache.jena.ontapi.model.*;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudHttp2SolrClient;
@@ -18,7 +9,6 @@ import org.apache.solr.client.solrj.request.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 public class Test {
@@ -28,12 +18,13 @@ public class Test {
             .build();
 
     @org.junit.jupiter.api.Test
-    public void test99() throws SolrServerException, IOException {
+    public void testPrintClassAndProp() throws SolrServerException, IOException {
 
         SolrQuery query = new SolrQuery("doctype:class AND -parents:[* TO *]");
+        query.setFields(new String[]{"id,localName,zh_label"});
         QueryResponse response = solrClient.query("class", query);
         response.getResults().forEach(f->{
-            System.out.println(f.get("zh_label"));
+            System.out.println("aa"+f.get("zh_label") + f.get("localName").toString());
             String parentUri= f.get("id").toString();
 
             try {
@@ -45,7 +36,7 @@ public class Test {
             try {
                 QueryResponse  response1 = solrClient.query("class", queryChild);
                 response1.getResults().forEach(f1->{
-                    System.out.println("  --" + f1.get("zh_label"));
+                    System.out.println("  --" + f1.get("zh_label") + f1.get("localName").toString());
                     try {
                         getPropertiesByClass(f1.get("id").toString(), List.of());
                     } catch (Exception e) {
@@ -83,7 +74,7 @@ public class Test {
     }
 
     @org.junit.jupiter.api.Test
-    public void test88() throws JsonProcessingException {
+    public void testInitSolr() throws JsonProcessingException {
 //        ObjectMapper mapper = new ObjectMapper();
 //        String owlPath = "/cms-ontology.owl";
 //        String ns = "http://cn.liyuan.chnplc/ontology/cms#";

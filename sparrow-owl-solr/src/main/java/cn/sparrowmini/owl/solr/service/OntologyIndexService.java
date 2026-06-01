@@ -6,11 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
-import org.apache.jena.ontapi.model.OntClass;
-import org.apache.jena.ontapi.model.OntModel;
-import org.apache.jena.ontapi.model.OntProperty;
-import org.apache.jena.ontapi.model.OntStatement;
+import org.apache.jena.ontapi.model.*;
 import org.apache.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.Restriction;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
@@ -68,11 +66,10 @@ public class OntologyIndexService {
     }
 
     public void createIndex(String ontologyPath) {
-        Set<String> nss = Set.of("http://www.nimble-project.org/catalogue#", "http://www.aidimme.es/FurnitureSectorOntology.owl#", "http://cn.liyuan.chnplc/ontology/cms#");
+        Set<String> nss = Set.of("http://www.nimble-project.org/catalogue#", "http://www.aidimme.es/FurnitureSectorOntology.owl#", "http://www.cn-plc.com/ontology/cms#");
 
         try (InputStream in = getClass().getResourceAsStream(ontologyPath)) {
             model.read(in, "RDF/XML");
-            new NIMBLEOntology(model);
             List<PropertyType> indexedProp = new ArrayList<>();
 
             List<OntClass.Named> indexedOntClass = model.classes().toList();
@@ -131,6 +128,7 @@ public class OntologyIndexService {
         // 修正之前的 isVisible 和 isRequired 逻辑
         index.setVisible(NIMBLEOntology.isVisible(prop, true));
         index.setRequired(NIMBLEOntology.isRequired(prop, false));
+        index.setFacet(prop.canAs(OntObjectProperty.class));
 
         ValueQualifier valueQualifier = getValueQualifier(prop);
         if (valueQualifier != null) {
@@ -389,6 +387,9 @@ public class OntologyIndexService {
         String classUri = ontClass.getURI();
         if (classUri == null) return properties;
         // 2. 扫描该类直接关联的属性 (rdfs:domain)
+        if(ontClass.getLocalName().equals("CompanyStandard")){
+            System.out.println("ontClass.properties()" + ontClass.properties().count());
+        }
         ontClass.properties().forEach(prop -> {
             propertyUsageMap.computeIfAbsent(prop.getURI(), k -> new HashSet<>()).add(classUri);
             properties.add(prop.getURI());

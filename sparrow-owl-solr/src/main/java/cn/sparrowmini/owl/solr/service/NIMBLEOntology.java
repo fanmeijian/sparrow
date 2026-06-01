@@ -5,7 +5,6 @@ import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.model.OntClass;
 import org.apache.jena.ontapi.model.OntModel;
 import org.apache.jena.ontapi.model.OntProperty;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
@@ -20,7 +19,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class NIMBLEOntology {
-    public static final String NS = "http://cn.liyuan.chnplc/ontology/cms#";
+    public static final String NS = "http://www.nimble-project.org/catalogue#";
     public static final String QUANTITY_TYPE = "QuantityType";
     public static final String CODE_TYPE = "CodeType";
     public static final String UNIT_TYPE = "UnitType";
@@ -45,22 +44,32 @@ public class NIMBLEOntology {
 
     private static final String ONT_FILE = "/NIMBLEOntology.owl";
     private static NIMBLEOntology instance;
-    private OntModel nimbleModel;
+    private final OntModel nimbleModel;
 
     private final Set<OntProperty> UNIT_LIST_PROPS = new HashSet<>();
     private final Set<OntProperty> CODE_LIST_PROPS = new HashSet<>();
     private final Set<OntProperty> CODE_PROPERTY_PROPS = new HashSet<>();
     private final Set<OntProperty> QUANTITY_PROPERTY_PROPS = new HashSet<>();
 
-    public NIMBLEOntology(OntModel ontModel) {
-        this.nimbleModel = ontModel;
-        initProperties();
-        instance = this;
-    }
 
     private NIMBLEOntology() {
+        nimbleModel = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM_RDFS_INF); //ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_RDFS_INF);
+//		codeTypeProperty = nimbleModel.createOntProperty(NS + CODE_PROPERTY_TYPE);
+//		unitTypeProperty = nimbleModel.createOntProperty(NS + QUANTITY_PROPERTY_TYPE);
+//		codeType = nimbleModel.createClass(NS + CODE_TYPE);
+//		unitType = nimbleModel.createClass(NS + UNIT_TYPE);
+//		unitListType = nimbleModel.createClass(NS + UNIT_LIST);
+//		codeListType = nimbleModel.createClass(NS + CODE_LIST);
+//
+        try {
+            load(nimbleModel, ONT_FILE, Lang.RDFXML);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         initProperties();
     }
+
 
     private void initProperties() {
         CODE_LIST_PROPS.add(getOntProperty(NS + HAS_CODE));
@@ -90,10 +99,6 @@ public class NIMBLEOntology {
             instance = new NIMBLEOntology();
         }
         return instance;
-    }
-
-    public void setModel(OntModel ontModel) {
-        this.nimbleModel = ontModel;
     }
 
     private void load(OntModel model, String name, Lang lang) throws IOException {
