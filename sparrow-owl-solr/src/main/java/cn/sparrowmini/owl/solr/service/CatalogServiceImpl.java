@@ -4,6 +4,7 @@ import cn.sparrowmini.common.dto.ItemVo;
 import cn.sparrowmini.common.dto.PropertyVo;
 import cn.sparrowmini.common.service.CatalogService;
 import cn.sparrowmini.common.util.JsonUtils;
+import cn.sparrowmini.owl.solr.model.ConceptType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.apache.solr.client.solrj.SolrClient;
@@ -108,5 +109,23 @@ public class CatalogServiceImpl implements CatalogService {
 
     private String getUri(String name){
         return name==null || name.contains(ns)? name: ns + name;
+    }
+
+    public List<ConceptType> getOptionsByCodeListId(String codeListId) throws SolrServerException, IOException {
+        // 1. 先去 Solr 里查一下这个 codeListId 本身是个什么 doctype
+        SolrDocument doc = solrClient.getById("concepts", codeListId);
+        String doctype = (String) doc.getFieldValue("doctype");
+
+        // 2. 智能化自动变阵（对前端完全隐蔽）
+        SolrQuery query = new SolrQuery();
+        if ("scheme".equals(doctype)) {
+            // 如果是 Scheme，捞取该沙盒下的顶级根节点
+            query.setQuery("skos_inScheme:\"" + codeListId + "\" AND isTopConcept:true");
+        } else if ("collection".equals(doctype)) {
+            // 如果是 Collection，顺着你洗好的递归标签，横向打包捞出所有成员
+            query.setQuery("skos_memberOf:\"" + codeListId + "\"");
+        }
+
+        return solrClient.query("concepts", query).getBeans(ConceptType.class);
     }
 }

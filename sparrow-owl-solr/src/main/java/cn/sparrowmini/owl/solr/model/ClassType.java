@@ -1,12 +1,15 @@
 package cn.sparrowmini.owl.solr.model;
 
-import cn.sparrowmini.owl.solr.model.IClassType;
 import java.util.Collection;
 import java.util.HashSet;
 // 引入 SolrJ 注解
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
 
-public class ClassType extends Concept implements IClassType {
+@Setter
+@Getter
+public class ClassType extends BaseMetadataObject implements IClassType {
 
     @Field("doctype")
     private String type = "class";
@@ -32,27 +35,11 @@ public class ClassType extends Concept implements IClassType {
     public ClassType() {
     }
 
-    public String getType() {
-        return this.type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Collection<String> getProperties() {
-        return this.properties;
-    }
-
     public void addProperty(String property) {
         if (this.properties == null) {
             this.properties = new HashSet<>();
         }
         this.properties.add(property);
-    }
-
-    public void setProperties(Collection<String> properties) {
-        this.properties = properties;
     }
 
     public void addParent(String superClass) {
@@ -62,27 +49,11 @@ public class ClassType extends Concept implements IClassType {
         this.parents.add(superClass);
     }
 
-    public Collection<String> getParents() {
-        return this.parents;
-    }
-
-    public void setParents(Collection<String> parent) {
-        this.parents = parent;
-    }
-
     public void addChild(String childClass) {
         if (this.children == null) {
             this.children = new HashSet<>();
         }
         this.children.add(childClass);
-    }
-
-    public Collection<String> getChildren() {
-        return this.children;
-    }
-
-    public void setChildren(Collection<String> child) {
-        this.children = child;
     }
 
     public void addAllParent(String superClass) {
@@ -92,14 +63,6 @@ public class ClassType extends Concept implements IClassType {
         this.allParents.add(superClass);
     }
 
-    public Collection<String> getAllParents() {
-        return this.allParents;
-    }
-
-    public void setAllParents(Collection<String> parent) {
-        this.allParents = parent;
-    }
-
     public void addAllChild(String childClass) {
         if (this.allChildren == null) {
             this.allChildren = new HashSet<>();
@@ -107,19 +70,4 @@ public class ClassType extends Concept implements IClassType {
         this.allChildren.add(childClass);
     }
 
-    public Collection<String> getAllChildren() {
-        return this.allChildren;
-    }
-
-    public void setAllChildren(Collection<String> child) {
-        this.allChildren = child;
-    }
-
-    public Integer getLevel() {
-        return this.level;
-    }
-
-    public void setLevel(Integer level) {
-        this.level = level;
-    }
 }

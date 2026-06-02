@@ -1,12 +1,13 @@
 package cn.sparrowmini.owl.solr.model;
 
-import cn.sparrowmini.owl.solr.model.IConcept;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 // 替换为 SolrJ 原生注解
 import org.apache.solr.client.solrj.beans.Field;
@@ -14,11 +15,12 @@ import org.apache.solr.client.solrj.beans.Field;
 @JsonInclude(
         content = Include.NON_EMPTY
 )
-public abstract class Concept implements IConcept {
+public abstract class BaseMetadataObject implements IMetadataObject {
 
     // SolrJ 使用 @Field("fieldname") 来映射主键和普通字段
     @Field("id")
     protected String uri;
+
 
     @Field("code")
     protected String code;
@@ -55,16 +57,17 @@ public abstract class Concept implements IConcept {
     @Field("basePlatform")
     private String basePlatform;
 
-    public Concept() {
+
+    public BaseMetadataObject() {
     }
 
-    public static Concept buildNew() {
-        SimpleConcept c = new SimpleConcept();
+    public static BaseMetadataObject buildNew() {
+        SimpleMetadataObject c = new SimpleMetadataObject();
         return c;
     }
 
-    public static Concept buildFrom(IConcept other) {
-        SimpleConcept c = new SimpleConcept();
+    public static BaseMetadataObject buildFrom(IMetadataObject other) {
+        SimpleMetadataObject c = new SimpleMetadataObject();
         c.setUri(other.getUri());
         c.setCode(other.getCode());
         c.setLabel(other.getLabel());
@@ -98,9 +101,9 @@ public abstract class Concept implements IConcept {
 
     public void setLabel(Map<String, String> labelMap) {
         if (labelMap != null) {
-            for(String key : labelMap.keySet()) {
-                this.addLabel(key, (String)labelMap.get(key));
-                this.label.put(key+ "_label", labelMap.get(key));
+            for (String key : labelMap.keySet()) {
+                this.addLabel(key, (String) labelMap.get(key));
+                this.label.put(key + "_label", labelMap.get(key));
                 this.label.remove(key);
             }
         } else {
@@ -186,8 +189,8 @@ public abstract class Concept implements IConcept {
 
     public void setComment(Map<String, String> commentMap) {
         if (commentMap != null) {
-            for(String key : commentMap.keySet()) {
-                this.addComment(key, (String)commentMap.get(key));
+            for (String key : commentMap.keySet()) {
+                this.addComment(key, (String) commentMap.get(key));
             }
         } else {
             this.comment = null;
@@ -209,8 +212,8 @@ public abstract class Concept implements IConcept {
 
     public void setDescription(Map<String, String> descMap) {
         if (descMap != null) {
-            for(String key : descMap.keySet()) {
-                this.addDescription(key, (String)descMap.get(key));
+            for (String key : descMap.keySet()) {
+                this.addDescription(key, (String) descMap.get(key));
             }
         } else {
             this.description = null;
@@ -248,8 +251,8 @@ public abstract class Concept implements IConcept {
     @SuppressWarnings("unchecked")
     public void setAlternateLabel(Map<String, Collection<String>> alternateLabel) {
         if (alternateLabel != null) {
-            for(String lang : alternateLabel.keySet()) {
-                for(String label : alternateLabel.get(lang)) {
+            for (String lang : alternateLabel.keySet()) {
+                for (String label : alternateLabel.get(lang)) {
                     this.addAlternateLabel(lang, label);
                 }
             }
@@ -265,8 +268,8 @@ public abstract class Concept implements IConcept {
     @SuppressWarnings("unchecked")
     public void setHiddenLabel(Map<String, Collection<String>> hiddenLabel) {
         if (hiddenLabel != null) {
-            for(String lang : hiddenLabel.keySet()) {
-                for(String label : hiddenLabel.get(lang)) {
+            for (String lang : hiddenLabel.keySet()) {
+                for (String label : hiddenLabel.get(lang)) {
                     this.addHiddenLabel(lang, label);
                 }
             }
@@ -283,8 +286,8 @@ public abstract class Concept implements IConcept {
         this.code = code;
     }
 
-    static class SimpleConcept extends Concept {
-        SimpleConcept() {
+    static class SimpleMetadataObject extends BaseMetadataObject {
+        SimpleMetadataObject() {
         }
     }
 }

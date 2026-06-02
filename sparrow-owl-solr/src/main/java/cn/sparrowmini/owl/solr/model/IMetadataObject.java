@@ -4,7 +4,7 @@ package cn.sparrowmini.owl.solr.model;
 import java.util.Collection;
 import java.util.Map;
 
-public interface IConcept {
+public interface IMetadataObject {
     String SOLR_STRING = "string";
     String SOLR_NUMBER = "pdouble";
     String SOLR_INT = "pint";

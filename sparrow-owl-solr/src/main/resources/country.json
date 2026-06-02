@@ -1,0 +1,202 @@
+[
+  {
+    "label": "加拿大",
+    "name": "CA"
+  },
+  {
+    "label": "英国",
+    "name": "GB"
+  },
+  {
+    "label": "瑞典",
+    "name": "SE"
+  },
+  {
+    "label": "新加坡",
+    "name": "SG"
+  },
+  {
+    "label": "沙特阿拉伯",
+    "name": "SA"
+  },
+  {
+    "label": "巴西",
+    "name": "BR"
+  },
+  {
+    "label": "新西兰",
+    "name": "NZ"
+  },
+  {
+    "label": "法国",
+    "name": "FR"
+  },
+  {
+    "label": "日本",
+    "name": "JP"
+  },
+  {
+    "label": "孟加拉国",
+    "name": "BD"
+  },
+  {
+    "label": "俄罗斯",
+    "name": "RU"
+  },
+  {
+    "label": "比利时",
+    "name": "BE"
+  },
+  {
+    "label": "芬兰",
+    "name": "FI"
+  },
+  {
+    "label": "荷兰",
+    "name": "NL"
+  },
+  {
+    "label": "挪威",
+    "name": "NO"
+  },
+  {
+    "label": "越南",
+    "name": "VN"
+  },
+  {
+    "label": "奥地利",
+    "name": "AT"
+  },
+  {
+    "label": "澳大利亚",
+    "name": "AU"
+  },
+  {
+    "label": "西班牙",
+    "name": "ES"
+  },
+  {
+    "label": "阿根廷",
+    "name": "AR"
+  },
+  {
+    "label": "意大利",
+    "name": "IT"
+  },
+  {
+    "label": "墨西哥",
+    "name": "MX"
+  },
+  {
+    "label": "马来西亚",
+    "name": "MY"
+  },
+  {
+    "label": "南非",
+    "name": "ZA"
+  },
+  {
+    "label": "埃及",
+    "name": "EG"
+  },
+  {
+    "label": "中国澳门",
+    "name": "MO"
+  },
+  {
+    "label": "以色列",
+    "name": "IL"
+  },
+  {
+    "label": "阿联酋",
+    "name": "AE"
+  },
+  {
+    "label": "印度",
+    "name": "IN"
+  },
+  {
+    "label": "美国",
+    "name": "US"
+  },
+  {
+    "label": "蒙古",
+    "name": "MN"
+  },
+  {
+    "label": "印度尼西亚",
+    "name": "ID"
+  },
+  {
+    "label": "爱尔兰",
+    "name": "IE"
+  },
+  {
+    "label": "乌克兰",
+    "name": "UA"
+  },
+  {
+    "label": "丹麦",
+    "name": "DK"
+  },
+  {
+    "label": "中国台湾",
+    "name": "TW"
+  },
+  {
+    "label": "中国香港",
+    "name": "HK"
+  },
+  {
+    "label": "葡萄牙",
+    "name": "PT"
+  },
+  {
+    "label": "土耳其",
+    "name": "TR"
+  },
+  {
+    "label": "斯里兰卡",
+    "name": "LK"
+  },
+  {
+    "label": "德国",
+    "name": "DE"
+  },
+  {
+    "label": "巴基斯坦",
+    "name": "PK"
+  },
+  {
+    "label": "波兰",
+    "name": "PL"
+  },
+  {
+    "label": "菲律宾",
+    "name": "PH"
+  },
+  {
+    "label": "泰国",
+    "name": "TH"
+  },
+  {
+    "label": "哈萨克斯坦",
+    "name": "KZ"
+  },
+  {
+    "label": "中国",
+    "name": "CN"
+  },
+  {
+    "label": "韩国",
+    "name": "KR"
+  },
+  {
+    "label": "智利",
+    "name": "CL"
+  },
+  {
+    "label": "瑞士",
+    "name": "CH"
+  }
+]

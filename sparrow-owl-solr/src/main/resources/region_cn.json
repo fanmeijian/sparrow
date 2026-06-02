@@ -1,0 +1,142 @@
+[
+  {
+    "name": "PVN_030",
+    "label": "宁夏回族自治区"
+  },
+  {
+    "name": "PVN_031",
+    "label": "新疆维吾尔自治区"
+  },
+  {
+    "name": "PVN_032",
+    "label": "台湾"
+  },
+  {
+    "name": "PVN_033",
+    "label": "香港特别行政区"
+  },
+  {
+    "name": "PVN_011",
+    "label": "浙江省"
+  },
+  {
+    "name": "PVN_016",
+    "label": "河南省"
+  },
+  {
+    "name": "PVN_017",
+    "label": "湖北省"
+  },
+  {
+    "name": "PVN_018",
+    "label": "湖南省"
+  },
+  {
+    "name": "PVN_019",
+    "label": "广东省"
+  },
+  {
+    "name": "PVN_034",
+    "label": "澳门特别行政区"
+  },
+  {
+    "name": "PVN_012",
+    "label": "安徽省"
+  },
+  {
+    "name": "PVN_035",
+    "label": "海外"
+  },
+  {
+    "name": "PVN_013",
+    "label": "福建省"
+  },
+  {
+    "name": "PVN_0010",
+    "label": "江苏省"
+  },
+  {
+    "name": "PVN_014",
+    "label": "江西省"
+  },
+  {
+    "name": "PVN_015",
+    "label": "山东省"
+  },
+  {
+    "name": "PVN_009",
+    "label": "上海"
+  },
+  {
+    "name": "PVN_020",
+    "label": "广西壮族自治区"
+  },
+  {
+    "name": "PVN_021",
+    "label": "海南省"
+  },
+  {
+    "name": "PVN_022",
+    "label": "重庆"
+  },
+  {
+    "name": "PVN_005",
+    "label": "内蒙古自治区"
+  },
+  {
+    "name": "PVN_027",
+    "label": "陕西省"
+  },
+  {
+    "name": "PVN_006",
+    "label": "辽宁省"
+  },
+  {
+    "name": "PVN_028",
+    "label": "甘肃省"
+  },
+  {
+    "name": "PVN_007",
+    "label": "吉林省"
+  },
+  {
+    "name": "PVN_029",
+    "label": "青海省"
+  },
+  {
+    "name": "PVN_008",
+    "label": "黑龙江省"
+  },
+  {
+    "name": "PVN_001",
+    "label": "北京"
+  },
+  {
+    "name": "PVN_023",
+    "label": "四川省"
+  },
+  {
+    "name": "PVN_002",
+    "label": "天津"
+  },
+  {
+    "name": "PVN_024",
+    "label": "贵州省"
+  },
+  {
+    "name": "PVN_003",
+    "label": "河北省"
+  },
+  {
+    "name": "PVN_025",
+    "label": "云南省"
+  },
+  {
+    "name": "PVN_004",
+    "label": "山西省"
+  },
+  {
+    "name": "PVN_026",
+    "label": "西藏自治区"
+  }
+]

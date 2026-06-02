@@ -8,57 +8,13 @@
      xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+     xmlns:terms="http://purl.org/dc/terms/"
      xmlns:catalogue="http://www.nimble-project.org/catalogue#">
     <owl:Ontology rdf:about="http://www.cn-plc.com/ontology/cms">
+        <owl:imports rdf:resource="http://www.w3.org/2004/02/skos/core"/>
         <rdfs:comment>CMS Article Category and Standards Ontology for Chnplc</rdfs:comment>
     </owl:Ontology>
-    
-
-
-    <!-- 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //
-    // Annotation properties
-    //
-    ///////////////////////////////////////////////////////////////////////////////////////
-     -->
-
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#code -->
-
-    <owl:AnnotationProperty rdf:about="http://www.nimble-project.org/catalogue#code"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#hasCode -->
-
-    <owl:AnnotationProperty rdf:about="http://www.nimble-project.org/catalogue#hasCode"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#hasCodeList -->
-
-    <owl:AnnotationProperty rdf:about="http://www.nimble-project.org/catalogue#hasCodeList"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#hasUnitList -->
-
-    <owl:AnnotationProperty rdf:about="http://www.nimble-project.org/catalogue#hasUnitList"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#id -->
-
-    <owl:AnnotationProperty rdf:about="http://www.nimble-project.org/catalogue#id"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#unitCode -->
-
-    <owl:AnnotationProperty rdf:about="http://www.nimble-project.org/catalogue#unitCode"/>
     
 
 
@@ -70,19 +26,6 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    
-
-
-    <!-- http://www.cn-plc.com/ontology/cms#country -->
-
-    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#country">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#OverseasStandard"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#CountryList"/>
-        <rdfs:label xml:lang="zh">国家/地区</rdfs:label>
-    </owl:ObjectProperty>
     
 
 
@@ -117,7 +60,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#hasCompanyStandard -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasCompanyStandard">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain>
             <owl:Class>
@@ -129,9 +72,7 @@
                 </owl:unionOf>
             </owl:Class>
         </rdfs:domain>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#PartyStandardList"/>
-        <rdfs:label xml:lang="zh">企业标准</rdfs:label>
+        <rdfs:label>企业标准</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -158,11 +99,9 @@
     <!-- http://www.cn-plc.com/ontology/cms#hasInspectStatus -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasInspectStatus">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_005_001"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#InspectStatusList"/>
         <rdfs:label xml:lang="zh">送检状态</rdfs:label>
     </owl:ObjectProperty>
     
@@ -171,7 +110,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#hasLanguage -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasLanguage">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdfs:domain>
             <owl:Class>
                 <owl:unionOf rdf:parseType="Collection">
@@ -180,22 +119,23 @@
                 </owl:unionOf>
             </owl:Class>
         </rdfs:domain>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#LanguageList"/>
         <rdfs:label xml:lang="zh">语言</rdfs:label>
     </owl:ObjectProperty>
     
 
 
-    <!-- http://www.cn-plc.com/ontology/cms#hasMonth -->
+    <!-- http://www.cn-plc.com/ontology/cms#hasParty -->
 
-    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasMonth">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#Month"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#MonthList"/>
-        <rdfs:label xml:lang="zh">月份</rdfs:label>
+    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasParty">
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.cn-plc.com/ontology/cms#AssociationStandard"/>
+                    <rdf:Description rdf:about="http://www.cn-plc.com/ontology/cms#CompanyStandard"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
     </owl:ObjectProperty>
     
 
@@ -203,7 +143,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#hasPublishVersion -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasPublishVersion">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain>
             <owl:Class>
@@ -213,8 +153,6 @@
                 </owl:unionOf>
             </owl:Class>
         </rdfs:domain>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#PublishVersionList"/>
         <rdfs:label xml:lang="zh">发布版本</rdfs:label>
     </owl:ObjectProperty>
     
@@ -223,11 +161,9 @@
     <!-- http://www.cn-plc.com/ontology/cms#hasQualifyStatus -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasQualifyStatus">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_005_002"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#QualifyStatusList"/>
         <rdfs:label xml:lang="zh">验厂状态</rdfs:label>
     </owl:ObjectProperty>
     
@@ -265,25 +201,10 @@
     <!-- http://www.cn-plc.com/ontology/cms#hasTendorStatus -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasTendorStatus">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_003_001"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#TenderStatusList"/>
         <rdfs:label xml:lang="zh">招标状态</rdfs:label>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://www.cn-plc.com/ontology/cms#hasYear -->
-
-    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasYear">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_007"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#YearList"/>
-        <rdfs:label xml:lang="zh">年份</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -291,11 +212,9 @@
     <!-- http://www.cn-plc.com/ontology/cms#inspectParty -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#inspectParty">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_005_001"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#InspectPartyList"/>
         <rdfs:label xml:lang="zh">检测机构</rdfs:label>
     </owl:ObjectProperty>
     
@@ -304,11 +223,9 @@
     <!-- http://www.cn-plc.com/ontology/cms#qualifyParty -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#qualifyParty">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_005_002"/>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#QualifyPartyList"/>
         <rdfs:label xml:lang="zh">验厂机构</rdfs:label>
     </owl:ObjectProperty>
     
@@ -317,7 +234,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#region -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#region">
-        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#CodeProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain>
             <owl:Class>
@@ -327,25 +244,8 @@
                 </owl:unionOf>
             </owl:Class>
         </rdfs:domain>
-        <rdfs:range rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
-        <catalogue:hasCodeList rdf:resource="http://www.cn-plc.com/ontology/cms#RegionList"/>
         <rdfs:label xml:lang="zh">地区</rdfs:label>
     </owl:ObjectProperty>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#CodeProperty -->
-
-    <owl:ObjectProperty rdf:about="http://www.nimble-project.org/catalogue#CodeProperty">
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:comment xml:lang="en">Property denoting coded values, linking/containing code values. CodeProperty is a FunctionalProperty and indicates that the property may specify :hasCode and :hasCodeList.</rdfs:comment>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#FileProperty -->
-
-    <owl:ObjectProperty rdf:about="http://www.nimble-project.org/catalogue#FileProperty"/>
     
 
 
@@ -355,10 +255,24 @@
     
 
 
-    <!-- http://www.nimble-project.org/catalogue#hasCode -->
+    <!-- http://www.nimble-project.org/catalogue#hasCountry -->
 
-    <owl:ObjectProperty rdf:about="http://www.nimble-project.org/catalogue#hasCode">
-        <rdfs:domain rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
+    <owl:ObjectProperty rdf:about="http://www.nimble-project.org/catalogue#hasCountry">
+        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#OverseasStandard"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.nimble-project.org/catalogue#hasRegion -->
+
+    <owl:ObjectProperty rdf:about="http://www.nimble-project.org/catalogue#hasRegion">
+        <rdfs:range rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.nimble-project.org/catalogue#hasCountry"/>
+            <rdf:Description rdf:about="http://www.w3.org/2004/02/skos/core#narrower"/>
+        </owl:propertyChainAxiom>
+        <rdfs:label xml:lang="zh">地区</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -724,6 +638,26 @@
     
 
 
+    <!-- http://www.nimble-project.org/catalogue#month -->
+
+    <owl:DatatypeProperty rdf:about="http://www.nimble-project.org/catalogue#month">
+        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#Month"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+        <rdfs:label xml:lang="zh">月份</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.nimble-project.org/catalogue#year -->
+
+    <owl:DatatypeProperty rdf:about="http://www.nimble-project.org/catalogue#year">
+        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_007"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+        <rdfs:label xml:lang="zh">年份</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
@@ -994,6 +928,27 @@
 
     <owl:Class rdf:about="http://www.cn-plc.com/ontology/cms#CompanyStandard">
         <rdfs:subClassOf rdf:resource="http://www.cn-plc.com/ontology/cms#PowerStandard"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.cn-plc.com/ontology/cms#hasParty"/>
+                <owl:allValuesFrom>
+                    <owl:Restriction>
+                        <owl:onProperty>
+                            <rdf:Description>
+                                <owl:inverseOf rdf:resource="http://www.w3.org/2004/02/skos/core#member"/>
+                            </rdf:Description>
+                        </owl:onProperty>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:oneOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="http://www.cn-plc.com/ontology/cms#PowerCompanyCollection"/>
+                                </owl:oneOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:allValuesFrom>
+            </owl:Restriction>
+        </rdfs:subClassOf>
         <rdfs:label xml:lang="zh">企业标准</rdfs:label>
     </owl:Class>
     
@@ -1875,33 +1830,22 @@
     
 
 
-    <!-- http://www.nimble-project.org/catalogue#CodeList -->
+    <!-- http://www.w3.org/1999/02/22-rdf-syntax-ns#description -->
 
-    <owl:Class rdf:about="http://www.nimble-project.org/catalogue#CodeList"/>
+    <owl:Class rdf:about="http://www.w3.org/1999/02/22-rdf-syntax-ns#description"/>
     
 
 
-    <!-- http://www.nimble-project.org/catalogue#CodeType -->
+    <!-- http://www.w3.org/2004/02/skos/core#Collection -->
 
-    <owl:Class rdf:about="http://www.nimble-project.org/catalogue#CodeType"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#QuantityType -->
-
-    <owl:Class rdf:about="http://www.nimble-project.org/catalogue#QuantityType"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#Unit -->
-
-    <owl:Class rdf:about="http://www.nimble-project.org/catalogue#Unit"/>
-    
-
-
-    <!-- http://www.nimble-project.org/catalogue#UnitList -->
-
-    <owl:Class rdf:about="http://www.nimble-project.org/catalogue#UnitList"/>
+    <rdf:Description rdf:about="http://www.w3.org/2004/02/skos/core#Collection">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.cn-plc.com/ontology/cms#hasParty"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
     
 
 
@@ -1919,8 +1863,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#CountryList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#CountryList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>CountryListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">国家/地区</rdfs:label>
     </owl:NamedIndividual>
     
@@ -1929,7 +1872,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#IS_001 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#IS_001">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">送检通知</rdfs:label>
     </owl:NamedIndividual>
     
@@ -1938,7 +1881,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#IS_002 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#IS_002">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">送检分析</rdfs:label>
     </owl:NamedIndividual>
     
@@ -1947,7 +1890,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#IS_003 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#IS_003">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">送检结果</rdfs:label>
     </owl:NamedIndividual>
     
@@ -1956,8 +1899,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#InspectPartyList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#InspectPartyList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>InspectPartyListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">检测机构</rdfs:label>
     </owl:NamedIndividual>
     
@@ -1966,11 +1908,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#InspectStatusList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#InspectStatusList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#IS_001"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#IS_002"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#IS_003"/>
-        <catalogue:id>InspectStatusListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">送检状态</rdfs:label>
     </owl:NamedIndividual>
     
@@ -1979,19 +1917,8 @@
     <!-- http://www.cn-plc.com/ontology/cms#LanguageList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#LanguageList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>LanguageListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">语言</rdfs:label>
-    </owl:NamedIndividual>
-    
-
-
-    <!-- http://www.cn-plc.com/ontology/cms#MonthList -->
-
-    <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#MonthList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>MonthListId</catalogue:id>
-        <rdfs:label xml:lang="zh">月份</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -1999,7 +1926,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#PS_010 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PS_010">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">IEC</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2008,7 +1935,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#PV_001 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PV_001">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">发布版</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2017,7 +1944,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#PV_002 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PV_002">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">审批版</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2026,7 +1953,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#PV_003 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PV_003">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">讨论版</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2035,9 +1962,17 @@
     <!-- http://www.cn-plc.com/ontology/cms#PartyStandardList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PartyStandardList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>PartyStandardListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">企业标准</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.cn-plc.com/ontology/cms#PowerCompanyCollection -->
+
+    <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PowerCompanyCollection">
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
+        <rdfs:label xml:lang="zh">电力公司</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -2045,11 +1980,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#PublishVersionList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#PublishVersionList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#PV_001"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#PV_002"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#PV_003"/>
-        <catalogue:id>PublishVersionListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">发布版本</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2058,7 +1989,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#QFS_001 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QFS_001">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">验厂公告</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2067,7 +1998,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#QFS_002 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QFS_002">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label>验厂分析</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2076,7 +2007,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#QFS_003 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QFS_003">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">验厂结果</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2085,8 +2016,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#QualifyPartyList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QualifyPartyList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>QualifyPartyListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">验厂企业</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2095,11 +2025,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#QualifyStatusList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QualifyStatusList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#QFS_001"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#QFS_002"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#QFS_003"/>
-        <catalogue:id>QualifyStatusListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">验厂状态</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2108,8 +2034,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#RegionList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#RegionList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>RegionListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">地方</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2118,8 +2043,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#RegionStandardList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#RegionStandardList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>RegionStandardListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">地方标准</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2128,7 +2052,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_001 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_001">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">招标公告</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2137,7 +2061,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_002 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_002">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">招标下载</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2146,7 +2070,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_003 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_003">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">招标分析表</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2155,7 +2079,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_004 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_004">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">澄清</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2164,7 +2088,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_005 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_005">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">唱标价</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2173,7 +2097,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_006 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_006">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">C值表</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2182,7 +2106,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_007 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_007">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">中标公示</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2191,7 +2115,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_008 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_008">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">中标公告</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2200,7 +2124,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_009 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_009">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">中标分析表</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2209,7 +2133,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_010 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_010">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">供货技术规范</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2218,7 +2142,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TS_011 -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_011">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeType"/>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <rdfs:label xml:lang="zh">执行情况</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2227,8 +2151,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#TeamStandardList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TeamStandardList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>TeamStandardListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">团队标准</rdfs:label>
     </owl:NamedIndividual>
     
@@ -2237,30 +2160,58 @@
     <!-- http://www.cn-plc.com/ontology/cms#TenderStatusList -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TenderStatusList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_001"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_002"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_003"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_004"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_005"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_006"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_007"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_008"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_009"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_010"/>
-        <catalogue:hasCode rdf:resource="http://www.cn-plc.com/ontology/cms#TS_011"/>
-        <catalogue:id>TenderStatusListId</catalogue:id>
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
         <rdfs:label xml:lang="zh">招标状态</rdfs:label>
     </owl:NamedIndividual>
     
 
 
-    <!-- http://www.cn-plc.com/ontology/cms#YearList -->
+    <!-- http://www.nimble-project.org/catalogue#China -->
 
-    <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#YearList">
-        <rdf:type rdf:resource="http://www.nimble-project.org/catalogue#CodeList"/>
-        <catalogue:id>YearListId</catalogue:id>
-        <rdfs:label xml:lang="zh">年份</rdfs:label>
+    <owl:NamedIndividual rdf:about="http://www.nimble-project.org/catalogue#China">
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.nimble-project.org/catalogue#GlobalGeographyScheme -->
+
+    <owl:NamedIndividual rdf:about="http://www.nimble-project.org/catalogue#GlobalGeographyScheme">
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#ConceptScheme"/>
+        <rdfs:label xml:lang="zh">国家/地区</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.nimble-project.org/catalogue#Guangdong -->
+
+    <owl:NamedIndividual rdf:about="http://www.nimble-project.org/catalogue#Guangdong">
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+        <skos:broader rdf:resource="http://www.nimble-project.org/catalogue#China"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.nimble-project.org/catalogue#Guangzhou -->
+
+    <owl:NamedIndividual rdf:about="http://www.nimble-project.org/catalogue#Guangzhou">
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.nimble-project.org/catalogue#hasCountry -->
+
+    <owl:NamedIndividual rdf:about="http://www.nimble-project.org/catalogue#hasCountry">
+        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#description"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.w3.org/2004/02/skos/core#narrower -->
+
+    <owl:NamedIndividual rdf:about="http://www.w3.org/2004/02/skos/core#narrower">
+        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#description"/>
     </owl:NamedIndividual>
     
 
@@ -2273,8 +2224,8 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    <rdf:Description rdf:about="http://www.nimble-project.org/catalogue#hasCode">
-        <rdfs:comment xml:lang="en">Property denoting a particular code.</rdfs:comment>
+    <rdf:Description rdf:about="http://www.nimble-project.org/catalogue#hasCountry">
+        <rdfs:label xml:lang="zh">国家</rdfs:label>
     </rdf:Description>
 </rdf:RDF>
 

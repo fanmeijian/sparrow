@@ -10,7 +10,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 // 引入 SolrJ 注解
 import org.apache.solr.client.solrj.beans.Field;
 
-public class PartyType extends Concept implements IParty, ICustomPropertyAware {
+public class PartyType extends BaseMetadataObject implements IParty, ICustomPropertyAware {
 
     @Field("idSorted")
     private Double idSorted;

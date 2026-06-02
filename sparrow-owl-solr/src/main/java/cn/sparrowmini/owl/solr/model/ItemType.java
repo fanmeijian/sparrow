@@ -18,7 +18,7 @@ import org.springframework.util.StringUtils;
 // 引入 SolrJ 注解替换 Spring Data Solr
 import org.apache.solr.client.solrj.beans.Field;
 
-public class ItemType extends Concept implements ICatalogueItem, Serializable {
+public class ItemType extends BaseMetadataObject implements ICatalogueItem, Serializable {
     public static String QUALIFIED_DELIMITER = "@";
     private static final long serialVersionUID = -3631731059281154372L;
 
@@ -128,7 +128,7 @@ public class ItemType extends Concept implements ICatalogueItem, Serializable {
     private Double warrantyValidityPeriod;
 
     @ReadOnlyProperty
-    private List<Concept> classification;
+    private List<BaseMetadataObject> classification;
 
     @ReadOnlyProperty
     private PartyType manufacturer;
@@ -655,7 +655,7 @@ public class ItemType extends Concept implements ICatalogueItem, Serializable {
         this.manufacturer = manufacturer;
     }
 
-    public List<Concept> getClassification() {
+    public List<BaseMetadataObject> getClassification() {
         if (this.classification == null) {
             this.classification = new ArrayList<>();
         }
@@ -663,11 +663,11 @@ public class ItemType extends Concept implements ICatalogueItem, Serializable {
         return this.classification;
     }
 
-    public void addClassification(Concept c) {
+    public void addClassification(BaseMetadataObject c) {
         this.getClassification().add(c);
     }
 
-    public void setClassification(List<Concept> classification) {
+    public void setClassification(List<BaseMetadataObject> classification) {
         this.classification = classification;
     }
 

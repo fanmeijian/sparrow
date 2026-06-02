@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 // 引入 SolrJ 注解替换 Spring Data Solr
+import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
 
-public class PropertyType extends Concept implements IPropertyType {
+@Setter
+public class PropertyType extends BaseMetadataObject implements IPropertyType {
 
     @Field("doctype")
     private String type = "property";
@@ -48,15 +50,16 @@ public class PropertyType extends Concept implements IPropertyType {
     @Field("codeListId")
     private String codeListId;
 
+    @Field("dependsOnProperty")
+    private String dependsOnProperty;
+
+
+
     public PropertyType() {
     }
 
     public String getPropertyType() {
         return this.propertyType;
-    }
-
-    public void setPropertyType(String propertyType) {
-        this.propertyType = propertyType;
     }
 
     @JsonIgnore
@@ -75,16 +78,8 @@ public class PropertyType extends Concept implements IPropertyType {
         return this.codeList;
     }
 
-    public void setCodeList(Collection<String> valueCodesList) {
-        this.codeList = valueCodesList;
-    }
-
     public String getRange() {
         return this.range;
-    }
-
-    public void setRange(String range) {
-        this.range = range;
     }
 
     public Collection<String> getProduct() {
@@ -101,24 +96,12 @@ public class PropertyType extends Concept implements IPropertyType {
         // 注意：反编译出的原代码此处未向集合 add 任何东西，如有业务遗漏可在此处补上：this.product.add(className);
     }
 
-    public void setProduct(Collection<String> className) {
-        this.product = className;
-    }
-
     public String getType() {
         return this.type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public Collection<String> getItemFieldNames() {
         return this.itemFieldNames;
-    }
-
-    public void setItemFieldNames(Collection<String> idxFieldNames) {
-        this.itemFieldNames = idxFieldNames;
     }
 
     @SuppressWarnings("unchecked")
@@ -135,17 +118,9 @@ public class PropertyType extends Concept implements IPropertyType {
         return this.valueQualifier;
     }
 
-    public void setValueQualifier(ValueQualifier valueQualifier) {
-        this.valueQualifier = valueQualifier;
-    }
-
     @JsonIgnore
     public boolean isFacet() {
         return this.facet;
-    }
-
-    public void setFacet(boolean facet) {
-        this.facet = facet;
     }
 
     @JsonIgnore
@@ -153,16 +128,8 @@ public class PropertyType extends Concept implements IPropertyType {
         return this.boost;
     }
 
-    public void setBoost(Double boost) {
-        this.boost = boost;
-    }
-
     public Collection<String> getItems() {
         return this.items;
-    }
-
-    public void setItems(Collection<String> items) {
-        this.items = items;
     }
 
     public void addItem(String uri) {
@@ -180,23 +147,12 @@ public class PropertyType extends Concept implements IPropertyType {
         return this.visible;
     }
 
-    public void setVisible(boolean visible) {
-        this.visible = visible;
-    }
-
     public boolean isRequired() {
         return this.required;
-    }
-
-    public void setRequired(boolean required) {
-        this.required = required;
     }
 
     public String getCodeListId() {
         return this.codeListId;
     }
 
-    public void setCodeListId(String codeListUri) {
-        this.codeListId = codeListUri;
-    }
 }

@@ -2,12 +2,14 @@ package cn.sparrowmini.owl.solr.service;
 
 import cn.sparrowmini.owl.solr.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.model.*;
 import org.apache.jena.ontapi.utils.Iterators;
+import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.Restriction;
 import org.apache.jena.query.*;
@@ -17,8 +19,10 @@ import org.apache.jena.vocabulary.*;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -41,7 +45,7 @@ public class OntologyIndexService {
     }
 
     public static void initCollections(SolrClient solrClient) {
-        List<String> requiredCollections = Arrays.asList("props", "codes", "class", "item", "party");
+        List<String> requiredCollections = Arrays.asList("props", "codes", "class", "item", "party","concepts");
 
         for (String collection : requiredCollections) {
             try {
@@ -106,10 +110,191 @@ public class OntologyIndexService {
                     });
             solrClient.commit("props");
 
+            initOuterCodeList();
+            indexAllSkosConcepts();
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void initOuterCodeList(){
+        String ns = "http://www.cn-plc.com/ontology/cms#";
+        Map<String,String> codeList = Map.of(
+                "PartyStandardList","party.json",
+                "TeamStandardList","team.json",
+                "GlobalGeographyScheme","country.json",
+                "RegionList","region_cn.json",
+//                "YearList","year.json",
+//                "MonthList","month.json",
+                "LanguageList","lang.json");
+        codeList.forEach((k,v)->{
+//            initCodeList(ns +k + "Id",v);
+            initOuterScheme(k ,v);
+        });
+    }
+
+    public void indexAllSkosConcepts() {
+        // 🔍 独立出一条完全不受 Class/Property 干扰的干净流水线
+        model.individuals().forEach(ind -> {
+            ConceptType conceptDoc = new ConceptType();
+            String label = ind.getLabel();
+
+            // 1. 基础元数据封装（继承自 BaseMetadataObject）
+            conceptDoc.setUri(ind.getURI());
+            conceptDoc.setLocalName(ind.getLocalName());
+            conceptDoc.setNameSpace(ind.getNameSpace());
+            conceptDoc.setLabel(Map.of("zh", label==null?"":label));
+            conceptDoc.setLanguages(Set.of("zh"));
+
+            // 2. 提取多语言 Label
+            // ... 调用通用 setLabel / addLabel
+
+            // 3. 🔍 核心 SKOS 图拓扑抽取
+            // 抽取归属词表
+            Statement schemeStmt = ind.getProperty(model.getProperty("http://www.w3.org/2004/02/skos/core#inScheme"));
+            if (schemeStmt != null) {
+                conceptDoc.setInScheme(schemeStmt.getObject().asResource().getURI());
+            }
+
+            // 抽取上位父级（用来做级联下探的铁链）
+            Statement broaderStmt = ind.getProperty(model.getProperty("http://www.w3.org/2004/02/skos/core#broader"));
+            if (broaderStmt != null) {
+                conceptDoc.setBroader(broaderStmt.getObject().asResource().getURI());
+                conceptDoc.setTopConcept(false);
+            } else {
+                // 没有父级，判定为第一级门户个体
+                conceptDoc.setTopConcept(true);
+            }
+
+            // 4. 单向、纯净地推给 Solr
+            try {
+                solrClient.addBean("concepts", conceptDoc);
+            } catch (IOException | SolrServerException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        try {
+            solrClient.commit("concepts");
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void initCodeList(String codeListId, String filePath){
+
+        String[] codeListIdFullName = codeListId.split("#");
+        String ns = codeListIdFullName[0];
+        String listId = codeListIdFullName[1];
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // 使用 Spring 的 ClassPathResource
+        ClassPathResource resource = new ClassPathResource(filePath);
+
+        try (InputStream inputStream = resource.getInputStream()) {
+            // 1. 读取为 JsonNode
+            JsonNode rootNode = objectMapper.readTree(inputStream);
+
+            // 2. 判断是否为数组并遍历
+            if (rootNode.isArray()) {
+                for (JsonNode node : rootNode) {
+                    String name = node.get("name").asText();
+                    String label = node.get("label").asText();
+
+
+                    CodedType codedType = new CodedType();
+                    codedType.setUri(String.join("#",ns,name));
+                    codedType.setNameSpace(ns+ "#");
+                    codedType.setLocalName(name);
+                    codedType.setLabel(Map.of("zh", label));
+                    codedType.setLanguages(Set.of("zh"));
+                    codedType.setListId(listId);
+                    codedType.setCode(name);
+
+                    try {
+                        solrClient.addBean("codes", codedType); // 💡 原本误将底层 Jena 的 item 传入，应传入 Solr 的实体 Bean：codedType
+                        solrClient.commit("codes");
+                    } catch (Exception e) {
+                        log.error("Failed to save item to Solr", e);
+                    }
+
+                    System.out.println("ID: " + label + ", Name: " + name);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initOuterScheme(String schemeName, String filePath){
+
+        String ns = "http://www.cn-plc.com/ontology/cms#";
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // 使用 Spring 的 ClassPathResource
+        ClassPathResource resource = new ClassPathResource(filePath);
+
+        try (InputStream inputStream = resource.getInputStream()) {
+            // 1. 读取为 JsonNode
+            JsonNode rootNode = objectMapper.readTree(inputStream);
+
+            // 2. 判断是否为数组并遍历
+            if (rootNode.isArray()) {
+                for (JsonNode node : rootNode) {
+                    String name = node.get("name").asText();
+                    String label = node.get("label").asText();
+
+                    ConceptType conceptDoc = new ConceptType();
+
+                    // 1. 基础元数据封装（继承自 BaseMetadataObject）
+                    conceptDoc.setUri(ns + name);
+                    conceptDoc.setLocalName(name);
+                    conceptDoc.setNameSpace(ns);
+                    conceptDoc.setLabel(Map.of("zh", label==null?"":label));
+                    conceptDoc.setLanguages(Set.of("zh"));
+                    conceptDoc.setInScheme(ns + schemeName);
+                    // 2. 提取多语言 Label
+                    // ... 调用通用 setLabel / addLabel
+
+
+                    // 抽取上位父级（用来做级联下探的铁链）
+                    if (schemeName.equals("RegionList")) {
+                        conceptDoc.setBroader(ns + "CN");
+                        conceptDoc.setTopConcept(false);
+                        conceptDoc.setInScheme(ns + "GlobalGeographyScheme");
+                    } else {
+                        // 没有父级，判定为第一级门户个体
+                        conceptDoc.setTopConcept(true);
+                    }
+
+
+                    try {
+                        solrClient.addBean("concepts", conceptDoc); // 💡 原本误将底层 Jena 的 item 传入，应传入 Solr 的实体 Bean：codedType
+                    } catch (Exception e) {
+                        log.error("Failed to save item to Solr", e);
+                    }
+
+                    System.out.println("ID: " + label + ", Name: " + name);
+                }
+            }
+
+            try {
+                solrClient.commit("concepts");
+            } catch (SolrServerException e) {
+                throw new RuntimeException(e);
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 
@@ -164,8 +349,10 @@ public class OntologyIndexService {
 
 
         // 3. 🚀 奇迹时刻：直接从 Map 里以 O(1) 速度抓取直接使用了当前属性的分类
-        Set<String> directClasses = propertyUsageMap.getOrDefault(prop.getURI(), Collections.emptySet());
+        Set<String> directClasses = new HashSet<>(propertyUsageMap.getOrDefault(prop.getURI(), Collections.emptySet()));
 
+        //还要包含自身定义的匿名domain
+        directClasses.addAll(this.getPropertyDomains(prop));
 
         // 5. 塞入 Solr DTO 丢给 props 集合
         index.getProduct().clear();
@@ -309,7 +496,7 @@ public class OntologyIndexService {
         return codedType.getCode();
     }
 
-    private void processLabels(Concept concept, Resource resource) {
+    private void processLabels(BaseMetadataObject concept, Resource resource) {
         concept.setLabel(obtainMultilingualValues(resource, RDFS.label, SKOS.prefLabel));
         concept.setAlternateLabel(obtainMultilingualLabels(resource, SKOS.altLabel));
         concept.setHiddenLabel(obtainMultilingualLabels(resource, SKOS.hiddenLabel));
@@ -387,9 +574,7 @@ public class OntologyIndexService {
         String classUri = ontClass.getURI();
         if (classUri == null) return properties;
         // 2. 扫描该类直接关联的属性 (rdfs:domain)
-        if(ontClass.getLocalName().equals("CompanyStandard")){
-            System.out.println("ontClass.properties()" + ontClass.properties().count());
-        }
+
         ontClass.properties().forEach(prop -> {
             propertyUsageMap.computeIfAbsent(prop.getURI(), k -> new HashSet<>()).add(classUri);
             properties.add(prop.getURI());
@@ -413,5 +598,24 @@ public class OntologyIndexService {
                 .map(OntClass::getURI)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+    }
+
+    private List<String> getPropertyDomains(OntProperty ontProperty) {
+        List<String> result = new ArrayList<>();
+        RDFNode domainNode = ontProperty.getPropertyResourceValue(RDFS.domain);
+        if (domainNode != null) {
+            Resource domainResource = domainNode.asResource().as(OntClass.class);
+            if (domainResource.isAnon()) {
+                System.out.println("=== domain ===");
+                OntClass.UnionOf unionClass = domainResource.as(OntClass.UnionOf.class);
+
+                System.out.println("「Jena 5.6 OntAPI 成功解析 Union Domain」：");
+                result.addAll(unionClass.components().map(Resource::getURI).toList());
+            }
+        } else {
+            result.addAll(ontProperty.domains().map(Resource::getURI).toList());
+        }
+
+        return result;
     }
 }

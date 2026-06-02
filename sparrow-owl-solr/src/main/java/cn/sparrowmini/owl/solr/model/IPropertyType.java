@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public interface IPropertyType extends IConcept {
+public interface IPropertyType extends IMetadataObject {
     String COLLECTION = "props";
     String TYPE_FIELD = "doctype";
     String TYPE_VALUE = "property";

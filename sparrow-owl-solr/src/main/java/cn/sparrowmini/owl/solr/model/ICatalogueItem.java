@@ -1,7 +1,7 @@
 package cn.sparrowmini.owl.solr.model;
 
 
-public interface ICatalogueItem extends IConcept {
+public interface ICatalogueItem extends IMetadataObject {
     String COLLECTION = "item";
     String ID_FIELD = "id";
     String TYPE_FIELD = "doctype";

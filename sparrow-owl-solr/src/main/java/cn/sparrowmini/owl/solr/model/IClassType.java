@@ -1,6 +1,6 @@
 package cn.sparrowmini.owl.solr.model;
 
-public interface IClassType extends IConcept {
+public interface IClassType extends IMetadataObject {
     String COLLECTION = "class";
     String TYPE_FIELD = "doctype";
     String TYPE_VALUE = "class";

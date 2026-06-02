@@ -1,8 +1,12 @@
 package cn.sparrowmini.owl.solr.model;
 // 引入 SolrJ 注解
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
 
-public class CodedType extends Concept implements ICodedType {
+@Setter
+@Getter
+public class CodedType extends BaseMetadataObject implements ICodedType {
 
     @Field("doctype")
     private String type = "code";
@@ -13,19 +17,4 @@ public class CodedType extends Concept implements ICodedType {
     public CodedType() {
     }
 
-    public String getType() {
-        return this.type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getListId() {
-        return this.listId;
-    }
-
-    public void setListId(String codedList) {
-        this.listId = codedList;
-    }
 }
