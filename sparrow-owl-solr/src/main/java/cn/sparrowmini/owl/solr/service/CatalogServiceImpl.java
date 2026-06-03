@@ -5,6 +5,8 @@ import cn.sparrowmini.common.dto.PropertyVo;
 import cn.sparrowmini.common.service.CatalogService;
 import cn.sparrowmini.common.util.JsonUtils;
 import cn.sparrowmini.owl.solr.model.ConceptType;
+import cn.sparrowmini.owl.solr.model.Restriction;
+import cn.sparrowmini.owl.solr.model.SkosRestriction;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.apache.solr.client.solrj.SolrClient;
@@ -15,19 +17,21 @@ import org.apache.solr.common.SolrDocument;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class CatalogServiceImpl implements CatalogService {
     private final SolrClient solrClient;
-    private final String ns="http://www.cn-plc.com/ontology/cms#";
+    private final String ns = "http://www.cn-plc.com/ontology/cms#";
 
     @Override
     public List<ItemVo> getChildrenByClassId(String parentId) {
-        String parentUri = getUri(parentId) ;
+        String parentUri = getUri(parentId);
         String query = "*:*";
         if (parentId == null) {
             query = "doctype:class AND -parents:[* TO *]";
@@ -40,8 +44,8 @@ public class CatalogServiceImpl implements CatalogService {
         queryChild.setRows(1000);
         try {
             QueryResponse response = solrClient.query("class", queryChild);
-            return response.getResults().stream().map(doc->{
-               return new ItemVo(getObjectString(doc.get("localName")), getObjectString(doc.get("zh_label")));
+            return response.getResults().stream().map(doc -> {
+                return new ItemVo(getObjectString(doc.get("localName")), getObjectString(doc.get("zh_label")));
             }).toList();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
@@ -54,26 +58,53 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public List<PropertyVo> getPropertiesByClassId(String catalogId) {
-        String currentClassUri = getUri(catalogId) ;
+        String currentClassUri = getUri(catalogId);
+
+        // =========================================================================
+        // 🌟 核心变化 1：并发捞取属于当前类的限制规则 (doctype:restriction)
+        // =========================================================================
+        Map<String, Restriction> restrictionMap = new HashMap<>();
+        SolrQuery restrictionQuery = new SolrQuery("doctype:restriction AND onClass:\"" + currentClassUri + "\"");
+        restrictionQuery.setRows(500); // 类的重写规则一般也就十几个
+
+        try {
+            // 假设你的 restriction 文档和 concepts 存放在同一个核心（或指定核心）
+            QueryResponse resResponse = solrClient.query("class", restrictionQuery);
+            resResponse.getResults()
+                    .forEach(doc -> {
+                        if (doc.getFieldValueMap() != null) {
+                            restrictionMap.put(doc.get("onProperty").toString(), JsonUtils.getMapper().convertValue(doc, SkosRestriction.class));
+
+                        }
+                    });
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException("捞取类属性限制失败", e);
+        }
+
         // 1. 匹配直接用于当前分类的属性
         SolrQuery query = new SolrQuery("used_in:\"" + currentClassUri + "\"");
         query.setRows(1000); // 属性通常不会上千，一次性全部捞回
         try {
             // 🚀 核心变化：直接去查 "props" 集合，一步到位拿到带完整元数据的 Property
             QueryResponse response = solrClient.query("props", query);
-            return response.getResults().stream().map(doc->{
+            return response.getResults().stream().map(doc -> {
+                String propertyUri = doc.get("id").toString();
+                Restriction restriction = restrictionMap.get(propertyUri);
+                String activeBroader = restriction instanceof SkosRestriction ? ((SkosRestriction) restriction).getBroader() : null;
                 return new PropertyVo(
                         doc.get("localName").toString(),
-                        doc.get("zh_label").toString(),
+                        getObjectString(doc.get("zh_label")),
                         doc.get("propType").toString(),
-                        doc.get("valueQualifier") == null? null:doc.get("valueQualifier").toString(),
+                        doc.get("valueQualifier") == null ? null : doc.get("valueQualifier").toString(),
                         (boolean) doc.get("isFacet"),
-                        (boolean) doc.get("isRequired"),
+//                        (boolean) doc.get("isRequired"),
+                        restriction != null ? restriction.getIsRequired() : false,
                         (boolean) doc.get("isVisible"),
-                        doc.get("codeListId")==null? null: doc.get("codeListId").toString(),
-                        (List<String>) doc.get("range")
+                        doc.get("codeListId") == null ? null : doc.get("codeListId").toString(),
+                        (List<String>) doc.get("range"),
+                        activeBroader
                 );
-            }).toList();
+            }).collect(Collectors.toList());
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -81,7 +112,7 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public List<ItemVo> getCodeTypeByCodeListId(String codeListId) {
-        String parentUri = getUri(codeListId) ;
+        String parentUri = getUri(codeListId);
         String query = "codedList:\"" + parentUri + "\"";
         Set<String> fields = Set.of("localName", "zh_label");
         SolrQuery queryChild = new SolrQuery(query);
@@ -89,8 +120,8 @@ public class CatalogServiceImpl implements CatalogService {
         queryChild.setRows(1000);
         try {
             QueryResponse response = solrClient.query("codes", queryChild);
-            return response.getResults().stream().map(doc->{
-                return new ItemVo(doc.get("localName").toString(),doc.get("zh_label").toString());
+            return response.getResults().stream().map(doc -> {
+                return new ItemVo(doc.get("localName").toString(), doc.get("zh_label").toString());
             }).toList();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
@@ -100,15 +131,15 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public List<String> getAllChildrenIdByParentClassId(String parentId) {
         try {
-           SolrDocument solrDocument = solrClient.getById("class",getUri(parentId));
-           return (List<String>) solrDocument.getFieldValue("allChildren");
+            SolrDocument solrDocument = solrClient.getById("class", getUri(parentId));
+            return (List<String>) solrDocument.getFieldValue("allChildren");
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String getUri(String name){
-        return name==null || name.contains(ns)? name: ns + name;
+    private String getUri(String name) {
+        return name == null || name.contains(ns) ? name : ns + name;
     }
 
     public List<ConceptType> getOptionsByCodeListId(String codeListId) throws SolrServerException, IOException {

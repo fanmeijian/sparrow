@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 // 替换为 SolrJ 原生注解
 import org.apache.solr.client.solrj.beans.Field;
@@ -16,6 +17,7 @@ import org.apache.solr.client.solrj.beans.Field;
         content = Include.NON_EMPTY
 )
 public abstract class BaseMetadataObject implements IMetadataObject {
+    protected final static ObjectMapper mapper = new ObjectMapper();
 
     // SolrJ 使用 @Field("fieldname") 来映射主键和普通字段
     @Field("id")

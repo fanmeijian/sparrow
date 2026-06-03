@@ -1,20 +1,18 @@
 package cn.sparrowmini.owl.solr.service;
 
 import cn.sparrowmini.owl.solr.model.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
 import org.apache.jena.ontapi.model.*;
+import org.apache.jena.ontapi.model.OntClass;
+import org.apache.jena.ontapi.model.OntModel;
+import org.apache.jena.ontapi.model.OntProperty;
 import org.apache.jena.ontapi.utils.Iterators;
-import org.apache.jena.ontology.Individual;
-import org.apache.jena.ontology.ObjectProperty;
-import org.apache.jena.ontology.Restriction;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.*;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -22,7 +20,6 @@ import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -36,6 +33,7 @@ public class OntologyIndexService {
     private final SolrClient solrClient;
     private final OntModel model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM_RDFS_INF);
 
+    //    private final OntModel model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM_MICRO_RULES_INF);
     private static final String COLLECTION_NAME = "class";
 
     private final Map<String, Set<String>> propertyUsageMap = new HashMap<>();
@@ -45,7 +43,7 @@ public class OntologyIndexService {
     }
 
     public static void initCollections(SolrClient solrClient) {
-        List<String> requiredCollections = Arrays.asList("props", "codes", "class", "item", "party","concepts");
+        List<String> requiredCollections = Arrays.asList("props", "codes", "class", "item", "party", "concepts");
 
         for (String collection : requiredCollections) {
             try {
@@ -78,18 +76,28 @@ public class OntologyIndexService {
 
             List<OntClass.Named> indexedOntClass = model.classes().toList();
             AtomicLong count2 = new AtomicLong(indexedOntClass.size());
-            indexedOntClass.forEach(ontologyClass -> {
-                ClassType classType = processClazz(model, ontologyClass, indexedProp);
-                System.out.println(count2.getAndDecrement() + "Indexed class: " + classType.getUri());
-                if (classType != null) {
-                    try {
-                        solrClient.addBean(COLLECTION_NAME, classType);
+            indexedOntClass
+                    .forEach(ontologyClass -> {
+                        ClassType classType = processClazz(model, ontologyClass, indexedProp);
 
-                    } catch (IOException | SolrServerException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            });
+                        System.out.println(count2.getAndDecrement() + "Indexed class: " + classType.getUri());
+                        try {
+                            solrClient.addBean(COLLECTION_NAME, classType);
+                            //定义属性的restriction
+                            Restriction broaderRestriction = extractBroaderUri(classType.getUri());
+                            if (broaderRestriction != null) {
+                                solrClient.addBean(COLLECTION_NAME, broaderRestriction);
+                            }
+
+                            Restriction schemeRestriction = extractSchemeUri(classType.getUri());
+                            if (schemeRestriction != null) {
+                                solrClient.addBean(COLLECTION_NAME, schemeRestriction);
+                            }
+
+                        } catch (IOException | SolrServerException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
             solrClient.commit(COLLECTION_NAME);
 
 
@@ -118,19 +126,19 @@ public class OntologyIndexService {
         }
     }
 
-    public void initOuterCodeList(){
+    public void initOuterCodeList() {
         String ns = "http://www.cn-plc.com/ontology/cms#";
-        Map<String,String> codeList = Map.of(
-                "PartyStandardList","party.json",
-                "TeamStandardList","team.json",
-                "GlobalGeographyScheme","country.json",
-                "RegionList","region_cn.json",
+        Map<String, String> codeList = Map.of(
+                "PartyStandardList", "party.json",
+                "TeamStandardList", "team.json",
+                "GlobalGeographyScheme", "country.json",
+                "RegionList", "region_cn.json",
 //                "YearList","year.json",
 //                "MonthList","month.json",
-                "LanguageList","lang.json");
-        codeList.forEach((k,v)->{
+                "LanguageList", "lang.json");
+        codeList.forEach((k, v) -> {
 //            initCodeList(ns +k + "Id",v);
-            initOuterScheme(k ,v);
+            initOuterScheme(k, v);
         });
     }
 
@@ -144,7 +152,7 @@ public class OntologyIndexService {
             conceptDoc.setUri(ind.getURI());
             conceptDoc.setLocalName(ind.getLocalName());
             conceptDoc.setNameSpace(ind.getNameSpace());
-            conceptDoc.setLabel(Map.of("zh", label==null?"":label));
+            conceptDoc.setLabel(Map.of("zh", label == null ? "" : label));
             conceptDoc.setLanguages(Set.of("zh"));
 
             // 2. 提取多语言 Label
@@ -183,7 +191,7 @@ public class OntologyIndexService {
 
     }
 
-    private void initCodeList(String codeListId, String filePath){
+    private void initCodeList(String codeListId, String filePath) {
 
         String[] codeListIdFullName = codeListId.split("#");
         String ns = codeListIdFullName[0];
@@ -206,8 +214,8 @@ public class OntologyIndexService {
 
 
                     CodedType codedType = new CodedType();
-                    codedType.setUri(String.join("#",ns,name));
-                    codedType.setNameSpace(ns+ "#");
+                    codedType.setUri(String.join("#", ns, name));
+                    codedType.setNameSpace(ns + "#");
                     codedType.setLocalName(name);
                     codedType.setLabel(Map.of("zh", label));
                     codedType.setLanguages(Set.of("zh"));
@@ -230,7 +238,7 @@ public class OntologyIndexService {
         }
     }
 
-    private void initOuterScheme(String schemeName, String filePath){
+    private void initOuterScheme(String schemeName, String filePath) {
 
         String ns = "http://www.cn-plc.com/ontology/cms#";
 
@@ -255,7 +263,7 @@ public class OntologyIndexService {
                     conceptDoc.setUri(ns + name);
                     conceptDoc.setLocalName(name);
                     conceptDoc.setNameSpace(ns);
-                    conceptDoc.setLabel(Map.of("zh", label==null?"":label));
+                    conceptDoc.setLabel(Map.of("zh", label == null ? "" : label));
                     conceptDoc.setLanguages(Set.of("zh"));
                     conceptDoc.setInScheme(ns + schemeName);
                     // 2. 提取多语言 Label
@@ -567,7 +575,142 @@ public class OntologyIndexService {
         return languageMap;
     }
 
+    public SkosRestriction extractSchemeUri(String classUri) {
+        String queryString =
+                "PREFIX owl:  <http://www.w3.org/2002/07/owl#> " +
+                        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+                        "PREFIX skos: <http://www.w3.org/2004/02/skos/core#> " +
+                        "PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                        // 🌟 核心修复：在这里必须把 ?property 暴露出来
+                        "SELECT ?property ?targetScheme WHERE { " +
+                        "  ?classUri rdfs:subClassOf ?restriction1 . " +
+                        "  ?restriction1 owl:onProperty ?property ; " +
+                        "                owl:someValuesFrom ?restriction2 . " +
+                        "  ?restriction2 owl:onProperty ?innerProp ; " +
+                        "                owl:hasValue ?targetScheme . " +
+                        "  ?targetScheme rdf:type skos:ConceptScheme . " +
+                        "}";
 
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryString);
+        pss.setIri("classUri", classUri);
+
+        try (QueryExecution qexec = QueryExecutionFactory.create(pss.asQuery(), model)) {
+            ResultSet results = qexec.execSelect();
+            if (results.hasNext()) {
+                QuerySolution soln = results.nextSolution();
+                if (soln.contains("targetScheme") && soln.get("targetScheme") != null) {
+                    // 🌟 投影补齐后，这里就能稳稳拿到属性实体，告别 NullPointerException
+                    RDFNode propertyNode = soln.get("property");
+                    String propUri = propertyNode.asResource().getURI();
+                    String broaderUri = null;
+                    String schemeUri = soln.get("targetScheme").asResource().getURI();
+
+                    System.out.println("【Scheme提取成功】" + propUri + " -> " + schemeUri);
+                    return new SkosRestriction(propUri, classUri, true, broaderUri, schemeUri);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("【Scheme提取失败】" + e.getMessage());
+            e.printStackTrace(); // 开发阶段打印堆栈是个好习惯
+        }
+        return null;
+    }
+
+    public SkosRestriction extractBroaderUri(String classUri) {
+        String queryString =
+                "PREFIX owl:  <http://www.w3.org/2002/07/owl#> " +
+                        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+                        "PREFIX skos: <http://www.w3.org/2004/02/skos/core#> " +
+                        "PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                        // 🌟 修复核心：必须在这里加上 ?property，告诉解析器把它带出来！
+                        "SELECT ?property ?broaderConcept WHERE { " +
+                        "  ?classUri rdfs:subClassOf ?restriction1 . " +
+                        "  ?restriction1 owl:onProperty ?property ; " +
+                        "                owl:someValuesFrom ?restriction2 . " +
+                        "  ?restriction2 owl:onProperty ?invBroader ; " +
+                        "                owl:someValuesFrom ?oneOfClass . " +
+                        "  ?invBroader   owl:inverseOf skos:broader . " +
+                        "  ?oneOfClass   owl:oneOf ?list . " +
+                        "  ?list         rdf:first ?broaderConcept . " +
+                        "}";
+
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryString);
+        pss.setIri("classUri", classUri);
+
+        try (QueryExecution qexec = QueryExecutionFactory.create(pss.asQuery(), model)) {
+            ResultSet results = qexec.execSelect();
+            if (results.hasNext()) {
+                QuerySolution soln = results.nextSolution();
+
+                if (soln.contains("broaderConcept") && soln.get("broaderConcept") != null) {
+                    RDFNode propertyNode = soln.get("property");
+                    String propUri = propertyNode.asResource().getURI();
+                    String broaderUri = soln.get("broaderConcept").asResource().getURI();
+                    String schemeUri = null;
+                    return new SkosRestriction(propUri, classUri, true, broaderUri, schemeUri);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("【broader提取失败】" + e.getMessage());
+        }
+        return null;
+    }
+
+    public SkosRestriction extractBroader(String classUri) {
+        String queryString =
+                "PREFIX owl:  <http://www.w3.org/2002/07/owl#> " +
+                        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+                        "PREFIX skos: <http://www.w3.org/2004/02/skos/core#> " +
+                        "PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                        "PREFIX cms:  <http://www.cn-plc.com/ontology/cms#> " +
+                        "SELECT ?property ?targetScheme WHERE { " +
+                        "  ?classUri rdfs:subClassOf ?restriction1 . " +
+                        "  ?restriction1 owl:onProperty ?property ; " + // 别忘了末尾是分号
+                        "                owl:someValuesFrom ?restriction2 . " +
+                        "  ?restriction2 owl:onProperty ?innerProp ; " +
+                        "                owl:hasValue ?targetScheme . " +
+                        "  ?targetScheme rdf:type skos:ConceptScheme . " +
+                        "}";
+
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryString);
+        pss.setIri("classUri", classUri);
+
+        Query query = pss.asQuery();
+        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
+            ResultSet results = qexec.execSelect();
+
+            while (results.hasNext()) {
+                QuerySolution soln = results.nextSolution();
+                RDFNode propertyNode = soln.get("property");
+                if (propertyNode == null) continue;
+
+                String propUri = propertyNode.asResource().getURI();
+                String broaderUri = null;
+                String schemeUri = null;
+
+                // 分支 1：命中区域的 broader 限制
+                if (soln.contains("broaderConcept") && soln.get("broaderConcept") != null) {
+                    broaderUri = soln.get("broaderConcept").asResource().getURI();
+                    System.out.println("【SPARQL】严格命中[地区]限制 -> 绑定概念: " + broaderUri);
+                }
+
+                // 分支 2：过滤命中 Scheme 方案限制
+                if (soln.contains("targetScheme") && soln.get("targetScheme") != null) {
+                    schemeUri = soln.get("targetScheme").asResource().getURI();
+                    System.out.println("【SPARQL】严格命中[国家/方案]限制 -> 绑定顶级方案: " + schemeUri);
+                }
+
+                if (broaderUri == null && schemeUri == null) {
+                    continue;
+                }
+
+                return new SkosRestriction(propUri, classUri, true, broaderUri, schemeUri);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("SKOS 属性深度严格检索失败", e);
+        }
+        return null;
+    }
 
     private Set<String> getProperties(final OntClass ontClass, final OntModel model) {
         Set<String> properties = new HashSet<>();
@@ -587,6 +730,43 @@ public class OntologyIndexService {
                     String propertyUri = superCls.as(OntClass.ValueRestriction.class).getProperty().getURI();
                     propertyUsageMap.computeIfAbsent(propertyUri, k -> new HashSet<>()).add(classUri);
                     properties.add(propertyUri);
+                    Restriction restriction = new Restriction(propertyUri,classUri,true);
+                    try {
+                        solrClient.addBean("class", restriction);
+                    } catch (IOException | SolrServerException e) {
+                        throw new RuntimeException(e);
+                    }
+                    // 2. 🕳️ 开始疯狂下探：深度解析深层嵌套的 Collection / Scheme 约束
+
+//                    OntClass.ValueRestriction restriction = superCls.as(OntClass.ValueRestriction.class);
+
+//
+//                    if (restriction instanceof OntClass.ObjectSomeValuesFrom some) {
+//
+//                        // one of关系
+//                        if (some.getValue() instanceof OntClass.OneOf oneOf) {
+//                            oneOf.listProperties().forEach(prop -> {
+//                                RDFList rdfList = prop.getList();
+//                                var listIt = rdfList.iterator();
+//
+//                                try {
+//                                    if (listIt.hasNext()) {
+//                                        // 3. 🎯 终点站：掏出链表里的第一个元素，直接拿到它的 URI
+//                                        String codeListId = listIt.next().asResource().getURI();
+//
+//                                        // 🎉 彻底通关！成功捕获：http://...#PowerCompanyCollection
+//                                        System.out.println("【模式匹配+三元组流成功】属性：" + propertyUri + " -> 绑定的 Collection ID：" + codeListId);
+//
+//                                        // 塞进你的业务矩阵中
+//                                        // propertyUsageMap.computeIfAbsent(propertyUri, k -> new HashSet<>()).add(classUri);
+//                                    }
+//                                } finally {
+//                                    // 释放可能存在的链表迭代器
+//                                }
+//                            });
+//                        }
+//
+//                    }
                 });
 
         return properties;

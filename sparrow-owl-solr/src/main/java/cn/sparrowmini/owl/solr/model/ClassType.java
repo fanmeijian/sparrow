@@ -2,7 +2,11 @@ package cn.sparrowmini.owl.solr.model;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 // 引入 SolrJ 注解
+import cn.sparrowmini.common.util.JsonUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
@@ -31,6 +35,7 @@ public class ClassType extends BaseMetadataObject implements IClassType {
 
     @Field("level")
     private Integer level;
+
 
     public ClassType() {
     }
