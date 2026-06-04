@@ -1,5 +1,6 @@
 package cn.sparrowmini.owl.solr.service;
 
+import org.apache.jena.base.Sys;
 import org.apache.jena.ontapi.model.*;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -13,13 +14,19 @@ import cn.sparrowmini.owl.solr.model.Restriction;
 public class OwlHelper {
     public static Collection<String> getRangesOfProperty(OntProperty property) {
         Set<String> ranges = new HashSet<>();
-        property.ranges().forEach(range -> {
-            if (range instanceof OntClass.CollectionOf<?> dataRange) {
-                ranges.addAll(dataRange.components().map(OntObject::getURI).toList());
-            } else {
-                ranges.add(range.getURI());
-            }
-        });
+        if(property.canAs(OntObjectProperty.class)) {
+            OntObjectProperty ontObjectProperty = property.as(OntObjectProperty.class);
+            ontObjectProperty.ranges().forEach(range -> {
+                if (range instanceof OntClass.CollectionOf<?> dataRange) {
+                    ranges.addAll(dataRange.components().map(OntObject::getURI).toList());
+                } else {
+                    ranges.add(range.getURI());
+                }
+            });
+        }else if(property instanceof OntDataProperty ontDataProperty){
+            ranges.add(ontDataProperty.getURI());
+        }
+
         return ranges;
     }
 

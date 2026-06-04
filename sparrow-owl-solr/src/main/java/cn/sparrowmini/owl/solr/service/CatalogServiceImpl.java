@@ -179,10 +179,13 @@ public class CatalogServiceImpl implements CatalogService {
                     String valueProperty = (String) restrictionDoc.getFieldValue("valueProperty");
                     Collection<Object> values =  restrictionDoc.getFieldValues("value");
                     String value = values.stream().findFirst().orElse("").toString();
+
                     if (valueProperty.equals(SKOS.broader.getURI())) {
                         return this.getConceptsByScheme(null, value);
                     } else if (valueProperty.equals(SKOS.member.getURI())) {
                         return this.getConceptsByCollection(value);
+                    } else if (valueProperty.equals(SKOS.topConceptOf.getURI())) {
+                        return this.getConceptsByScheme(value, null);
                     }
 
                 }
