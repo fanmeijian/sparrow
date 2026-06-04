@@ -4,14 +4,16 @@ import lombok.Builder;
 import org.apache.jena.base.Sys;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
-import org.apache.jena.ontapi.model.OntClass;
-import org.apache.jena.ontapi.model.OntModel;
-import org.apache.jena.ontapi.model.OntObjectProperty;
-import org.apache.jena.ontapi.model.OntProperty;
+import org.apache.jena.ontapi.impl.objects.OntClassImpl;
+import org.apache.jena.ontapi.model.*;
 import org.apache.jena.ontology.AllValuesFromRestriction;
+import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.UnionClass;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.SKOS;
 
 import java.io.InputStream;
 import java.util.*;
@@ -571,7 +573,7 @@ public class OwlParserService {
         cls.properties().forEach(prop -> {
             System.out.println("properties" + prop.getLocalName());
         });
-        cls.superClasses(false).filter(f->f.canAs(OntClass.ValueRestriction.class)).forEach(superCls -> {
+        cls.superClasses(false).filter(f -> f.canAs(OntClass.ValueRestriction.class)).forEach(superCls -> {
             System.out.println(superCls.isAnon() + superCls.as(OntClass.ValueRestriction.class).getProperty().getLabel());
             // someValuesFrom
 //            if (superCls instanceof OntClass.ObjectSomeValuesFrom r) {
@@ -742,10 +744,216 @@ public class OwlParserService {
         return result;
     }
 
-    public void printPropertie(String propName){
-       OntProperty ontProperty = model.getDataProperty(ns + propName);
-       System.out.println(ontProperty.getLabel() + ontProperty.declaringClasses(false).count());
+    public void printPropertie(String propName) {
+        OntProperty ontProperty = model.getDataProperty(ns + propName);
+        System.out.println(ontProperty.getLabel() + ontProperty.declaringClasses(false).count());
 
-       ontProperty.declaringClasses(false).forEach(f->System.out.println(f.getLocalName()));
+        ontProperty.declaringClasses(false).forEach(f -> System.out.println(f.getLocalName()));
+    }
+
+    public List<Map<String, String>> printClass(String className) {
+        return this.getClassTree(className).stream().map(mmm -> Map.of("name", mmm.getName(), "label", mmm.getLabel())).toList();
+    }
+
+    public void printRestrictions() {
+
+//        model.listStatements(null, RDF.type, OWL.Restriction).forEach(statement -> {
+//            System.out.println(statement.getSubject());
+//        });
+
+        // 1. 获取所有的一元限制（SomeValuesFrom, AllValuesFrom 等都继承自它）
+        model.ontObjects(OntClass.UnaryRestriction.class) // 返回 Stream<OntClass.UnaryRestriction<?, ?>>
+                .filter(f->f.isLocal() && f.subClasses().findAny().isPresent())
+                .forEach(r -> {
+//                    processRestrictionValue(r,0);
+                    Restriction restriction = OwlHelper.getRestrictionsOfProperty(r);
+                    System.out.println(restriction);
+//                    parseOntClassExpression(r,0);
+
+                    // 2. 内置方法获取属性
+//                    System.out.println("Restriction on Property: " + r.getProperty().getLabel() + r.getProperty());
+                    // 获取限制类型
+//                    r.listProperties().forEach(prop -> {
+//                        System.out.println("Restriction Type: " + prop.getObject());
+//                    });
+
+//                    if (r instanceof OntClass.ObjectSomeValuesFrom some) {
+//                        System.out.println("Type: someValuesFrom, Target: " + some.getValue().isAnon() + some.getValue().getURI());
+//                        if (some.getValue().isAnon()) {
+//                            RDFNode re = some.getValue();
+//                            System.out.println("11Type: someValuesFrom, Target: " + re.isAnon() + re.getClass().getSimpleName());
+//
+//                        }
+//                    }
+//
+//                    if (r instanceof OntClass.ObjectAllValuesFrom all) {
+//                        System.out.println("Type: allValuesFrom, Target: " + all.getValue().getURI());
+//                    }
+//
+//                    if (r instanceof OntClass.ObjectHasValue card) {
+//                        System.out.println("Type: cardinality, Value: " + card.getValue().getURI());
+//                    }
+//
+//                    if (r instanceof OntClass.DataSomeValuesFrom data) {
+//                        System.out.println("Type: data property, Value: " + data.getValue().getURI());
+//                    }
+                });
+    }
+
+    public void recursive(RDFNode valueNode) {
+        if (valueNode.isAnon()) {
+            this.recursive(valueNode);
+            SKOS.broader.listProperties().forEach(p -> {
+
+            });
+        }
+    }
+
+    /**
+     * 递归解析类表达式 (可以是普通类、匿名限制、或者联集等)
+     */
+    private void parseOntClassExpression(OntClass clazz, int level) {
+        if (clazz == null) return;
+
+        // 情况 1：它是一个一元限制 (someValuesFrom, allValuesFrom 等)
+        if (clazz instanceof OntClass.UnaryRestriction<?>  restriction) {
+            System.out.println(level + "开始处理 restriction");
+            // 1. 获取并解析属性 (Property)
+            OntProperty property = restriction.getProperty();
+
+            // on property
+            printPropertyInfo(property);
+
+            // 2. 识别具体的限制类型并向下递归
+            if (restriction instanceof OntClass.ObjectSomeValuesFrom someValues) {
+
+                // 【核心：嵌套循环的精髓】拿到内部的 Value 后，转成 OntClass 继续递归调用自身
+                OntClass innerClass = someValues.getValue();
+                if(innerClass.canAs(OntClass.ObjectHasValue.class)) {
+                    System.out.println("-> [拥有这里]" + innerClass.as(OntClass.ObjectHasValue.class).getValue() + innerClass.isAnon());
+                }
+
+                if(innerClass.canAs(OntClass.UnaryRestriction.class)){
+                    System.out.println("嵌套restriction " + innerClass.getURI());
+                    parseOntClassExpression(innerClass, level+1);
+                }else{
+                    System.out.println("内部类值" + innerClass);
+                }
+
+
+            }
+            else if(restriction instanceof OntClass.ObjectHasValue hasValue) {
+                System.out.println("内部类" + hasValue.getValue().getURI());
+
+            }
+            else if (restriction.canAs(OntClass.DataSomeValuesFrom.class)) {
+                OntClass.DataSomeValuesFrom dataSome = restriction.as(OntClass.DataSomeValuesFrom.class);
+                System.out.println("-> [Data 限制] owl:someValuesFrom XMLSchema 类型: " + dataSome.getValue());
+            }
+        }
+
+        // 情况 2：它是一个 owl:oneOf 枚举类 (对应你 XML 里的 CN 节点)
+        else if (clazz.canAs(OntClass.LogicalExpression.class)) {
+            OntClass.LogicalExpression oneOfClass = clazz.as(OntClass.LogicalExpression.class);
+            System.out.println("-> [枚举类] owl:oneOf 包含以下个体:" + oneOfClass.getURI());
+            if(oneOfClass instanceof OntClass.CollectionOf<?> collectionOf){
+                System.out.println("   - 个体 collection URI: " + collectionOf.components().toList());
+            }else{
+                System.out.println("   - 个体 URI: " + oneOfClass.getURI());
+            }
+            // 遍历 oneOf 集合里的具体资源
+//            oneOfClass.getList().members().forEach(rdfNode -> {
+//                System.out.println("   - 个体 URI: " + rdfNode.asResource().getURI());
+//            });
+        }else if(clazz.canAs(OntClass.ObjectHasValue.class)){
+            System.out.println("[拥有值] " + clazz.as(OntClass.ObjectHasValue.class).getValue());
+        }
+        // 情况 3：它是一个命名类（递归终点）
+        else if (!clazz.isAnon()) {
+            System.out.println("-> [命名目标类]: " + clazz.getURI());
+        }else{
+            System.out.println("-> [不知道]: " + clazz.getURI());
+        }
+    }
+
+    /**
+     * 解析并打印属性信息（支持处理 owl:inverseOf）
+     */
+    private void printPropertyInfo(OntProperty property) {
+        String pType = "";
+        if (property.isAnon()) {
+            // 如果属性本身是匿名的（对应你 XML 里的 owl:inverseOf 块）
+            if (property.canAs(OntObjectProperty.Inverse.class)) {
+                OntObjectProperty.Inverse inverseProp = property.as(OntObjectProperty.Inverse.class);
+                OntObjectProperty directProp = inverseProp.getDirect();
+
+                // 这里用上了 SKOS 词汇表判定
+                if (SKOS.broader.getURI().equals(directProp.getURI())) {
+                    pType="broader";
+                    System.out.println("属性: [逆属性] owl:inverseOf skos:broader (本质上等于 skos:narrower)");
+                } else {
+                    System.out.println("属性: [逆属性] owl:inverseOf " + directProp.getURI());
+                }
+            }
+        } else {
+            // 普通命名属性
+            if(SKOS.member.getURI().equals(property.getURI())){
+                pType="memberOf";
+            }
+
+            if(SKOS.topConceptOf.getURI().equals(property.getURI())){
+                pType="topConceptOf";
+            }
+
+            System.out.println("Value Property: " + property.getLabel() + property.getURI());
+        }
+    }
+
+    private void processRestrictionValue(OntClass.UnaryRestriction<?>  restriction, int level){
+        if(restriction instanceof OntClass.ValueRestriction<?,?> valueRestriction){
+
+            OntRelationalProperty property = valueRestriction.getProperty();
+            if(level == 0){
+                System.out.println("\n\n");
+                System.out.println("属性类型： " + (property.canAs(OntObjectProperty.class)?"Object":"Data"));
+            }
+            System.out.println(level + "处理restriction" );
+            printPropertyInfo(property);
+            System.out.println("ranges: " + OwlHelper.getRangesOfProperty(property));
+//            valueRestriction.getProperty().ranges().forEach(range -> {
+//
+//                if(range instanceof OntClass.CollectionOf<?> dataRange) {
+//                    System.out.println("data range" + dataRange.getClass().getSimpleName()+ dataRange.components().map(OntObject::getURI).toList());
+//                }else{
+//                    System.out.println("range"+ range);
+//                }
+//            });
+
+            restriction.subClasses(true).forEach(subClass -> {
+                System.out.println("on Class" + subClass.getLabel() + subClass.getURI());
+            });
+
+            RDFNode valueOfRestriction = valueRestriction.getValue();
+//            System.out.println("valueOfRestriction" + valueOfRestriction);
+            if(valueOfRestriction.canAs(OntClass.UnaryRestriction.class)){
+                processRestrictionValue(valueOfRestriction.as(OntClass.UnaryRestriction.class), level + 1);
+            }else if(valueOfRestriction instanceof OntClass.LogicalExpression logicalExpression){
+                System.out.println("-> [枚举类] owl:oneOf 包含以下个体:" + logicalExpression.getURI());
+                if(logicalExpression instanceof OntClass.CollectionOf<?> collectionOf){
+                    System.out.println("   - 个体 collection URI: " + collectionOf.components().map(Resource::getURI).toList());
+                }else{
+                    System.out.println("   - 个体 URI: " + logicalExpression.getURI());
+                }
+            }else if(valueOfRestriction instanceof OntClass.ValueRestriction<?,?> directValueRestriction){
+
+//                if(restriction instanceof OntClass.ObjectSomeValuesFrom someValues) {
+//                    someValues.getValue();
+//                }
+            }else{
+                System.out.println("直接值"+ valueOfRestriction.getClass().getSimpleName() + valueOfRestriction.asResource().getURI());
+            }
+
+        }
+
     }
 }

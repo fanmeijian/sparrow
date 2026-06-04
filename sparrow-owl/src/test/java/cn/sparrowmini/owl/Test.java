@@ -2,10 +2,31 @@ package cn.sparrowmini.owl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 
 public class Test {
 
-
+    @org.junit.jupiter.api.Test
+    public void testPrintClass() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+//        String owlPath = "/FurnitureSectorTaxonomy-v2.5.1.owl";
+//        String ns = "http://www.aidimme.es/FurnitureSectorOntology.owl#";
+        String owlPath = "/cms-ontology.owl";
+        String ns = "http://cn.liyuan.chnplc/ontology/cms#";
+        OwlParserService owlParserService = OwlParserService
+                .builder()
+                .ns(ns)
+                .ontologyPath(owlPath)
+                .build();
+//        System.out.println(mapper.writeValueAsString(owlParserService.printAllClasses()));
+//        owlParserService.printAllClasses();
+//        owlParserService.printAllProperties();
+//        owlParserService.rest("AssociationStandard");
+        ;
+//        System.out.println(mapper.writeValueAsString(owlParserService.printClass("PS_006")));
+        owlParserService.printRestrictions();
+    }
 
     @org.junit.jupiter.api.Test
     public void test66() throws JsonProcessingException {
