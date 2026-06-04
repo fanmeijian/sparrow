@@ -86,12 +86,12 @@ public class OntologyIndexService {
                             //定义属性的restriction
                             Restriction broaderRestriction = extractBroaderUri(classType.getUri());
                             if (broaderRestriction != null) {
-                                solrClient.addBean(COLLECTION_NAME, broaderRestriction);
+                                solrClient.addBean("props", broaderRestriction);
                             }
 
                             Restriction schemeRestriction = extractSchemeUri(classType.getUri());
                             if (schemeRestriction != null) {
-                                solrClient.addBean(COLLECTION_NAME, schemeRestriction);
+                                solrClient.addBean("props", schemeRestriction);
                             }
 
                         } catch (IOException | SolrServerException e) {
@@ -116,6 +116,20 @@ public class OntologyIndexService {
                             throw new RuntimeException(e);
                         }
                     });
+
+
+            model.ontObjects(OntClass.UnaryRestriction.class) // 返回 Stream<OntClass.UnaryRestriction<?, ?>>
+                    .filter(f -> f.isLocal() && f.subClasses().findAny().isPresent())
+                    .forEach(r -> {
+                        Restriction restriction = OwlHelper.getRestrictionOfProperty(r);
+                        restriction.setId(SolrIdGenerator.generateRestrictionId(restriction.getOnClass(), restriction.getOnProperty()));
+                        try {
+                            solrClient.addBean("props", restriction);
+                        } catch (IOException | SolrServerException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
             solrClient.commit("props");
 
             initOuterCodeList();
@@ -129,16 +143,14 @@ public class OntologyIndexService {
     public void initOuterCodeList() {
         String ns = "http://www.cn-plc.com/ontology/cms#";
         Map<String, String> codeList = Map.of(
-                "PartyStandardList", "party.json",
-                "TeamStandardList", "team.json",
-                "GlobalGeographyScheme", "country.json",
-                "RegionList", "region_cn.json",
-//                "YearList","year.json",
-//                "MonthList","month.json",
-                "LanguageList", "lang.json");
+                "party.json", "PartyScheme",
+                "team.json", "PartyScheme",
+                "country.json", "GeographyScheme",
+                "region_cn.json", "GeographyScheme",
+                "lang.json", "LanguageScheme");
         codeList.forEach((k, v) -> {
 //            initCodeList(ns +k + "Id",v);
-            initOuterScheme(k, v);
+            initOuterScheme(v, k);
         });
     }
 
@@ -269,12 +281,18 @@ public class OntologyIndexService {
                     // 2. 提取多语言 Label
                     // ... 调用通用 setLabel / addLabel
 
+                    if (filePath.equals("party.json")) {
+                        conceptDoc.setCollections(Set.of(ns + "PowerPartyCollection"));
+                    }
+
+                    if (filePath.equals("team.json")) {
+                        conceptDoc.setCollections(Set.of(ns + "AssociationPartyCollection"));
+                    }
 
                     // 抽取上位父级（用来做级联下探的铁链）
-                    if (schemeName.equals("RegionList")) {
+                    if (filePath.equals("region_cn.json")) {
                         conceptDoc.setBroader(ns + "CN");
                         conceptDoc.setTopConcept(false);
-                        conceptDoc.setInScheme(ns + "GlobalGeographyScheme");
                     } else {
                         // 没有父级，判定为第一级门户个体
                         conceptDoc.setTopConcept(true);
@@ -305,6 +323,25 @@ public class OntologyIndexService {
 
     }
 
+    private Collection<String> getPropertyRange(OntProperty prop) {
+        Collection<String> result = new ArrayList<>();
+        RDFNode domainNode = prop.getPropertyResourceValue(RDFS.range);
+        if (domainNode != null && domainNode.canAs(OntClass.class)) {
+            Resource domainResource = domainNode.asResource().as(OntClass.class);
+            if (domainResource.isAnon()) {
+                System.out.println("=== domain ===");
+                OntClass.UnionOf unionClass = domainResource.as(OntClass.UnionOf.class);
+
+                System.out.println("「Jena 5.6 OntAPI 成功解析 Union Domain」：");
+                result.addAll(unionClass.components().map(Resource::getURI).toList());
+            }
+        } else {
+            result.addAll(prop.ranges().map(Resource::getURI).toList());
+        }
+
+        return result;
+    }
+
 
     /**
      * Helper method to obtain all necessary information for indexing a property
@@ -316,7 +353,8 @@ public class OntologyIndexService {
         index.setNameSpace(prop.getNameSpace());
 
         // Jena 5 推荐安全获取第一个 Range 的方法
-        prop.ranges().findFirst().ifPresent(range -> index.setRange(range.getURI() != null ? range.getURI() : range.toString()));
+
+        index.setRange(OwlHelper.getRangesOfProperty(prop));
 
         // 修正之前的 isVisible 和 isRequired 逻辑
         index.setVisible(NIMBLEOntology.isVisible(prop, true));
@@ -727,46 +765,9 @@ public class OntologyIndexService {
         ontClass.superClasses(false)
                 .filter(f -> f.canAs(OntClass.Restriction.class))
                 .forEach(superCls -> {
-                    String propertyUri = superCls.as(OntClass.ValueRestriction.class).getProperty().getURI();
+                    String propertyUri = superCls.as(OntClass.UnaryRestriction.class).getProperty().getURI();
                     propertyUsageMap.computeIfAbsent(propertyUri, k -> new HashSet<>()).add(classUri);
                     properties.add(propertyUri);
-                    Restriction restriction = new Restriction(propertyUri,classUri,true);
-                    try {
-                        solrClient.addBean("class", restriction);
-                    } catch (IOException | SolrServerException e) {
-                        throw new RuntimeException(e);
-                    }
-                    // 2. 🕳️ 开始疯狂下探：深度解析深层嵌套的 Collection / Scheme 约束
-
-//                    OntClass.ValueRestriction restriction = superCls.as(OntClass.ValueRestriction.class);
-
-//
-//                    if (restriction instanceof OntClass.ObjectSomeValuesFrom some) {
-//
-//                        // one of关系
-//                        if (some.getValue() instanceof OntClass.OneOf oneOf) {
-//                            oneOf.listProperties().forEach(prop -> {
-//                                RDFList rdfList = prop.getList();
-//                                var listIt = rdfList.iterator();
-//
-//                                try {
-//                                    if (listIt.hasNext()) {
-//                                        // 3. 🎯 终点站：掏出链表里的第一个元素，直接拿到它的 URI
-//                                        String codeListId = listIt.next().asResource().getURI();
-//
-//                                        // 🎉 彻底通关！成功捕获：http://...#PowerCompanyCollection
-//                                        System.out.println("【模式匹配+三元组流成功】属性：" + propertyUri + " -> 绑定的 Collection ID：" + codeListId);
-//
-//                                        // 塞进你的业务矩阵中
-//                                        // propertyUsageMap.computeIfAbsent(propertyUri, k -> new HashSet<>()).add(classUri);
-//                                    }
-//                                } finally {
-//                                    // 释放可能存在的链表迭代器
-//                                }
-//                            });
-//                        }
-//
-//                    }
                 });
 
         return properties;

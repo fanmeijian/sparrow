@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
 
+import java.util.Set;
+
 @Setter
 @Getter
 public class ConceptType extends BaseMetadataObject {
@@ -12,6 +14,10 @@ public class ConceptType extends BaseMetadataObject {
 
     @Field("broader")
     private String broader;
+
     @Field("inScheme")
     private String inScheme;
+
+    @Field("memberOf")
+    private Set<String> collections;
 }

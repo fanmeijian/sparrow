@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 // 引入 SolrJ 注解替换 Spring Data Solr
+import lombok.Getter;
 import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
 
+@Getter
 @Setter
 public class PropertyType extends BaseMetadataObject implements IPropertyType {
 
@@ -15,7 +17,7 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
     private String type = "property";
 
     @Field("range")
-    private String range;
+    private Collection<String> range;
 
     @Field("valueQualifier")
     private ValueQualifier valueQualifier;
@@ -58,9 +60,6 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
     public PropertyType() {
     }
 
-    public String getPropertyType() {
-        return this.propertyType;
-    }
 
     @JsonIgnore
     public Collection<String> getUnits() {
@@ -78,9 +77,6 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
         return this.codeList;
     }
 
-    public String getRange() {
-        return this.range;
-    }
 
     public Collection<String> getProduct() {
         if (this.product == null) {
@@ -96,13 +92,6 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
         // 注意：反编译出的原代码此处未向集合 add 任何东西，如有业务遗漏可在此处补上：this.product.add(className);
     }
 
-    public String getType() {
-        return this.type;
-    }
-
-    public Collection<String> getItemFieldNames() {
-        return this.itemFieldNames;
-    }
 
     @SuppressWarnings("unchecked")
     public void addItemFieldName(String idxField) {
@@ -114,9 +103,7 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
         this.itemFieldNames.add(idxField);
     }
 
-    public ValueQualifier getValueQualifier() {
-        return this.valueQualifier;
-    }
+
 
     @JsonIgnore
     public boolean isFacet() {
@@ -128,9 +115,6 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
         return this.boost;
     }
 
-    public Collection<String> getItems() {
-        return this.items;
-    }
 
     public void addItem(String uri) {
         if (this.items == null) {
@@ -141,18 +125,6 @@ public class PropertyType extends BaseMetadataObject implements IPropertyType {
 
     public boolean removeItem(String item) {
         return this.items == null ? false : this.items.remove(item);
-    }
-
-    public boolean isVisible() {
-        return this.visible;
-    }
-
-    public boolean isRequired() {
-        return this.required;
-    }
-
-    public String getCodeListId() {
-        return this.codeListId;
     }
 
 }

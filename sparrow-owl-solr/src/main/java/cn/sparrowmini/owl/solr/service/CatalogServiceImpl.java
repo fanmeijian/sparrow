@@ -2,6 +2,7 @@ package cn.sparrowmini.owl.solr.service;
 
 import cn.sparrowmini.common.dto.ItemVo;
 import cn.sparrowmini.common.dto.PropertyVo;
+import cn.sparrowmini.common.dto.RestrictionDto;
 import cn.sparrowmini.common.service.CatalogService;
 import cn.sparrowmini.common.util.JsonUtils;
 import cn.sparrowmini.owl.solr.model.ConceptType;
@@ -9,6 +10,7 @@ import cn.sparrowmini.owl.solr.model.Restriction;
 import cn.sparrowmini.owl.solr.model.SkosRestriction;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
+import org.apache.jena.vocabulary.SKOS;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.SolrQuery;
@@ -17,10 +19,7 @@ import org.apache.solr.common.SolrDocument;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -69,7 +68,7 @@ public class CatalogServiceImpl implements CatalogService {
 
         try {
             // 假设你的 restriction 文档和 concepts 存放在同一个核心（或指定核心）
-            QueryResponse resResponse = solrClient.query("class", restrictionQuery);
+            QueryResponse resResponse = solrClient.query("props", restrictionQuery);
             resResponse.getResults()
                     .forEach(doc -> {
                         if (doc.getFieldValueMap() != null) {
@@ -91,6 +90,7 @@ public class CatalogServiceImpl implements CatalogService {
                 String propertyUri = doc.get("id").toString();
                 Restriction restriction = restrictionMap.get(propertyUri);
                 String activeBroader = restriction instanceof SkosRestriction ? ((SkosRestriction) restriction).getBroader() : null;
+                String scheme = restriction instanceof SkosRestriction ? ((SkosRestriction) restriction).getScheme() : null;
                 return new PropertyVo(
                         doc.get("localName").toString(),
                         getObjectString(doc.get("zh_label")),
@@ -102,7 +102,9 @@ public class CatalogServiceImpl implements CatalogService {
                         (boolean) doc.get("isVisible"),
                         doc.get("codeListId") == null ? null : doc.get("codeListId").toString(),
                         (List<String>) doc.get("range"),
-                        activeBroader
+                        activeBroader,
+                        scheme,
+                        JsonUtils.getMapper().convertValue(restriction, RestrictionDto.class)
                 );
             }).collect(Collectors.toList());
         } catch (SolrServerException | IOException e) {
@@ -132,7 +134,12 @@ public class CatalogServiceImpl implements CatalogService {
     public List<String> getAllChildrenIdByParentClassId(String parentId) {
         try {
             SolrDocument solrDocument = solrClient.getById("class", getUri(parentId));
-            return (List<String>) solrDocument.getFieldValue("allChildren");
+            if (solrDocument != null) {
+                return (List<String>) solrDocument.getFieldValue("allChildren");
+            } else {
+                return List.of();
+            }
+
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -159,4 +166,84 @@ public class CatalogServiceImpl implements CatalogService {
 
         return solrClient.query("concepts", query).getBeans(ConceptType.class);
     }
+
+    @Override
+    public List<ItemVo> getOptionsByProperty(String property, String restrictionId) {
+        try {
+            SolrDocument propertyDoc = solrClient.getById("props", getUri(property));
+            Collection<Object> ranges = propertyDoc.getFieldValues("range");
+            if (ranges.stream().anyMatch(r -> r.equals(SKOS.Concept.getURI()))) {
+                if (!isNullString(restrictionId)) {
+                    SolrDocument restrictionDoc = solrClient.getById("props", restrictionId);
+
+                    String valueProperty = (String) restrictionDoc.getFieldValue("valueProperty");
+                    Collection<Object> values =  restrictionDoc.getFieldValues("value");
+                    String value = values.stream().findFirst().orElse("").toString();
+                    if (valueProperty.equals(SKOS.broader.getURI())) {
+                        return this.getConceptsByScheme(null, value);
+                    } else if (valueProperty.equals(SKOS.member.getURI())) {
+                        return this.getConceptsByCollection(value);
+                    }
+
+                }
+            } else {
+                Object range = ranges.stream().findFirst().orElse(null);
+                if (range instanceof String r) {
+                    return this.getChildrenByClassId(r);
+                }
+
+
+            }
+
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return List.of();
+    }
+
+    private List<ItemVo> getConceptsByScheme(String scheme, String broader) {
+        // 1. 先去 Solr 里查一下这个 codeListId 本身是个什么 doctype
+        String queryStr = "";
+
+        if (!isNullString(scheme) && !isNullString(broader)) {
+            queryStr = "inScheme:\"" + scheme + "\" AND broader:\"" + broader + "\"";
+        } else if (!isNullString(scheme)) {
+            queryStr = "inScheme:\"" + scheme + "\" AND isTopConcept:true";
+        } else if (!isNullString(broader)) {
+            queryStr += "broader:\"" + broader + "\"";
+        }
+
+        // 2. 智能化自动变阵（对前端完全隐蔽）
+        SolrQuery query = new SolrQuery(queryStr);
+        query.setRows(1000);
+        query.setFields("localName", "zh_label");
+
+        try {
+            return solrClient.query("concepts", query).getBeans(ConceptType.class).stream().map(m -> new ItemVo(m.getLocalName(), m.getLabel().get("zh_label"))).toList();
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<ItemVo> getConceptsByCollection(String collection) {
+        // 1. 先去 Solr 里查一下这个 codeListId 本身是个什么 doctype
+        String queryStr = "memberOf:\"" + collection + "\"";
+
+        // 2. 智能化自动变阵（对前端完全隐蔽）
+        SolrQuery query = new SolrQuery(queryStr);
+        query.setRows(1000);
+        query.setFields("localName", "zh_label");
+
+        try {
+            return solrClient.query("concepts", query).getBeans(ConceptType.class).stream().map(m -> new ItemVo(m.getLocalName(), m.getLabel().get("zh_label"))).toList();
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isNullString(String str) {
+        return str == null || str.isEmpty() || str.equals("null") || str.equals("undefined");
+    }
+
 }
