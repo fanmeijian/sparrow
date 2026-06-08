@@ -14,7 +14,13 @@ import org.apache.jena.vocabulary.SKOS;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.SolrQuery;
+import org.apache.solr.client.solrj.request.json.JsonQueryRequest;
+import org.apache.solr.client.solrj.request.json.QueryFacetMap;
+import org.apache.solr.client.solrj.request.json.TermsFacetMap;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.json.BucketBasedJsonFacet;
+import org.apache.solr.client.solrj.response.json.BucketJsonFacet;
+import org.apache.solr.client.solrj.response.json.NestableJsonFacet;
 import org.apache.solr.common.SolrDocument;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +49,12 @@ public class CatalogServiceImpl implements CatalogService {
         queryChild.setRows(1000);
         try {
             QueryResponse response = solrClient.query("class", queryChild);
-            return response.getResults().stream().map(doc -> {
-                return new ItemVo(getObjectString(doc.get("localName")), getObjectString(doc.get("zh_label")));
-            }).toList();
+            return response.getResults().stream().map(doc ->
+                    ItemVo.builder()
+                            .name(getObjectString(doc.get("localName")))
+                            .label(getObjectString(doc.get("zh_label")))
+                            .build()
+            ).toList();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -91,21 +100,16 @@ public class CatalogServiceImpl implements CatalogService {
                 Restriction restriction = restrictionMap.get(propertyUri);
                 String activeBroader = restriction instanceof SkosRestriction ? ((SkosRestriction) restriction).getBroader() : null;
                 String scheme = restriction instanceof SkosRestriction ? ((SkosRestriction) restriction).getScheme() : null;
-                return new PropertyVo(
-                        doc.get("localName").toString(),
-                        getObjectString(doc.get("zh_label")),
-                        doc.get("propType").toString(),
-                        doc.get("valueQualifier") == null ? null : doc.get("valueQualifier").toString(),
-                        (boolean) doc.get("isFacet"),
-//                        (boolean) doc.get("isRequired"),
-                        restriction != null ? restriction.getIsRequired() : false,
-                        (boolean) doc.get("isVisible"),
-                        doc.get("codeListId") == null ? null : doc.get("codeListId").toString(),
-                        (List<String>) doc.get("range"),
-                        activeBroader,
-                        scheme,
-                        JsonUtils.getMapper().convertValue(restriction, RestrictionDto.class)
-                );
+                return PropertyVo.builder()
+                        .name(doc.get("localName").toString())
+                        .label(getObjectString(doc.get("zh_label")))
+                        .type(doc.get("propType").toString())
+                        .isFacet((boolean) doc.get("isFacet"))
+                        .isRequired(restriction != null ? restriction.getIsRequired() : false)
+                        .isVisible((boolean) doc.get("isVisible"))
+                        .ranges((List<String>) doc.get("range"))
+                        .restriction(JsonUtils.getMapper().convertValue(restriction, RestrictionDto.class))
+                        .build();
             }).collect(Collectors.toList());
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
@@ -122,9 +126,12 @@ public class CatalogServiceImpl implements CatalogService {
         queryChild.setRows(1000);
         try {
             QueryResponse response = solrClient.query("codes", queryChild);
-            return response.getResults().stream().map(doc -> {
-                return new ItemVo(doc.get("localName").toString(), doc.get("zh_label").toString());
-            }).toList();
+            return response.getResults().stream()
+                    .map(doc ->
+                            ItemVo.builder().name(doc.get("localName").toString())
+                                    .label(doc.get("zh_label").toString())
+                                    .build())
+                    .toList();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -172,12 +179,15 @@ public class CatalogServiceImpl implements CatalogService {
         try {
             SolrDocument propertyDoc = solrClient.getById("props", getUri(property));
             Collection<Object> ranges = propertyDoc.getFieldValues("range");
+            if(ranges == null || ranges.isEmpty()) {
+                return List.of();
+            }
             if (ranges.stream().anyMatch(r -> r.equals(SKOS.Concept.getURI()))) {
                 if (!isNullString(restrictionId)) {
                     SolrDocument restrictionDoc = solrClient.getById("props", restrictionId);
 
                     String valueProperty = (String) restrictionDoc.getFieldValue("valueProperty");
-                    Collection<Object> values =  restrictionDoc.getFieldValues("value");
+                    Collection<Object> values = restrictionDoc.getFieldValues("value");
                     String value = values.stream().findFirst().orElse("").toString();
 
                     if (valueProperty.equals(SKOS.broader.getURI())) {
@@ -212,7 +222,7 @@ public class CatalogServiceImpl implements CatalogService {
         if (!isNullString(scheme) && !isNullString(broader)) {
             queryStr = "inScheme:\"" + scheme + "\" AND broader:\"" + broader + "\"";
         } else if (!isNullString(scheme)) {
-            queryStr = "inScheme:\"" + scheme + "\" AND isTopConcept:true";
+            queryStr = "inScheme:\"" + scheme + "\" AND topConceptOf:\"" + scheme + "\"";
         } else if (!isNullString(broader)) {
             queryStr += "broader:\"" + broader + "\"";
         }
@@ -223,7 +233,8 @@ public class CatalogServiceImpl implements CatalogService {
         query.setFields("localName", "zh_label");
 
         try {
-            return solrClient.query("concepts", query).getBeans(ConceptType.class).stream().map(m -> new ItemVo(m.getLocalName(), m.getLabel().get("zh_label"))).toList();
+            return solrClient.query("concepts", query).getBeans(ConceptType.class)
+                    .stream().map(m -> ItemVo.builder().label(m.getLabel().get("zh_label")).name(m.getLocalName()).build()).toList();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -236,10 +247,24 @@ public class CatalogServiceImpl implements CatalogService {
         // 2. 智能化自动变阵（对前端完全隐蔽）
         SolrQuery query = new SolrQuery(queryStr);
         query.setRows(1000);
-        query.setFields("localName", "zh_label");
+        query.setFields("id", "localName", "zh_label");
+
 
         try {
-            return solrClient.query("concepts", query).getBeans(ConceptType.class).stream().map(m -> new ItemVo(m.getLocalName(), m.getLabel().get("zh_label"))).toList();
+            QueryResponse queryResponse = solrClient.query("concepts", query);
+
+
+            Map<String, Long> count = this.count();
+
+
+            return queryResponse.getBeans(ConceptType.class).stream()
+                    .map(m ->
+                            ItemVo.builder()
+                                    .name(m.getLocalName())
+                                    .label(m.getLabel().get("zh_label"))
+                                    .childCount(count.getOrDefault(m.getUri(), 0L))
+                                    .build())
+                    .toList();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -249,4 +274,44 @@ public class CatalogServiceImpl implements CatalogService {
         return str == null || str.isEmpty() || str.equals("null") || str.equals("undefined");
     }
 
+    private Map<String, Long> count() {
+
+// 1. 假设这是你第一步查出来的子节点 ID 集合
+        Set<String> ids = Set.of(
+                "http://www.cn-plc.com/ontology/cms#SgccCollection",
+                "http://www.cn-plc.com/ontology/cms#CsgCollection",
+                "http://www.cn-plc.com/ontology/cms#PS_040"
+        );
+
+// 2. 【核心优化】不再拼 OR，直接用逗号把所有 URI 连成一根干净的字符串
+        String idsCommaStr = String.join(",", ids);
+        JsonQueryRequest request = new JsonQueryRequest()
+                .setQuery(
+                        "{!terms f=memberOf}" + idsCommaStr +
+                                " OR {!terms f=broader}" + idsCommaStr
+                )
+                .setLimit(0)
+                .withFacet(
+                        "memberOf_count",
+                        new TermsFacetMap("memberOf")
+                                .setLimit(ids.size())
+                )
+                .withFacet(
+                        "broader_count",
+                        new TermsFacetMap("broader")
+                                .setLimit(ids.size())
+                );
+        try {
+            Map<String,Long> count=new HashMap<>();
+            NestableJsonFacet nestableJsonFacet = request.process(solrClient, "concepts").getJsonFacetingResponse();
+            nestableJsonFacet.getBucketBasedFacetNames().forEach(facetName -> {
+                nestableJsonFacet.getBucketBasedFacets(facetName).getBuckets().forEach(bucket -> {
+                    count.merge(bucket.getVal().toString(),bucket.getCount(),Long::sum);
+                });
+            });
+            return count;
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -1,0 +1,30 @@
+[
+  {
+    "name": "SJC_006",
+    "label": "信通五所"
+  },
+  {
+    "name": "SJC_005",
+    "label": "中国赛宝"
+  },
+  {
+    "name": "SJC_007",
+    "label": "CQC"
+  },
+  {
+    "name": "SJC_002",
+    "label": "南网电科院"
+  },
+  {
+    "name": "SJC_001",
+    "label": "中国电科院"
+  },
+  {
+    "name": "SJC_003",
+    "label": "国网电科院"
+  },
+  {
+    "name": "SJC_004",
+    "label": "蒙西电科院"
+  }
+]

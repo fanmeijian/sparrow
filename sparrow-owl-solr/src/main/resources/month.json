@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Jan",
+    "label": "1月"
+  },
+  {
+    "name": "Feb",
+    "label": "2月"
+  },
+  {
+    "name": "Mar",
+    "label": "3月"
+  },
+  {
+    "name": "Apr",
+    "label": "4月"
+  },
+  {
+    "name": "May",
+    "label": "5月"
+  },
+  {
+    "name": "Jun",
+    "label": "6月"
+  },
+  {
+    "name": "Jul",
+    "label": "7月"
+  },
+  {
+    "name": "Aug",
+    "label": "8月"
+  },
+  {
+    "name": "Sep",
+    "label": "9月"
+  },
+  {
+    "name": "Oct",
+    "label": "10月"
+  },
+  {
+    "name": "Nov",
+    "label": "11月"
+  },
+  {
+    "name": "Dec",
+    "label": "12月"
+  }
+]

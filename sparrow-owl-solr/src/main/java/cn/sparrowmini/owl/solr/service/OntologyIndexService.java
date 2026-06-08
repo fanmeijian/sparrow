@@ -3,6 +3,8 @@ package cn.sparrowmini.owl.solr.service;
 import cn.sparrowmini.owl.solr.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jena.ontapi.OntModelFactory;
 import org.apache.jena.ontapi.OntSpecification;
@@ -29,11 +31,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class OntologyIndexService {
+    Set<String> filterClass = Set.of("http://www.w3.org/2002/07/owl#", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+    Set<String> nss = Set.of("http://www.cn-plc.com/ontology/cms#");
 
     private final SolrClient solrClient;
-    private final OntModel model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM_RDFS_INF);
+//    private final OntModel model = OntModelFactory.createModel(OntSpecification.OWL2_DL_MEM_RDFS_INF);
 
-    //    private final OntModel model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM_MICRO_RULES_INF);
+    private final OntModel model = OntModelFactory.createModel(OntSpecification.OWL2_FULL_MEM_MICRO_RULES_INF);
     private static final String COLLECTION_NAME = "class";
 
     private final Map<String, Set<String>> propertyUsageMap = new HashMap<>();
@@ -68,15 +72,24 @@ public class OntologyIndexService {
     }
 
     public void createIndex(String ontologyPath) {
-        Set<String> nss = Set.of("http://www.nimble-project.org/catalogue#", "http://www.aidimme.es/FurnitureSectorOntology.owl#", "http://www.cn-plc.com/ontology/cms#");
+
 
         try (InputStream in = getClass().getResourceAsStream(ontologyPath)) {
+            // 2. 让 Jena 像 Protégé 一样，把 SKOS 官方的元数据定义“塞”进去
+            System.out.println("正在加载 SKOS 官方核心定义...");
+            // 提示：如果远程获取较慢，建议把这个 URL 的内容下载到本地，改为读取本地文件
+            model.read("http://www.w3.org/2004/02/skos/core", "RDF/XML");
+
+            // 3. 接着读取你自己的业务 XML 数据文件
+            System.out.println("正在加载业务 XML 数据...");
+
             model.read(in, "RDF/XML");
             List<PropertyType> indexedProp = new ArrayList<>();
 
             List<OntClass.Named> indexedOntClass = model.classes().toList();
             AtomicLong count2 = new AtomicLong(indexedOntClass.size());
             indexedOntClass
+                    .stream().filter(ont -> nss.contains(ont.getNameSpace()))
                     .forEach(ontologyClass -> {
                         ClassType classType = processClazz(model, ontologyClass, indexedProp);
 
@@ -84,15 +97,15 @@ public class OntologyIndexService {
                         try {
                             solrClient.addBean(COLLECTION_NAME, classType);
                             //定义属性的restriction
-                            Restriction broaderRestriction = extractBroaderUri(classType.getUri());
-                            if (broaderRestriction != null) {
-                                solrClient.addBean("props", broaderRestriction);
-                            }
-
-                            Restriction schemeRestriction = extractSchemeUri(classType.getUri());
-                            if (schemeRestriction != null) {
-                                solrClient.addBean("props", schemeRestriction);
-                            }
+//                            Restriction broaderRestriction = extractBroaderUri(classType.getUri());
+//                            if (broaderRestriction != null) {
+//                                solrClient.addBean("props", broaderRestriction);
+//                            }
+//
+//                            Restriction schemeRestriction = extractSchemeUri(classType.getUri());
+//                            if (schemeRestriction != null) {
+//                                solrClient.addBean("props", schemeRestriction);
+//                            }
 
                         } catch (IOException | SolrServerException e) {
                             throw new RuntimeException(e);
@@ -104,7 +117,7 @@ public class OntologyIndexService {
             List<OntProperty> indexedOntProp = model.properties().toList();
             AtomicLong count1 = new AtomicLong(indexedOntProp.size());
             indexedOntProp.stream()
-                    .filter(f -> nss.contains(f.getNameSpace()))
+                    .filter(f -> f.getNameSpace() != null && nss.contains(f.getNameSpace()))
                     .forEach(property -> {
                         PropertyType prop = processProperty(model, property);
 
@@ -142,16 +155,81 @@ public class OntologyIndexService {
 
     public void initOuterCodeList() {
         String ns = "http://www.cn-plc.com/ontology/cms#";
-        Map<String, String> codeList = Map.of(
-                "party.json", "PartyScheme",
-                "team.json", "PartyScheme",
-                "country.json", "GeographyScheme",
-                "region_cn.json", "GeographyScheme",
-                "lang.json", "LanguageScheme");
-        codeList.forEach((k, v) -> {
-//            initCodeList(ns +k + "Id",v);
-            initOuterScheme(v, k);
-        });
+        List<OuterCodes> outerCodes = new ArrayList<>();
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "PartyScheme"))
+                .file("party_other_power.json")
+                .collection(Set.of(ns + "PowerPartyCollection"))
+                .topSchemeOf(Set.of(ns + "PartyScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "PartyScheme"))
+                .file("party_sgcc.json")
+                .collection(Set.of(ns + "SgccCollection"))
+                .topSchemeOf(Set.of(ns + "PartyScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "PartyScheme"))
+                .file("party_csg.json")
+                .collection(Set.of(ns + "CsgCollection"))
+                .topSchemeOf(Set.of(ns + "PartyScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "PartyScheme"))
+                .file("party_association.json")
+                .collection(Set.of(ns + "AssociationPartyCollection"))
+                .topSchemeOf(Set.of(ns + "PartyScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "PartyScheme"))
+                .file("party_inspect.json")
+                .collection(Set.of(ns + "InspectPartyCollection"))
+                .topSchemeOf(Set.of(ns + "PartyScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "GeographyScheme"))
+                .file("country.json")
+                .topSchemeOf(Set.of(ns + "GeographyScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "GeographyScheme"))
+                .file("region_cn.json")
+                .broader(Set.of(ns + "CN"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "LanguageScheme"))
+                .file("lang.json")
+                .topSchemeOf(Set.of(ns + "LanguageScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "MonthScheme"))
+                .file("month.json")
+                .topSchemeOf(Set.of(ns + "MonthScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "YearScheme"))
+                .file("year.json")
+                .topSchemeOf(Set.of(ns + "YearScheme"))
+                .build());
+
+        outerCodes.add(OuterCodes.builder()
+                .inScheme(Set.of(ns + "PartyScheme"))
+                .file("party_international_standard.json")
+                .collection(Set.of(ns + "InternationalPartyCollection"))
+                .topSchemeOf(Set.of(ns + "PartyScheme"))
+                .build());
+
+
+        outerCodes.forEach(this::initOuterScheme);
     }
 
     public void indexAllSkosConcepts() {
@@ -159,6 +237,18 @@ public class OntologyIndexService {
         model.individuals().forEach(ind -> {
             ConceptType conceptDoc = new ConceptType();
             String label = ind.getLabel();
+
+            // 1. 获取个体的【直接主要类】（代替旧版的 getOntClass()）
+            Optional<OntClass> directClassOpt = ind.classes(true).findFirst();
+
+            if (directClassOpt.isPresent()) {
+                OntClass mainClass = directClassOpt.get();
+                if (!mainClass.isAnon()) {
+                    String mainClassUri = mainClass.getURI();
+                    System.out.println("直接所属类 URI: " + mainClassUri);
+                    conceptDoc.setType(mainClass.getLocalName());
+                }
+            }
 
             // 1. 基础元数据封装（继承自 BaseMetadataObject）
             conceptDoc.setUri(ind.getURI());
@@ -172,20 +262,103 @@ public class OntologyIndexService {
 
             // 3. 🔍 核心 SKOS 图拓扑抽取
             // 抽取归属词表
-            Statement schemeStmt = ind.getProperty(model.getProperty("http://www.w3.org/2004/02/skos/core#inScheme"));
-            if (schemeStmt != null) {
-                conceptDoc.setInScheme(schemeStmt.getObject().asResource().getURI());
+            // 1. 初始化一个 Set 容器来收集所有的 Scheme URI
+            Set<String> inSchemes = new HashSet<>();
+
+            // 2. 核心改变：利用 listProperties 捞出 ind 身上所有的 skos:inScheme 边
+            ind.listProperties(SKOS.inScheme).forEachRemaining(stmt -> {
+                if (stmt.getObject().isResource()) {
+                    String schemeURI = stmt.getObject().asResource().getURI();
+                    if (schemeURI != null) {
+                        inSchemes.add(schemeURI);
+                    }
+                }
+            });
+
+            // 3. 塞入你的 Solr Bean 中（你的 conceptDoc 对应的 setInScheme 应该接收 Collection/List）
+            if (!inSchemes.isEmpty()) {
+                conceptDoc.setInScheme(inSchemes);
             }
 
             // 抽取上位父级（用来做级联下探的铁链）
-            Statement broaderStmt = ind.getProperty(model.getProperty("http://www.w3.org/2004/02/skos/core#broader"));
-            if (broaderStmt != null) {
-                conceptDoc.setBroader(broaderStmt.getObject().asResource().getURI());
-                conceptDoc.setTopConcept(false);
-            } else {
-                // 没有父级，判定为第一级门户个体
-                conceptDoc.setTopConcept(true);
+            Collection<String> boarders = new HashSet<>();
+            ind.listProperties(SKOS.broader)
+                    .filterKeep(stmt -> stmt.getObject().isResource()
+                            && stmt.getObject().asResource().getURI() != null)
+                    .forEachRemaining(stmt -> {
+                        boarders.add(stmt.getObject().asResource().getURI());
+                    });
+            if (!boarders.isEmpty()) {
+                conceptDoc.setBroader(boarders);
             }
+            if (ind.getURI().equals("http://www.cn-plc.com/ontology/cms#TS_011")) {
+                System.out.println("" + ind.listProperties().toList().size());
+                ind.listProperties().forEachRemaining(stmt -> {
+                    System.out.println(stmt.asTriple().toString());
+                });
+            }
+
+            Set<String> topSchemeOfs = new HashSet<>();
+            // 依赖高级推理：直接获取当前个体身上【包含由 hasTopConcept 推导而来】的所有顶级方案关系
+            ind.listProperties(SKOS.topConceptOf)
+                    .filterKeep(stmt -> stmt.getObject().isResource()
+                            && stmt.getObject().asResource().getURI() != null)
+                    .forEachRemaining(stmt -> {
+                        topSchemeOfs.add(stmt.getObject().asResource().getURI());
+                    });
+            if (!topSchemeOfs.isEmpty()) {
+                conceptDoc.setTopConceptOf(topSchemeOfs);
+            }
+
+
+            if (ind.getLocalName().equals("SgccCollection")) {
+                System.out.println("");
+            }
+
+            //collection成员 memberOf
+// 假设当前变量是 OntIndividual ind (你的概念或组织个体)
+            Set<String> memberOfs = new HashSet<>();
+
+// 核心：在模型中查询 ( ? , skos:member, ind )
+            model.listStatements(null, SKOS.member, ind)
+                    .forEachRemaining(stmt -> {
+                        RDFNode collectionNode = stmt.getSubject(); // 拿到主语，即上层的 Collection
+                        if (collectionNode.isURIResource()) {
+                            String collectionUri = collectionNode.asResource().getURI();
+                            if (collectionUri != null) {
+                                memberOfs.add(collectionUri);
+                            }
+                        }
+                    });
+
+// 塞入你的 Solr Bean 中（一个成员可能属于多个 Collection，所以依然推荐多值存储）
+            if (!memberOfs.isEmpty()) {
+                conceptDoc.setMemberOf(memberOfs);
+            }
+
+
+//                // 1. 初始化一个 Set 自动去重
+//                Set<String> topSchemeOfs = new HashSet<>();
+//
+//                // 【路径 A：逆向穿透】直接获取当前个体身上显式声明的 skos:topConceptOf 属性
+//                Statement topConceptOfStmt = ind.getProperty(SKOS.topConceptOf);
+//                if (topConceptOfStmt != null && topConceptOfStmt.getObject().isResource()) {
+//                    topSchemeOfs.add(topConceptOfStmt.getObject().asResource().getURI());
+//                }
+//
+//                // 【路径 B：正向穿透（Jena 5.6 兼容写法）】
+//                // 既然个体没有 .relations()，我们直接在模型(Model)中寻找：谁以 SKOS.hasTopConcept 关联了当前个体
+//                model.listStatements(null, SKOS.hasTopConcept, ind)
+//                        .forEachRemaining(stmt -> {
+//                            RDFNode schemeNode = stmt.getSubject(); // 拿到主语（即 Scheme）
+//                            if (schemeNode.isURIResource()) {
+//                                topSchemeOfs.add(schemeNode.asResource().getURI());
+//                            }
+//                        });
+//
+//                // 2. 将最终的集合塞进你的 conceptDoc 中
+//                conceptDoc.setTopConceptOf(new ArrayList<>(topSchemeOfs));
+
 
             // 4. 单向、纯净地推给 Solr
             try {
@@ -250,14 +423,14 @@ public class OntologyIndexService {
         }
     }
 
-    private void initOuterScheme(String schemeName, String filePath) {
+    private void initOuterScheme(OuterCodes codes) {
 
         String ns = "http://www.cn-plc.com/ontology/cms#";
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         // 使用 Spring 的 ClassPathResource
-        ClassPathResource resource = new ClassPathResource(filePath);
+        ClassPathResource resource = new ClassPathResource(codes.getFile());
 
         try (InputStream inputStream = resource.getInputStream()) {
             // 1. 读取为 JsonNode
@@ -272,31 +445,19 @@ public class OntologyIndexService {
                     ConceptType conceptDoc = new ConceptType();
 
                     // 1. 基础元数据封装（继承自 BaseMetadataObject）
+                    conceptDoc.setType(SKOS.Concept.getLocalName());
                     conceptDoc.setUri(ns + name);
                     conceptDoc.setLocalName(name);
                     conceptDoc.setNameSpace(ns);
                     conceptDoc.setLabel(Map.of("zh", label == null ? "" : label));
                     conceptDoc.setLanguages(Set.of("zh"));
-                    conceptDoc.setInScheme(ns + schemeName);
-                    // 2. 提取多语言 Label
-                    // ... 调用通用 setLabel / addLabel
-
-                    if (filePath.equals("party.json")) {
-                        conceptDoc.setCollections(Set.of(ns + "PowerPartyCollection"));
+                    conceptDoc.setInScheme(codes.getInScheme());
+                    if (codes.getBroader() != null) {
+                        conceptDoc.setBroader(codes.getBroader());
                     }
 
-                    if (filePath.equals("team.json")) {
-                        conceptDoc.setCollections(Set.of(ns + "AssociationPartyCollection"));
-                    }
-
-                    // 抽取上位父级（用来做级联下探的铁链）
-                    if (filePath.equals("region_cn.json")) {
-                        conceptDoc.setBroader(ns + "CN");
-                        conceptDoc.setTopConcept(false);
-                    } else {
-                        // 没有父级，判定为第一级门户个体
-                        conceptDoc.setTopConcept(true);
-                    }
+                    conceptDoc.setTopConceptOf(codes.getTopSchemeOf());
+                    conceptDoc.setMemberOf(codes.getCollection());
 
 
                     try {
@@ -565,10 +726,10 @@ public class OntologyIndexService {
             index.setAlternateLabel(obtainMultilingualLabels(clazz, SKOS.altLabel));
 
             index.setProperties(getProperties(clazz, model));
-            index.setAllParents(clazz.superClasses().map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toList()));
-            index.setParents(clazz.superClasses(true).map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toList()));
-            index.setAllChildren(clazz.subClasses().map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toSet()));
-            index.setChildren(clazz.subClasses(true).map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toSet()));
+            index.setAllParents(clazz.superClasses().filter(c->c.getNameSpace()!=null && nss.contains(c.getNameSpace())).map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toList()));
+            index.setParents(clazz.superClasses(true).filter(c->c.getNameSpace()!=null &&nss.contains(c.getNameSpace())).map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toList()));
+            index.setAllChildren(clazz.subClasses().filter(c->c.getNameSpace()!=null &&nss.contains(c.getNameSpace())).map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toSet()));
+            index.setChildren(clazz.subClasses(true).filter(c->c.getNameSpace()!=null &&nss.contains(c.getNameSpace())).map(Resource::getURI).filter(Objects::nonNull).collect(Collectors.toSet()));
             return index;
         }
         return null;
@@ -798,5 +959,18 @@ public class OntologyIndexService {
         }
 
         return result;
+    }
+
+
+    @Builder
+    @Data
+    public static class OuterCodes {
+        private String docType = "concept";
+        private Collection<String> inScheme;
+        private String file;
+        private Collection<String> collection;
+        private Collection<String> broader;
+        private Collection<String> topSchemeOf;
+
     }
 }

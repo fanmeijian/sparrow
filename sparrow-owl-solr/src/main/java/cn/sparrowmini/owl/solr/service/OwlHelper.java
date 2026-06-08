@@ -14,20 +14,40 @@ import java.util.Set;
 import cn.sparrowmini.owl.solr.model.Restriction;
 
 public class OwlHelper {
+    public static Set<String> nss = Set.of("http://www.cn-plc.com/ontology/cms#", "http://www.w3.org/2004/02/skos/core#","http://www.w3.org/2001/XMLSchema#");
+
     public static Collection<String> getRangesOfProperty(OntProperty property) {
         Set<String> ranges = new HashSet<>();
-        if (property.canAs(OntObjectProperty.class)) {
-            OntObjectProperty ontObjectProperty = property.as(OntObjectProperty.class);
-            ontObjectProperty.ranges().forEach(range -> {
-                if (range instanceof OntClass.CollectionOf<?> dataRange) {
-                    ranges.addAll(dataRange.components().map(OntObject::getURI).toList());
-                } else {
-                    ranges.add(range.getURI());
-                }
-            });
-        } else if (property instanceof OntDataProperty ontDataProperty) {
-            ranges.add(ontDataProperty.getURI());
+        if (property.getURI().equals("http://www.cn-plc.com/ontology/cms#hasInternationalParty")) {
+            property.ranges().forEach(a->System.out.println(a.getURI()));
         }
+
+        property.ranges()
+                .filter(r -> r.isAnon() || (!r.isAnon() && nss.contains(r.getNameSpace())))
+                .forEach(range -> {
+                    if (range instanceof OntClass.CollectionOf<?> dataRange) {
+                        ranges.addAll(dataRange.components().map(OntObject::getURI).toList());
+                    } else {
+                        ranges.add(range.getURI());
+                    }
+                });
+
+//        if (property.canAs(OntObjectProperty.class)) {
+//            OntObjectProperty ontObjectProperty = property.as(OntObjectProperty.class);
+//
+//            ontObjectProperty.ranges()
+//                    .filter(r -> r.isAnon() || (!r.isAnon() && nss.contains(r.getNameSpace())))
+//                    .forEach(range -> {
+//                        if (range instanceof OntClass.CollectionOf<?> dataRange) {
+//                            ranges.addAll(dataRange.components().map(OntObject::getURI).toList());
+//                        } else {
+//                            ranges.add(range.getURI());
+//                        }
+//                    });
+//        } else {
+//
+//            ranges.add(ontDataProperty.getURI());
+//        }
 
         return ranges;
     }
@@ -36,10 +56,45 @@ public class OwlHelper {
         OntRelationalProperty property = unaryRestriction.getProperty();
 
         Restriction r = null;
-        if(property.getURI().equals("http://www.cn-plc.com/ontology/cms#hasParty")) {
+        if (property.getURI().equals("http://www.cn-plc.com/ontology/cms#hasInternationalParty")) {
             System.out.println("");
         }
         if (unaryRestriction instanceof OntClass.ComponentRestriction<?, ?> restriction) {
+//            r = new SkosRestriction();
+//            r.setIsRequired(true);
+//            r.setOnProperty(property.getURI());
+//            r.setOnClass(restriction.subClass().filter(s -> s.isLocal()).get().getURI());
+//
+//            //处理嵌套restriction
+//            RDFNode valueOfRestriction = restriction.getValue();
+//
+//            if (valueOfRestriction instanceof OntClass.ValueRestriction<?, ?> nestedValueRestriction) {
+//
+//                OntRelationalProperty valueProperty = nestedValueRestriction.getProperty();
+//                if (valueProperty instanceof OntObjectProperty.Inverse inverseProp) {
+//                    r.setValueProperty(inverseProp.getDirect().getURI());
+//                } else {
+//                    r.setValueProperty(valueProperty.getURI());
+//                }
+//                r.setValue(getRestrictionValue(nestedValueRestriction.getValue()));
+//            } else {
+//                //属性值是类或个体
+//                r.setValue(getRestrictionValue(valueOfRestriction));
+//            }
+//
+//            if (restriction instanceof OntClass.CardinalityRestriction<?, ?> cardinalityRestriction) {
+//                int limit = cardinalityRestriction.getCardinality();
+//                System.out.println("limit: " + cardinalityRestriction.getProperty().getURI() + limit);
+//                //处理非SKOS的属性
+//                if (r == null) {
+//                    r = new Restriction();
+//                    r.setOnProperty(property.getURI());
+//                    r.setOnClass(cardinalityRestriction.subClass().get().getURI());
+//                }
+//
+//                r.setIsRequired(limit != 0);
+//
+//            }
             if (property.getNameSpace().equals(SKOS.getURI())
                     || property.superProperties()
                     .anyMatch(superProperty -> superProperty.getNameSpace().equals(SKOS.getURI()))) {
@@ -47,7 +102,7 @@ public class OwlHelper {
                 r = new SkosRestriction();
                 r.setIsRequired(true);
                 r.setOnProperty(property.getURI());
-                r.setOnClass(restriction.subClass().get().getURI());
+                r.setOnClass(restriction.subClass().filter(s -> s.isLocal()).get().getURI());
 
                 //处理嵌套restriction
                 RDFNode valueOfRestriction = restriction.getValue();
@@ -79,7 +134,7 @@ public class OwlHelper {
                     r.setIsRequired(limit != 0);
 
                 }
-            }else {
+            } else {
                 //处理非SKOS的属性
                 r = new Restriction();
                 r.setOnClass(restriction.subClass().get().getURI());
@@ -87,7 +142,6 @@ public class OwlHelper {
                 r.setIsRequired(true);
 
             }
-
 
 
         }

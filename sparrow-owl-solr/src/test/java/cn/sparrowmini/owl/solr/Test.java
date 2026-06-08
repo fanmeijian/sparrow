@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudHttp2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.apache.solr.client.solrj.request.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 
@@ -74,24 +75,28 @@ public class Test {
     }
 
     @org.junit.jupiter.api.Test
-    public void testInitSolr() throws JsonProcessingException {
-//        ObjectMapper mapper = new ObjectMapper();
-//        String owlPath = "/cms-ontology.owl";
-//        String ns = "http://cn.liyuan.chnplc/ontology/cms#";
-//        OwlParserService owlParserService = OwlParserService
-//                .builder()
-//                .ns(ns)
-//                .ontologyPath(owlPath)
-//                .build();
-        List<String> solrUrl = List.of("http://localhost:8983/solr");
+    public void testInitSolr1() throws IOException {
 
-        SolrClient solrClient = new CloudHttp2SolrClient.Builder(solrUrl)
+        List<String> solrUrls = List.of("http://localhost:8983/solr");
+        SolrClient solrClient = new CloudHttp2SolrClient.Builder(solrUrls)
                 .build();
-
         OntologyIndexService ontologyIndexService = new OntologyIndexService(solrClient);
         OntologyIndexService.initCollections(solrClient);
-//        ontologyIndexService.createIndex("/FurnitureSectorTaxonomy-v2.5.1.owl");
         ontologyIndexService.createIndex("/cms-ontology.owl");
+
+        // 1. 依然填写你远程服务器暴露出来的公网 HTTP 地址
+//        String solrUrl = "http://159.75.17.246:8983/solr";
+//
+//        // 2. 纯原生 JDK 客户端构建，零外部重量级依赖
+//        try (HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl)
+//                .build()) {
+//            OntologyIndexService ontologyIndexService = new OntologyIndexService(client);
+//            OntologyIndexService.initCollections(client);
+//            ontologyIndexService.createIndex("/cms-ontology.owl");
+//
+//        }
+
+
     }
 
 }

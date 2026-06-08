@@ -4,20 +4,23 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
 
-import java.util.Set;
+import java.util.Collection;
 
 @Setter
 @Getter
 public class ConceptType extends BaseMetadataObject {
-    @Field("isTopConcept")
-    private boolean topConcept;
+    @Field("doctype")
+    private String type = "class";
+
+    @Field("topConceptOf")
+    private Collection<String> topConceptOf;
 
     @Field("broader")
-    private String broader;
+    private Collection<String> broader;
 
     @Field("inScheme")
-    private String inScheme;
+    private Collection<String> inScheme;
 
     @Field("memberOf")
-    private Set<String> collections;
+    private Collection<String> memberOf;
 }
