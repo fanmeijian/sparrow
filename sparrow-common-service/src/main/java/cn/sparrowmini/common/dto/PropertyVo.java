@@ -1,11 +1,16 @@
 package cn.sparrowmini.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Value;
 
 import java.util.List;
 import java.util.Set;
 
-@Value
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Data
 public class PropertyVo {
     String name;
     String label;
@@ -14,9 +19,6 @@ public class PropertyVo {
     boolean isFacet;
     boolean isRequired;
     boolean isVisible;
-    String codeListId;
     List<String> ranges;
-    String broader;
-    String scheme;
     RestrictionDto restriction;
 }
