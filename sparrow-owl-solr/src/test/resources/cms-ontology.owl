@@ -21,23 +21,6 @@
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // Annotation properties
-    //
-    ///////////////////////////////////////////////////////////////////////////////////////
-     -->
-
-    
-
-
-    <!-- http://www.cn-plc.com/ontology/cms#hasCodeList -->
-
-    <owl:AnnotationProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasCodeList"/>
-    
-
-
-    <!-- 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //
     // Object Properties
     //
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -174,15 +157,6 @@
     
 
 
-    <!-- http://www.cn-plc.com/ontology/cms#hasMonth -->
-
-    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasMonth">
-        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#hasYear"/>
-        <rdfs:label xml:lang="zh">月份</rdfs:label>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://www.cn-plc.com/ontology/cms#hasParty -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasParty">
@@ -312,15 +286,6 @@
     
 
 
-    <!-- http://www.cn-plc.com/ontology/cms#hasYear -->
-
-    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasYear">
-        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#hasCode"/>
-        <rdfs:label xml:lang="zh">年份</rdfs:label>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://www.cn-plc.com/ontology/cms#inspectParty -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#inspectParty">
@@ -409,7 +374,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#P_005 -->
 
     <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#P_005">
-        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#calendar"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_002"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_003_001"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#PowerStandard"/>
@@ -463,7 +428,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#P_010 -->
 
     <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#P_010">
-        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#calendar"/>
         <rdfs:domain>
             <owl:Class>
                 <owl:unionOf rdf:parseType="Collection">
@@ -491,7 +456,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#P_012 -->
 
     <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#P_012">
-        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#calendar"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#CountryStandard"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:label xml:lang="zh">上次复审日期</rdfs:label>
@@ -636,7 +601,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#P_026 -->
 
     <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#P_026">
-        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#calendar"/>
         <rdfs:domain>
             <owl:Class>
                 <owl:unionOf rdf:parseType="Collection">
@@ -695,6 +660,7 @@
     <!-- http://www.cn-plc.com/ontology/cms#P_032 -->
 
     <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#P_032">
+        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#calendar"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_005"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
         <rdfs:label xml:lang="zh">状态时间</rdfs:label>
@@ -712,10 +678,16 @@
     
 
 
-    <!-- http://www.cn-plc.com/ontology/cms#p_month -->
+    <!-- http://www.cn-plc.com/ontology/cms#calendar -->
 
-    <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#p_month">
-        <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#Month"/>
+    <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#calendar"/>
+    
+
+
+    <!-- http://www.cn-plc.com/ontology/cms#month -->
+
+    <owl:DatatypeProperty rdf:about="http://www.cn-plc.com/ontology/cms#month">
+        <rdfs:subPropertyOf rdf:resource="http://www.nimble-project.org/catalogue#year"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
         <rdfs:label xml:lang="zh">月份</rdfs:label>
     </owl:DatatypeProperty>
@@ -725,6 +697,7 @@
     <!-- http://www.nimble-project.org/catalogue#year -->
 
     <owl:DatatypeProperty rdf:about="http://www.nimble-project.org/catalogue#year">
+        <rdfs:subPropertyOf rdf:resource="http://www.cn-plc.com/ontology/cms#calendar"/>
         <rdfs:domain rdf:resource="http://www.cn-plc.com/ontology/cms#M_007"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
         <rdfs:label xml:lang="zh">年份</rdfs:label>
@@ -1792,13 +1765,8 @@
         <rdfs:subClassOf rdf:resource="http://www.cn-plc.com/ontology/cms#Split"/>
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.cn-plc.com/ontology/cms#hasMonth"/>
-                <owl:someValuesFrom>
-                    <owl:Restriction>
-                        <owl:onProperty rdf:resource="http://www.w3.org/2004/02/skos/core#topConceptOf"/>
-                        <owl:hasValue rdf:resource="http://www.cn-plc.com/ontology/cms#MonthScheme"/>
-                    </owl:Restriction>
-                </owl:someValuesFrom>
+                <owl:onProperty rdf:resource="http://www.cn-plc.com/ontology/cms#month"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:label xml:lang="zh">月度</rdfs:label>
@@ -2040,13 +2008,8 @@
     <owl:Class rdf:about="http://www.cn-plc.com/ontology/cms#Split">
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.cn-plc.com/ontology/cms#hasYear"/>
-                <owl:someValuesFrom>
-                    <owl:Restriction>
-                        <owl:onProperty rdf:resource="http://www.w3.org/2004/02/skos/core#topConceptOf"/>
-                        <owl:hasValue rdf:resource="http://www.cn-plc.com/ontology/cms#YearScheme"/>
-                    </owl:Restriction>
-                </owl:someValuesFrom>
+                <owl:onProperty rdf:resource="http://www.nimble-project.org/catalogue#year"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:label xml:lang="zh">分册</rdfs:label>

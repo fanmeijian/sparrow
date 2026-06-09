@@ -429,6 +429,10 @@ public class OntologyIndexService {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
+        if(codes.file.equals("party_international_standard.json")) {
+            System.out.println("");
+        }
+
         // 使用 Spring 的 ClassPathResource
         ClassPathResource resource = new ClassPathResource(codes.getFile());
 

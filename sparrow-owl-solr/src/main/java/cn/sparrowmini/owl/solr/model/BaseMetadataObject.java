@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 // 替换为 SolrJ 原生注解
 import org.apache.solr.client.solrj.beans.Field;
@@ -20,44 +22,58 @@ public abstract class BaseMetadataObject implements IMetadataObject {
     protected final static ObjectMapper mapper = new ObjectMapper();
 
     // SolrJ 使用 @Field("fieldname") 来映射主键和普通字段
+    @Getter
+    @Setter
     @Field("id")
     protected String uri;
 
 
+    @Setter
+    @Getter
     @Field("code")
     protected String code;
 
+    @Getter
+    @Setter
     @Field("localName")
     protected String localName;
 
+    @Getter
+    @Setter
     @Field("nameSpace")
     protected String nameSpace;
 
+    @Setter
+    @Getter
     @Field("languages")
     protected Collection<String> languages;
 
     // 在 SolrJ 中，只要属性是 Map 类型，@Field 注解带有通配符（如 *_label）
     // 就会自动将其识别并处理为动态字段（Dynamic Field）
+    @Getter
     @Field("*_label")
     protected Map<String, String> label;
 
+    // 1. 核心：必须加上 @Getter 和通配符，SolrJ 才能正确识别并提交
+    @Getter
     @Field("*_lowercaseLabel")
     protected Map<String, String> lowercaseLabel;
 
+    @Getter
     @Field("*_alternate")
     protected Map<String, Collection<String>> alternateLabel;
 
+    @Getter
     @Field("*_hidden")
     protected Map<String, Collection<String>> hiddenLabel;
 
+    @Getter
     @Field("*_desc")
     protected Map<String, String> description;
 
+    @Getter
     @Field("*_comment")
     protected Map<String, String> comment;
-
-    @Field("basePlatform")
-    private String basePlatform;
 
 
     public BaseMetadataObject() {
@@ -81,57 +97,38 @@ public abstract class BaseMetadataObject implements IMetadataObject {
         return c;
     }
 
-    public Collection<String> getLanguages() {
-        return this.languages;
-    }
-
-    public void setLanguages(Collection<String> languages) {
-        this.languages = languages;
-    }
-
-    public String getBasePlatform() {
-        return this.basePlatform;
-    }
-
-    public void setBasePlatform(String basePlatform) {
-        this.basePlatform = basePlatform;
-    }
-
-    public Map<String, String> getLabel() {
-        return this.label;
-    }
-
     public void setLabel(Map<String, String> labelMap) {
+
+
         if (labelMap != null) {
+            if (this.lowercaseLabel == null) {
+                this.lowercaseLabel = new HashMap<>();
+            }
+
             for (String key : labelMap.keySet()) {
                 this.addLabel(key, (String) labelMap.get(key));
                 this.label.put(key + "_label", labelMap.get(key));
                 this.label.remove(key);
+
+                // 3. 存入处理后的小写单值（如 Key="zh", Value="itu"）-> 触发生成 zh_lowercaseLabel: "itu"
+                String labelWithoutAccents = StringUtils.stripAccents(labelMap.get(key));
+                this.lowercaseLabel.put(key + "_lowercaseLabel", labelWithoutAccents.toLowerCase());
             }
         } else {
             this.label = null;
-            this.lowercaseLabel = null;
         }
     }
+
 
     public void addLabel(String language, String label) {
         if (this.label == null) {
             this.label = new HashMap<>();
         }
 
-        if (this.lowercaseLabel == null) {
-            this.lowercaseLabel = new HashMap<>();
-        }
-
+        // 让 Map 的 Key 保持为纯语言代码（如 "en", "zh"）
         this.label.put(language, label);
-        if (label != null) {
-            String labelWithoutAccents = StringUtils.stripAccents(label);
-            this.lowercaseLabel.put(language + "_label", labelWithoutAccents.toLowerCase());
-        }
-
         this.addLanguage(language);
     }
-
     @SuppressWarnings("unchecked")
     public void addAlternateLabel(String language, String alternate) {
         if (this.alternateLabel == null) {
@@ -176,10 +173,6 @@ public abstract class BaseMetadataObject implements IMetadataObject {
         }
     }
 
-    public Map<String, String> getComment() {
-        return this.comment;
-    }
-
     public void addComment(String language, String comment) {
         if (this.comment == null) {
             this.comment = new HashMap<>();
@@ -208,10 +201,6 @@ public abstract class BaseMetadataObject implements IMetadataObject {
         this.addLanguage(language);
     }
 
-    public Map<String, String> getDescription() {
-        return this.description;
-    }
-
     public void setDescription(Map<String, String> descMap) {
         if (descMap != null) {
             for (String key : descMap.keySet()) {
@@ -220,34 +209,6 @@ public abstract class BaseMetadataObject implements IMetadataObject {
         } else {
             this.description = null;
         }
-    }
-
-    public String getUri() {
-        return this.uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
-    public String getLocalName() {
-        return this.localName;
-    }
-
-    public void setLocalName(String localName) {
-        this.localName = localName;
-    }
-
-    public String getNameSpace() {
-        return this.nameSpace;
-    }
-
-    public void setNameSpace(String nameSpace) {
-        this.nameSpace = nameSpace;
-    }
-
-    public Map<String, Collection<String>> getAlternateLabel() {
-        return this.alternateLabel;
     }
 
     @SuppressWarnings("unchecked")
@@ -263,10 +224,6 @@ public abstract class BaseMetadataObject implements IMetadataObject {
         }
     }
 
-    public Map<String, Collection<String>> getHiddenLabel() {
-        return this.hiddenLabel;
-    }
-
     @SuppressWarnings("unchecked")
     public void setHiddenLabel(Map<String, Collection<String>> hiddenLabel) {
         if (hiddenLabel != null) {
@@ -278,14 +235,6 @@ public abstract class BaseMetadataObject implements IMetadataObject {
         } else {
             this.hiddenLabel = null;
         }
-    }
-
-    public String getCode() {
-        return this.code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
     }
 
     static class SimpleMetadataObject extends BaseMetadataObject {
