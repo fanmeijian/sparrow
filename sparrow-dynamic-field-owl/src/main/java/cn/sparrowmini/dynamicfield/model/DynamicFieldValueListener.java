@@ -11,11 +11,16 @@ public class DynamicFieldValueListener {
     public void preSave(DynamicFieldValue<?,?> entity) {
         Object v = entity.getValue();
         DynamicFieldTypeEnum type= entity.getType();
-        switch (type) {
-            case String-> entity.setStringValue((String) v);
-            case Integer -> entity.setIntValue((Integer) v);
-            case Boolean -> entity.setBooleanValue((Boolean) v);
-            case Date -> entity.setDateValue(OffsetDateTime.parse(v.toString()));
+        if(type==null){
+            entity.setStringValue((String) v);
+        }else{
+            switch (type) {
+                case String-> entity.setStringValue((String) v);
+                case Integer -> entity.setIntValue((Integer) v);
+                case Boolean -> entity.setBooleanValue((Boolean) v);
+                case Date -> entity.setDateValue(OffsetDateTime.parse(v.toString()));
+            }
         }
+
     }
 }

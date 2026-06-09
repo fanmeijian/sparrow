@@ -1,6 +1,7 @@
 package cn.sparrowmini.owl.solr.service;
 
 import cn.sparrowmini.common.dto.ItemVo;
+import cn.sparrowmini.common.dto.OwlClass;
 import cn.sparrowmini.common.dto.PropertyVo;
 import cn.sparrowmini.common.dto.RestrictionDto;
 import cn.sparrowmini.common.service.CatalogService;
@@ -37,6 +38,31 @@ public class CatalogServiceImpl implements CatalogService {
     private final String ns = "http://www.cn-plc.com/ontology/cms#";
 
     @Override
+    public List<OwlClass> getAllClasses() {
+        SolrQuery solrQuery = new SolrQuery("*:*");
+        solrQuery.setFields("localName", "zh_label", "id","children");
+        solrQuery.setRows(Integer.MAX_VALUE);
+        try {
+            QueryResponse response = solrClient.query("class", solrQuery);
+            return response.getResults().stream().map(doc ->
+                    OwlClass.builder()
+                            .id(doc.get("id").toString())
+                            .name(getObjectString(doc.get("localName")))
+                            .label(getObjectString(doc.get("zh_label")))
+                            .children(getObjectStringArray(doc.getFieldValues("children")))
+                            .build()
+            ).toList();
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<ItemVo> getAllProperties() {
+        return List.of();
+    }
+
+    @Override
     public List<ItemVo> getChildrenByClassId(String parentId) {
         String parentUri = getUri(parentId);
         String query = "*:*";
@@ -64,6 +90,10 @@ public class CatalogServiceImpl implements CatalogService {
 
     private String getObjectString(Object object) {
         return object == null ? "" : object.toString();
+    }
+
+    private List<String> getObjectStringArray(Collection<Object> object) {
+        return object == null ? List.of() : object.stream().map(Objects::toString).toList();
     }
 
     @Override

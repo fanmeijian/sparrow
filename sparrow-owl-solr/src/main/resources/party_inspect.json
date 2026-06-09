@@ -1,30 +1,30 @@
 [
   {
-    "name": "SJC_006",
+    "name": "IC_006",
     "label": "信通五所"
   },
   {
-    "name": "SJC_005",
+    "name": "IC_005",
     "label": "中国赛宝"
   },
   {
-    "name": "SJC_007",
+    "name": "IC_007",
     "label": "CQC"
   },
   {
-    "name": "SJC_002",
+    "name": "IC_002",
     "label": "南网电科院"
   },
   {
-    "name": "SJC_001",
+    "name": "IC_001",
     "label": "中国电科院"
   },
   {
-    "name": "SJC_003",
+    "name": "IC_003",
     "label": "国网电科院"
   },
   {
-    "name": "SJC_004",
+    "name": "IC_004",
     "label": "蒙西电科院"
   }
 ]
