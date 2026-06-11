@@ -47,7 +47,7 @@ public class OntologyIndexService {
     }
 
     public static void initCollections(SolrClient solrClient) {
-        List<String> requiredCollections = Arrays.asList("props", "codes", "class", "item", "party", "concepts");
+        List<String> requiredCollections = Arrays.asList("props", "class", "item", "party", "concepts");
 
         for (String collection : requiredCollections) {
             try {
@@ -135,7 +135,7 @@ public class OntologyIndexService {
                     .filter(f -> f.isLocal() && f.subClasses().findAny().isPresent())
                     .forEach(r -> {
                         Restriction restriction = OwlHelper.getRestrictionOfProperty(r);
-                        restriction.setId(SolrIdGenerator.generateRestrictionId(restriction.getOnClass(), restriction.getOnProperty()));
+                        restriction.setId(SolrIdGenerator.generateRestrictionId(String.join(",",restriction.getOnClass()), restriction.getOnProperty()));
                         try {
                             solrClient.addBean("props", restriction);
                         } catch (IOException | SolrServerException e) {
@@ -809,7 +809,14 @@ public class OntologyIndexService {
                     String schemeUri = soln.get("targetScheme").asResource().getURI();
 
                     System.out.println("【Scheme提取成功】" + propUri + " -> " + schemeUri);
-                    return new SkosRestriction(propUri, classUri, true, broaderUri, schemeUri);
+                    return SkosRestriction.builder()
+                            .onProperty(propUri)
+                            .onClass(classUri)
+                            .isRequired(true)
+                            .broader(broaderUri)
+                            .scheme(schemeUri)
+                            .id(SolrIdGenerator.generateRestrictionId(classUri, propUri))
+                            .build();
                 }
             }
         } catch (Exception e) {
@@ -850,7 +857,14 @@ public class OntologyIndexService {
                     String propUri = propertyNode.asResource().getURI();
                     String broaderUri = soln.get("broaderConcept").asResource().getURI();
                     String schemeUri = null;
-                    return new SkosRestriction(propUri, classUri, true, broaderUri, schemeUri);
+                    return SkosRestriction.builder()
+                            .onProperty(propUri)
+                            .onClass(classUri)
+                            .isRequired(true)
+                            .broader(broaderUri)
+                            .scheme(schemeUri)
+                            .id(SolrIdGenerator.generateRestrictionId(classUri, propUri))
+                            .build();
                 }
             }
         } catch (Exception e) {
@@ -907,7 +921,14 @@ public class OntologyIndexService {
                     continue;
                 }
 
-                return new SkosRestriction(propUri, classUri, true, broaderUri, schemeUri);
+                return SkosRestriction.builder()
+                        .onProperty(propUri)
+                        .onClass(classUri)
+                        .isRequired(true)
+                        .broader(broaderUri)
+                        .scheme(schemeUri)
+                        .id(SolrIdGenerator.generateRestrictionId(classUri, propUri))
+                        .build();
             }
         } catch (Exception e) {
             throw new RuntimeException("SKOS 属性深度严格检索失败", e);

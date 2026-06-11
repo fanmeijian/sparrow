@@ -1,9 +1,6 @@
 package cn.sparrowmini.owl.solr.service;
 
-import cn.sparrowmini.common.dto.ItemVo;
-import cn.sparrowmini.common.dto.OwlClass;
-import cn.sparrowmini.common.dto.PropertyVo;
-import cn.sparrowmini.common.dto.RestrictionDto;
+import cn.sparrowmini.common.dto.*;
 import cn.sparrowmini.common.service.CatalogService;
 import cn.sparrowmini.common.util.JsonUtils;
 import cn.sparrowmini.owl.solr.model.ConceptType;
@@ -40,7 +37,7 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public List<OwlClass> getAllClasses() {
         SolrQuery solrQuery = new SolrQuery("*:*");
-        solrQuery.setFields("localName", "zh_label", "id","children");
+        solrQuery.setFields("localName", "zh_label", "id","children","properties","allParents");
         solrQuery.setRows(Integer.MAX_VALUE);
         try {
             QueryResponse response = solrClient.query("class", solrQuery);
@@ -50,16 +47,79 @@ public class CatalogServiceImpl implements CatalogService {
                             .name(getObjectString(doc.get("localName")))
                             .label(getObjectString(doc.get("zh_label")))
                             .children(getObjectStringArray(doc.getFieldValues("children")))
+                            .properties(getObjectStringArray(doc.getFieldValues("properties")))
+                            .allParents(getObjectStringArray(doc.getFieldValues("allParents")))
                             .build()
-            ).toList();
+            ).collect(Collectors.toList());
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<ItemVo> getAllProperties() {
-        return List.of();
+    public List<OwlProperty> getAllProperties() {
+        SolrQuery solrQuery = new SolrQuery("doctype:property");
+        solrQuery.setFields("localName", "zh_label", "id","children","propType","range");
+        solrQuery.setRows(Integer.MAX_VALUE);
+        try {
+            QueryResponse response = solrClient.query("props", solrQuery);
+            return response.getResults().stream().map(doc ->
+                    OwlProperty.builder()
+                            .id(doc.get("id").toString())
+                            .name(getObjectString(doc.get("localName")))
+                            .label(getObjectString(doc.get("zh_label")))
+                            .children(getObjectStringArray(doc.getFieldValues("children")))
+                            .range(getObjectStringArray(doc.getFieldValues("range")))
+                            .propType(getObjectString(doc.get("propType")))
+                            .build()
+            ).collect(Collectors.toList());
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<RestrictionDto> getAllRestrictions() {
+        SolrQuery solrQuery = new SolrQuery("doctype:restriction");
+//        solrQuery.setFields("localName", "zh_label", "id","children","propType","range");
+        solrQuery.setRows(Integer.MAX_VALUE);
+        try {
+            QueryResponse response = solrClient.query("props", solrQuery);
+            return response.getResults().stream().map(doc ->
+                    RestrictionDto.builder()
+                            .id(doc.get("id").toString())
+                            .value(getObjectStringArray(doc.getFieldValues("value")))
+                            .isRequired((Boolean) doc.get("isRequired"))
+                            .onProperty(getObjectString(doc.get("onProperty")))
+                            .onClass(getObjectString(doc.get("onClass")))
+                            .valueProperty(getObjectString(doc.get("valueProperty")))
+                            .build()
+            ).collect(Collectors.toList());
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<ConceptTypeDto> getAllConcepts() {
+        SolrQuery solrQuery = new SolrQuery("*:*");
+        solrQuery.setFields("localName", "zh_label", "id","children","properties");
+        solrQuery.setRows(Integer.MAX_VALUE);
+        try {
+            QueryResponse response = solrClient.query("concepts", solrQuery);
+            return response.getResults().stream().map(doc ->
+                    ConceptTypeDto.builder()
+                            .id(doc.get("id").toString())
+                            .name(getObjectString(doc.get("localName")))
+                            .label(getObjectString(doc.get("zh_label")))
+                            .topConceptOf(getObjectStringArray(doc.getFieldValues("topConceptOf")))
+                            .inScheme(getObjectStringArray(doc.getFieldValues("inScheme")))
+                            .memberOf(getObjectStringArray(doc.getFieldValues("memberOf")))
+                            .build()
+            ).collect(Collectors.toList());
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -1,8 +1,6 @@
 package cn.sparrowmini.common.service;
 
-import cn.sparrowmini.common.dto.ItemVo;
-import cn.sparrowmini.common.dto.OwlClass;
-import cn.sparrowmini.common.dto.PropertyVo;
+import cn.sparrowmini.common.dto.*;
 
 import java.util.List;
 
@@ -13,7 +11,11 @@ public interface CatalogService {
 
     public List<OwlClass> getAllClasses();
 
-    public List<ItemVo> getAllProperties();
+    public List<OwlProperty> getAllProperties();
+
+    public List<RestrictionDto> getAllRestrictions();
+
+    public List<ConceptTypeDto> getAllConcepts();
 
     /**
      * 获取分类下的子类

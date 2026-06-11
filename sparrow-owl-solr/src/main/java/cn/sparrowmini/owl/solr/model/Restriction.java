@@ -1,17 +1,21 @@
 package cn.sparrowmini.owl.solr.model;
 
 import cn.sparrowmini.owl.solr.service.SolrIdGenerator;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.solr.client.solrj.beans.Field;
 
 import java.io.Serializable;
 import java.util.Collection;
 
 @NoArgsConstructor
+@SuperBuilder
 @Data
 public class Restriction implements Serializable {
     @Field("doctype")
+    @Builder.Default
     private String doctype = "restriction";
 
     @Field("id")
@@ -31,11 +35,11 @@ public class Restriction implements Serializable {
 
     @Field("value")
     private Collection<String> value;
-
-    public Restriction(String onProperty, String onClass, Boolean isRequired) {
-        this.onProperty = onProperty;
-        this.onClass = onClass;
-        this.isRequired = isRequired;
-        this.id = SolrIdGenerator.generateRestrictionId(onClass, onProperty);
-    }
+//
+//    public Restriction(String onProperty, Collection<String> onClass, Boolean isRequired) {
+//        this.onProperty = onProperty;
+//        this.onClass = onClass;
+//        this.isRequired = isRequired;
+//        this.id = SolrIdGenerator.generateRestrictionId(String.join(",",onClass), onProperty);
+//    }
 }

@@ -10,6 +10,7 @@ import cn.sparrowmini.owl.solr.model.SkosRestriction;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import cn.sparrowmini.owl.solr.model.Restriction;
 
@@ -66,10 +67,12 @@ public class OwlHelper {
             System.out.println("");
         }
         if (unaryRestriction instanceof OntClass.ComponentRestriction<?, ?> restriction) {
-            r = new SkosRestriction();
+            r = SkosRestriction.builder().build();
             r.setIsRequired(true);
             r.setOnProperty(property.getURI());
-            r.setOnClass(restriction.subClass().filter(s -> s.isLocal()).get().getURI());
+
+            OntClass definedOnClass = restriction.subClass().filter(s -> s.isLocal()).get();
+            r.setOnClass(definedOnClass.getURI());
 
             //处理嵌套restriction
             RDFNode valueOfRestriction = restriction.getValue();
@@ -93,9 +96,10 @@ public class OwlHelper {
                 System.out.println("limit: " + cardinalityRestriction.getProperty().getURI() + limit);
                 //处理非SKOS的属性
                 if (r == null) {
-                    r = new Restriction();
+                    r = Restriction.builder().build();
                     r.setOnProperty(property.getURI());
                     r.setOnClass(cardinalityRestriction.subClass().get().getURI());
+                    r.setId(SolrIdGenerator.generateRestrictionId(r.getOnClass(),r.getOnProperty()));
                 }
 
                 r.setIsRequired(limit != 0);
@@ -108,6 +112,7 @@ public class OwlHelper {
         return r;
 
     }
+
 
     private static Collection<String> getRestrictionValue(RDFNode valueOfRestriction) {
         if (valueOfRestriction instanceof OntClass.LogicalExpression logicalExpression) {
