@@ -6,9 +6,12 @@ import lombok.Data;
 public class ViewColumn {
     private String label;
     private String code;
+    private String name;
     private String width;
     private String value;
+    private String colType;
     private String type;
+    private String propType;
     private String format;
     private int seq;
 }
