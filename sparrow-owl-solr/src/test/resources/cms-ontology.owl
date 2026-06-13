@@ -1323,6 +1323,12 @@
                 </owl:someValuesFrom>
             </owl:Restriction>
         </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.cn-plc.com/ontology/cms#hasStandard"/>
+                <owl:someValuesFrom rdf:resource="http://www.cn-plc.com/ontology/cms#PowerStandard"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
         <rdfs:label xml:lang="zh">产品标准</rdfs:label>
     </owl:Class>
     

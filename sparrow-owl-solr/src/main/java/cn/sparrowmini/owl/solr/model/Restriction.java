@@ -27,6 +27,9 @@ public class Restriction implements Serializable {
     @Field("onClass")
     private String onClass;
 
+    @Field("onAllClass")
+    private Collection<String> onAllClass;
+
     @Field("isRequired")
     private Boolean isRequired;
 

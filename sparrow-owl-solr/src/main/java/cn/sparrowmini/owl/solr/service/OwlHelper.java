@@ -73,6 +73,10 @@ public class OwlHelper {
 
             OntClass definedOnClass = restriction.subClass().filter(s -> s.isLocal()).get();
             r.setOnClass(definedOnClass.getURI());
+            Set<String> onAllClasses = new HashSet<>();
+            onAllClasses.add(definedOnClass.getURI());
+            onAllClasses.addAll(definedOnClass.subClasses().filter(f->nss.contains(f.getNameSpace())).map(Resource::getURI).collect(Collectors.toSet()));
+            r.setOnAllClass(onAllClasses);
 
             //处理嵌套restriction
             RDFNode valueOfRestriction = restriction.getValue();
@@ -99,6 +103,10 @@ public class OwlHelper {
                     r = Restriction.builder().build();
                     r.setOnProperty(property.getURI());
                     r.setOnClass(cardinalityRestriction.subClass().get().getURI());
+                    Set<String> onAllClasses_ = new HashSet<>();
+                    onAllClasses_.add(definedOnClass.getURI());
+                    onAllClasses_.addAll(cardinalityRestriction.subClasses().filter(f->nss.contains(f.getNameSpace())).map(Resource::getURI).collect(Collectors.toSet()));
+                    r.setOnAllClass(onAllClasses_);
                     r.setId(SolrIdGenerator.generateRestrictionId(r.getOnClass(),r.getOnProperty()));
                 }
 

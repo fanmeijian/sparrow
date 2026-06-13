@@ -121,32 +121,129 @@ public class CatalogServiceImpl implements CatalogService {
             throw new RuntimeException(e);
         }
     }
-
     @Override
     public List<ItemVo> getChildrenByClassId(String parentId) {
         String parentUri = getUri(parentId);
-        String query = "*:*";
+        String query;
+
         if (parentId == null) {
             query = "doctype:class AND -parents:[* TO *]";
         } else {
-            query = "doctype:class AND parents:\"" + parentUri + "\"";
+            // 💡 关键修改：调换 from 和 to 的位置！
+            // from=parents (从子节点的多值父引脚出发) -> to=id (对齐到父节点的唯一标示)
+            query = String.format("{!graph from=parents to=id returnRoot=false}id:\"%s\"", parentUri);
         }
-        Set<String> fields = Set.of("localName", "zh_label");
+
+        Set<String> fields = Set.of("id", "parents", "localName", "zh_label");
         SolrQuery queryChild = new SolrQuery(query);
         queryChild.setFields(fields.toArray(new String[0]));
-        queryChild.setRows(1000);
+        queryChild.setRows(5000);
+
         try {
             QueryResponse response = solrClient.query("class", queryChild);
-            return response.getResults().stream().map(doc ->
-                    ItemVo.builder()
-                            .name(getObjectString(doc.get("localName")))
-                            .label(getObjectString(doc.get("zh_label")))
-                            .build()
-            ).toList();
+            List<SolrDocument> flatResults = response.getResults();
+
+            // 【调试日志】请务必观察控制台输出！
+            System.out.println("====== Solr 原始返回数量: " + flatResults.size() + " ======");
+
+            // 1. 初始化：生成全局唯一的 ID -> ItemVo 映射
+            Map<String, ItemVo> allVoMap = new HashMap<>();
+            for (SolrDocument doc : flatResults) {
+                String id = getObjectString(doc.get("id"));
+                ItemVo vo = ItemVo.builder()
+                        .name(getObjectString(doc.get("localName")))
+                        .label(getObjectString(doc.get("zh_label")))
+                        .children(new ArrayList<>())
+                        .build();
+                allVoMap.put(id, vo);
+            }
+
+            // 存放最终返回给前端的顶层子分类
+            List<ItemVo> rootNodes = new ArrayList<>();
+
+            // 2. 核心编织
+            for (SolrDocument doc : flatResults) {
+                String currentId = getObjectString(doc.get("id"));
+                ItemVo currentVo = allVoMap.get(currentId);
+
+                // 提取多值 parents
+                List<String> pUris = new ArrayList<>();
+                Object parentsObj = doc.get("parents");
+                if (parentsObj instanceof Collection<?>) {
+                    ((Collection<?>) parentsObj).forEach(o -> pUris.add(getObjectString(o)));
+                } else if (parentsObj != null) {
+                    pUris.add(getObjectString(parentsObj));
+                }
+
+                // A. 如果是查全盘系统的根节点
+                if (parentId == null && pUris.isEmpty()) {
+                    rootNodes.add(currentVo);
+                    continue;
+                }
+
+                // B. 如果是查某个节点下的子孙
+                boolean isFirstLevel = false;
+                for (String pUri : pUris) {
+                    // 核心判定 1：只要当前节点的父级列表中包含了我们正在检索的 parentUri，它就是第一层子分类
+                    if (parentId != null && parentUri.equals(pUri)) {
+                        isFirstLevel = true;
+                    }
+
+                    // 核心判定 2：无论是不是第一层，只要它的父亲在本次结果集里，就建立内存父子连线（供孙分类挂载）
+                    ItemVo parentVo = allVoMap.get(pUri);
+                    if (parentVo != null) {
+                        if (!parentVo.getChildren().contains(currentVo)) {
+                            parentVo.getChildren().add(currentVo);
+                        }
+                    }
+                }
+
+                // 如果被确认为第一层子分类，塞入返回结果中
+                if (isFirstLevel && !rootNodes.contains(currentVo)) {
+                    rootNodes.add(currentVo);
+                }
+            }
+
+            // 3. 计算 childCount
+            allVoMap.values().forEach(vo -> {
+                if (vo.getChildren() != null) {
+                    vo.setChildCount((long) vo.getChildren().size());
+                }
+            });
+
+            System.out.println("====== 最终组装出的第一层数量: " + rootNodes.size() + " ======");
+            return rootNodes;
+
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
     }
+
+//    @Override
+//    public List<ItemVo> getChildrenByClassId(String parentId) {
+//        String parentUri = getUri(parentId);
+//        String query = "*:*";
+//        if (parentId == null) {
+//            query = "doctype:class AND -parents:[* TO *]";
+//        } else {
+//            query = "doctype:class AND parents:\"" + parentUri + "\"";
+//        }
+//        Set<String> fields = Set.of("localName", "zh_label");
+//        SolrQuery queryChild = new SolrQuery(query);
+//        queryChild.setFields(fields.toArray(new String[0]));
+//        queryChild.setRows(1000);
+//        try {
+//            QueryResponse response = solrClient.query("class", queryChild);
+//            return response.getResults().stream().map(doc ->
+//                    ItemVo.builder()
+//                            .name(getObjectString(doc.get("localName")))
+//                            .label(getObjectString(doc.get("zh_label")))
+//                            .build()
+//            ).toList();
+//        } catch (SolrServerException | IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private String getObjectString(Object object) {
         return object == null ? "" : object.toString();
