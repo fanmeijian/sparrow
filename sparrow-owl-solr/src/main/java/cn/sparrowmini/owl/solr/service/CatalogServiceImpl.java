@@ -429,48 +429,146 @@ public class CatalogServiceImpl implements CatalogService {
         }
     }
 
+
     private List<ItemVo> getConceptsByCollection(String collection) {
-        // 1. 先去 Solr 里查一下这个 codeListId 本身是个什么 doctype
-        String queryStr = "memberOf:\"" + collection + "\"";
+        // 自动补全可能缺失的命名空间前缀
+        String collectionUri = getUri(collection);
 
-        // 2. 智能化自动变阵（对前端完全隐蔽）
-        SolrQuery query = new SolrQuery(queryStr);
-        query.setRows(1000);
-        query.setFields("id", "localName", "zh_label");
+        // 💡 关键修正 1：图查询路径。起点是当前 collection。
+        // 游走逻辑：下一层节点的 memberOf (或 parentRefs) 会指向上一层节点的 id
+        String graphQuery = String.format("{!graph from=memberOf to=id returnRoot=false}id:\"%s\"", collectionUri);
 
+        SolrQuery query = new SolrQuery(graphQuery);
+        query.setRows(5000); // 确保能一次性装下所有子孙节点
+        // 必须把用于拉线织网的 id, memberOf, parentRefs 全部查出来
+        query.setFields("id", "localName", "zh_label", "memberOf", "parentRefs");
 
         try {
             QueryResponse queryResponse = solrClient.query("concepts", query);
+            List<SolrDocument> flatResults = queryResponse.getResults();
 
+            System.out.println("====== [Concepts] Solr 原始返回数量: " + flatResults.size() + " ======");
 
-            Map<String, Long> count = this.count();
+            if (flatResults.isEmpty()) {
+                return new ArrayList<>();
+            }
 
+            // 步骤 1：第一遍遍历，将所有文档实例化为孤立的 ItemVo 存入 Map
+            Map<String, ItemVo> allVoMap = new HashMap<>();
+            for (SolrDocument doc : flatResults) {
+                String id = getObjectString(doc.get("id"));
+                ItemVo vo = ItemVo.builder()
+                        .name(getObjectString(doc.get("localName")))
+                        .label(getObjectString(doc.get("zh_label")))
+                        .children(new ArrayList<>())
+                        .build();
+                allVoMap.put(id, vo);
+            }
 
-            return queryResponse.getBeans(ConceptType.class).stream()
-                    .map(m ->
-                            ItemVo.builder()
-                                    .name(m.getLocalName())
-                                    .label(m.getLabel().get("zh_label"))
-                                    .childCount(count.getOrDefault(m.getUri(), 0L))
-                                    .build())
-                    .toList();
+            // 存放最终属于该 collection 的直接第一层子分类
+            List<ItemVo> rootNodes = new ArrayList<>();
+
+            // 步骤 2：第二遍遍历，在内存中“拉线织网”组装树
+            for (SolrDocument doc : flatResults) {
+                String currentId = getObjectString(doc.get("id"));
+                ItemVo currentVo = allVoMap.get(currentId);
+
+                // 合并提取当前节点关联的所有父级级标识 (兼容 memberOf 和 parentRefs)
+                Set<String> fatherUris = new HashSet<>();
+                fatherUris.addAll(extractMultiValues(doc.get("memberOf")));
+                fatherUris.addAll(extractMultiValues(doc.get("parentRefs")));
+
+                boolean isFirstLevel = false;
+
+                // 遍历所有的父引脚
+                for (String fatherUri : fatherUris) {
+                    // 判定 A：如果当前节点的父列表中包含传入的核心 collectionUri，说明它是【第一层子分类】
+                    if (collectionUri.equals(fatherUri)) {
+                        isFirstLevel = true;
+                    }
+
+                    // 判定 B：去 Map 里看它的爸爸在不在结果集里（适用于孙分类找子分类）
+                    ItemVo parentVo = allVoMap.get(fatherUri);
+                    if (parentVo != null) {
+                        if (!parentVo.getChildren().contains(currentVo)) {
+                            parentVo.getChildren().add(currentVo);
+                        }
+                    }
+                }
+
+                // 如果是直接子分类，塞入最终返回的 root 列表中
+                if (isFirstLevel && !rootNodes.contains(currentVo)) {
+                    rootNodes.add(currentVo);
+                }
+            }
+
+            // 步骤 3：计算 childCount 数量
+            allVoMap.values().forEach(vo -> {
+                if (vo.getChildren() != null) {
+                    vo.setChildCount((long) vo.getChildren().size());
+                }
+            });
+
+            System.out.println("====== [Concepts] 最终组装出的第一层数量: " + rootNodes.size() + " ======");
+            return rootNodes;
+
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 辅助工具：安全提取多值或单值字段
+     */
+    private List<String> extractMultiValues(Object obj) {
+        List<String> values = new ArrayList<>();
+        if (obj instanceof Collection<?>) {
+            ((Collection<?>) obj).forEach(o -> {
+                if (o != null) values.add(getObjectString(o));
+            });
+        } else if (obj != null) {
+            values.add(getObjectString(obj));
+        }
+        return values;
+    }
+
+
+//    private List<ItemVo> getConceptsByCollection(String collection) {
+//        // 1. 先去 Solr 里查一下这个 codeListId 本身是个什么 doctype
+//        String queryStr = "memberOf:\"" + collection + "\"";
+//
+//        // 2. 智能化自动变阵（对前端完全隐蔽）
+//        SolrQuery query = new SolrQuery(queryStr);
+//        query.setRows(1000);
+//        query.setFields("id", "localName", "zh_label");
+//
+//
+//        try {
+//            QueryResponse queryResponse = solrClient.query("concepts", query);
+//
+//
+//            Map<String, Long> count = this.count(queryResponse.getBeans(ConceptType.class).stream().map(ConceptType::getUri).collect(Collectors.toSet()));
+//
+//
+//            return queryResponse.getBeans(ConceptType.class).stream()
+//                    .map(m ->
+//                            ItemVo.builder()
+//                                    .name(m.getLocalName())
+//                                    .label(m.getLabel().get("zh_label"))
+//                                    .childCount(count.getOrDefault(m.getUri(), 0L))
+//                                    .build())
+//                    .toList();
+//        } catch (SolrServerException | IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     private boolean isNullString(String str) {
         return str == null || str.isEmpty() || str.equals("null") || str.equals("undefined");
     }
 
-    private Map<String, Long> count() {
+    private Map<String, Long> count(Set<String> ids) {
 
-// 1. 假设这是你第一步查出来的子节点 ID 集合
-        Set<String> ids = Set.of(
-                "http://www.cn-plc.com/ontology/cms#SgccCollection",
-                "http://www.cn-plc.com/ontology/cms#CsgCollection",
-                "http://www.cn-plc.com/ontology/cms#PS_040"
-        );
 
 // 2. 【核心优化】不再拼 OR，直接用逗号把所有 URI 连成一根干净的字符串
         String idsCommaStr = String.join(",", ids);
