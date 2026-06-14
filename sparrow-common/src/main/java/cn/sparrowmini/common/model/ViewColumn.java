@@ -8,6 +8,8 @@ public class ViewColumn {
     private String code;
     private String name;
     private String width;
+    private int width_n;
+    private String unit;
     private String value;
     private String colType;
     private String type;
