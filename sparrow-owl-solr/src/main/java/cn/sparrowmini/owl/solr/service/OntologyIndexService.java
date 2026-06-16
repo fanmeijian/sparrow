@@ -111,7 +111,7 @@ public class OntologyIndexService {
                             throw new RuntimeException(e);
                         }
                     });
-            solrClient.commit(COLLECTION_NAME);
+//            solrClient.commit(COLLECTION_NAME);
 
 
             List<OntProperty> indexedOntProp = model.properties().toList();
@@ -143,7 +143,7 @@ public class OntologyIndexService {
                         }
                     });
 
-            solrClient.commit("props");
+//            solrClient.commit("props");
 
             initOuterCodeList();
             indexAllSkosConcepts();
@@ -368,11 +368,11 @@ public class OntologyIndexService {
             }
         });
 
-        try {
-            solrClient.commit("concepts");
-        } catch (SolrServerException | IOException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            solrClient.commit("concepts");
+//        } catch (SolrServerException | IOException e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 
@@ -409,7 +409,7 @@ public class OntologyIndexService {
 
                     try {
                         solrClient.addBean("codes", codedType); // 💡 原本误将底层 Jena 的 item 传入，应传入 Solr 的实体 Bean：codedType
-                        solrClient.commit("codes");
+//                        solrClient.commit("codes");
                     } catch (Exception e) {
                         log.error("Failed to save item to Solr", e);
                     }
@@ -474,11 +474,11 @@ public class OntologyIndexService {
                 }
             }
 
-            try {
-                solrClient.commit("concepts");
-            } catch (SolrServerException e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                solrClient.commit("concepts");
+//            } catch (SolrServerException e) {
+//                throw new RuntimeException(e);
+//            }
 
 
         } catch (IOException e) {
@@ -700,7 +700,7 @@ public class OntologyIndexService {
 
         try {
             solrClient.addBean("codes", codedType); // 💡 原本误将底层 Jena 的 item 传入，应传入 Solr 的实体 Bean：codedType
-            solrClient.commit("codes");
+//            solrClient.commit("codes");
         } catch (Exception e) {
             log.error("Failed to save item to Solr", e);
         }

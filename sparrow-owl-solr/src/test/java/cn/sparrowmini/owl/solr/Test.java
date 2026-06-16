@@ -77,24 +77,24 @@ public class Test {
     @org.junit.jupiter.api.Test
     public void testInitSolr1() throws IOException {
 
-//        List<String> solrUrls = List.of("http://localhost:8983/solr");
-//        SolrClient solrClient = new CloudHttp2SolrClient.Builder(solrUrls)
-//                .build();
-//        OntologyIndexService ontologyIndexService = new OntologyIndexService(solrClient);
-//        OntologyIndexService.initCollections(solrClient);
-//        ontologyIndexService.createIndex("/cms-ontology.owl");
+        List<String> solrUrls = List.of("http://localhost:8983/solr");
+        SolrClient solrClient = new CloudHttp2SolrClient.Builder(solrUrls)
+                .build();
+        OntologyIndexService ontologyIndexService = new OntologyIndexService(solrClient);
+        OntologyIndexService.initCollections(solrClient);
+        ontologyIndexService.createIndex("/cms-ontology.owl");
 
         // 1. 依然填写你远程服务器暴露出来的公网 HTTP 地址
-        String solrUrl = "http://159.75.17.246:8983/solr";
-
-        // 2. 纯原生 JDK 客户端构建，零外部重量级依赖
-        try (HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl)
-                .build()) {
-            OntologyIndexService ontologyIndexService = new OntologyIndexService(client);
-            OntologyIndexService.initCollections(client);
-            ontologyIndexService.createIndex("/cms-ontology.owl");
-
-        }
+//        String solrUrl = "http://159.75.17.246:8983/solr";
+//
+//        // 2. 纯原生 JDK 客户端构建，零外部重量级依赖
+//        try (HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl)
+//                .build()) {
+//            OntologyIndexService ontologyIndexService = new OntologyIndexService(client);
+//            OntologyIndexService.initCollections(client);
+//            ontologyIndexService.createIndex("/cms-ontology.owl");
+//
+//        }
 
 
     }
