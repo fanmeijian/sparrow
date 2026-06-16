@@ -29,6 +29,15 @@
     
 
 
+    <!-- http://www.cn-plc.com/ontology/cms#catalogs -->
+
+    <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#catalogs">
+        <rdfs:range rdf:resource="http://www.cn-plc.com/ontology/cms#Articles"/>
+        <rdfs:label xml:lang="zh">文章类别</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://www.cn-plc.com/ontology/cms#hasAssociation -->
 
     <owl:ObjectProperty rdf:about="http://www.cn-plc.com/ontology/cms#hasAssociation">

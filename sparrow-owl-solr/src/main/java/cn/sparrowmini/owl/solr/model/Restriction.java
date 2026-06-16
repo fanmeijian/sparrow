@@ -36,7 +36,7 @@ public class Restriction implements Serializable {
     @Field("valueProperty")
     private String valueProperty;
 
-    @Field("value")
+    @Field("valueRange")
     private Collection<String> value;
 //
 //    public Restriction(String onProperty, Collection<String> onClass, Boolean isRequired) {

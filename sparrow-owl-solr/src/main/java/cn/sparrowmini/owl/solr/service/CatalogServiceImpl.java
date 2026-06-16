@@ -88,7 +88,7 @@ public class CatalogServiceImpl implements CatalogService {
             return response.getResults().stream().map(doc ->
                     RestrictionDto.builder()
                             .id(doc.get("id").toString())
-                            .value(getObjectStringArray(doc.getFieldValues("value")))
+                            .value(getObjectStringArray(doc.getFieldValues("valueRange")))
                             .isRequired((Boolean) doc.get("isRequired"))
                             .onProperty(getObjectString(doc.get("onProperty")))
                             .onClass(getObjectString(doc.get("onClass")))
@@ -376,7 +376,7 @@ public class CatalogServiceImpl implements CatalogService {
                     SolrDocument restrictionDoc = solrClient.getById("props", restrictionId);
 
                     String valueProperty = (String) restrictionDoc.getFieldValue("valueProperty");
-                    Collection<Object> values = restrictionDoc.getFieldValues("value");
+                    Collection<Object> values = restrictionDoc.getFieldValues("valueRange");
                     String value = values.stream().findFirst().orElse("").toString();
 
                     if (valueProperty.equals(SKOS.broader.getURI())) {
