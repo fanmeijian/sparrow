@@ -241,7 +241,7 @@ public class BaseRepositoryImpl<T, ID>
 
     @Override
     @Transactional
-    public List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass) {
+    public List<T> upsertAll(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass) {
         ObjectMapper mapper = JsonUtils.getMapper();
         // 允许 null 覆盖
         mapper.setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.SET));
@@ -293,17 +293,8 @@ public class BaseRepositoryImpl<T, ID>
             entities.add(entity);
         });
 
-        saveAll(entities);
-        return entities.stream().map(this::getId).toList();
+       return saveAll(entities);
     }
-
-    @Override
-    @Transactional
-    public List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat) {
-        return upsert(entitiesMap, withStat, null);
-    }
-
-
 
     /**
      * 递归处理关联字段

@@ -40,26 +40,27 @@ public interface BaseRepository<T, ID>
 
     /**
      * 按属性查找
-     * @param field 属性名
-     * @param value 属性值
+     *
+     * @param field    属性名
+     * @param value    属性值
      * @param pageable
      * @return
      */
-    default Page<T> findBy(Object value, Pageable pageable,String... field) {
-        return findAll(specificationEqual(String.join(".",field),value), pageable);
+    default Page<T> findBy(Object value, Pageable pageable, String... field) {
+        return findAll(specificationEqual(String.join(".", field), value), pageable);
     }
 
     default Page<?> findAll(Pageable pageable, String filter, String projectClassName) {
         Specification<T> specification = filterSpecification(filter);
-        if(projectClassName != null) {
+        if (projectClassName != null) {
             try {
                 Class<?> projectClass = Class.forName(projectClassName);
 
-                return findByProjection(pageable,specification,projectClass);
+                return findByProjection(pageable, specification, projectClass);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
-        }else{
+        } else {
             return findBy(
                     specification,
                     query -> query.page(pageable)
@@ -89,12 +90,12 @@ public interface BaseRepository<T, ID>
     }
 
     @Transactional
-    default void updateStat(String stat, List<ID> ids){
-        List<T> refs = ids.stream().map(id-> {
-             T ref = getReferenceById(id);
-             ((BaseState)ref).setStat(stat);
-             return ref;
-         }).toList();
+    default void updateStat(String stat, List<ID> ids) {
+        List<T> refs = ids.stream().map(id -> {
+            T ref = getReferenceById(id);
+            ((BaseState) ref).setStat(stat);
+            return ref;
+        }).toList();
         saveAll(refs);
     }
 
@@ -132,17 +133,45 @@ public interface BaseRepository<T, ID>
         return findAllProjection(pageable, null, projectionClass);
     }
 
-    List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass);
+    List<T> upsertAll(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass);
 
-    List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat);
+    default List<T> upsertAll(List<Map<String, Object>> entitiesMap, Class<T> domainClass) {
+        return this.upsertAll(entitiesMap, false, domainClass);
+    }
+
+    default List<T> upsertAll(List<Map<String, Object>> entitiesMap) {
+        return this.upsertAll(entitiesMap, false, null);
+    }
+
+    default List<T> upsertAll(List<Map<String, Object>> entitiesMap, boolean withStat) {
+        return this.upsertAll(entitiesMap, withStat, null);
+    }
+
+    default List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat, Class<T> domainClass) {
+        return this.upsertAll(entitiesMap, withStat, domainClass).stream().map(this::getId).toList();
+    }
+
+    default List<ID> upsert(List<Map<String, Object>> entitiesMap, boolean withStat) {
+        return upsert(entitiesMap, withStat, null);
+    }
 
     @Transactional
-    default ID upsert(Map<String, Object> entitiesMap){
+    default T upsertEntity(Map<String, Object> entitiesMap, Class<T> domainClass) {
+        return upsertAll(List.of(entitiesMap), domainClass).get(0);
+    }
+
+    @Transactional
+    default T upsertEntity(Map<String, Object> entitiesMap) {
+        return upsertEntity(entitiesMap, null);
+    }
+
+    @Transactional
+    default ID upsert(Map<String, Object> entitiesMap) {
         return upsert(List.of(entitiesMap), false).get(0);
     }
 
     @Transactional
-    default List<ID> upsert(List<Map<String, Object>> entitiesMap){
+    default List<ID> upsert(List<Map<String, Object>> entitiesMap) {
         return upsert(entitiesMap, false);
     }
 
@@ -155,7 +184,7 @@ public interface BaseRepository<T, ID>
         return new Specification<T>() {
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                return filter!=null && !filter.isEmpty()? PredicateBuilder.buildPredicate(filter, criteriaBuilder, root): criteriaBuilder.conjunction();
+                return filter != null && !filter.isEmpty() ? PredicateBuilder.buildPredicate(filter, criteriaBuilder, root) : criteriaBuilder.conjunction();
             }
         };
     }
@@ -198,7 +227,7 @@ public interface BaseRepository<T, ID>
         return (root, query, cb) -> {
             Path<?> path = root;
 
-            for(String part : field.split("\\.")) {
+            for (String part : field.split("\\.")) {
                 path = path.get(part);
             }
 
@@ -206,15 +235,15 @@ public interface BaseRepository<T, ID>
         };
     }
 
-    default Specification<T> specLike(String field,String value) {
+    default Specification<T> specLike(String field, String value) {
         return (root, query, cb) -> {
             Path<?> path = root;
 
-            for(String part : field.split("\\.")) {
+            for (String part : field.split("\\.")) {
                 path = path.get(part);
             }
 
-            return cb.like(path.as(String.class),value);
+            return cb.like(path.as(String.class), value);
         };
     }
 
