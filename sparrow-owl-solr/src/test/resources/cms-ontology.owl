@@ -1525,7 +1525,7 @@
                 <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
             </owl:Restriction>
         </rdfs:subClassOf>
-        <rdfs:label xml:lang="zh">送检&amp;验厂</rdfs:label>
+        <rdfs:label xml:lang="zh">送检&amp;资质</rdfs:label>
     </owl:Class>
     
 
@@ -2376,7 +2376,7 @@
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QFS_001">
         <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <skos:inScheme rdf:resource="http://www.cn-plc.com/ontology/cms#QualifyStatusScheme"/>
-        <rdfs:label xml:lang="zh">验厂公告</rdfs:label>
+        <rdfs:label xml:lang="zh">资质公告</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -2386,7 +2386,7 @@
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QFS_002">
         <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <skos:inScheme rdf:resource="http://www.cn-plc.com/ontology/cms#QualifyStatusScheme"/>
-        <rdfs:label>验厂分析</rdfs:label>
+        <rdfs:label xml:lang="zh">资质分析</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -2396,7 +2396,7 @@
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#QFS_003">
         <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
         <skos:inScheme rdf:resource="http://www.cn-plc.com/ontology/cms#QualifyStatusScheme"/>
-        <rdfs:label xml:lang="zh">验厂结果</rdfs:label>
+        <rdfs:label xml:lang="zh">资质结果</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -2409,7 +2409,7 @@
         <skos:member rdf:resource="http://www.cn-plc.com/ontology/cms#OtherPartyCollection"/>
         <skos:member rdf:resource="http://www.cn-plc.com/ontology/cms#ProvinceCollection"/>
         <skos:member rdf:resource="http://www.cn-plc.com/ontology/cms#SgccCollection"/>
-        <rdfs:label xml:lang="zh">验厂企业</rdfs:label>
+        <rdfs:label xml:lang="zh">资质企业</rdfs:label>
     </owl:NamedIndividual>
     
 

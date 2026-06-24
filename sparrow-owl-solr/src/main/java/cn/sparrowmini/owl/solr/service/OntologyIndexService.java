@@ -145,7 +145,7 @@ public class OntologyIndexService {
 
 //            solrClient.commit("props");
 
-            initOuterCodeList();
+//            initOuterCodeList();
             indexAllSkosConcepts();
 
         } catch (Exception e) {
