@@ -312,7 +312,7 @@
             </owl:Class>
         </rdfs:domain>
         <rdfs:range rdf:resource="http://www.cn-plc.com/ontology/cms#PowerStandard"/>
-        <rdfs:label xml:lang="zh">标准类别</rdfs:label>
+        <rdfs:label xml:lang="zh">标准归属</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -1001,7 +1001,7 @@
 
     <owl:Class rdf:about="http://www.cn-plc.com/ontology/cms#CT_006">
         <rdfs:subClassOf rdf:resource="http://www.cn-plc.com/ontology/cms#CommunicationType"/>
-        <rdfs:label xml:lang="zh">下一代载波</rdfs:label>
+        <rdfs:label xml:lang="zh">SPLC</rdfs:label>
     </owl:Class>
     
 
@@ -2191,7 +2191,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#CsgCollection">
         <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
-        <rdfs:label xml:lang="zh">南方电网</rdfs:label>
+        <rdfs:label xml:lang="zh">南网</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -2430,7 +2430,7 @@
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#SgccCollection">
         <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
-        <rdfs:label xml:lang="zh">国家电网</rdfs:label>
+        <rdfs:label xml:lang="zh">国网</rdfs:label>
     </owl:NamedIndividual>
     
 

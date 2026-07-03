@@ -86,7 +86,7 @@ public class Test {
 
         // 1. 依然填写你远程服务器暴露出来的公网 HTTP 地址
         String solrUrl = "http://159.75.17.246:8983/solr";
-
+//        String solrUrl = "http://localhost:8983/solr";
         // 2. 纯原生 JDK 客户端构建，零外部重量级依赖
         try (HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl)
                 .build()) {
