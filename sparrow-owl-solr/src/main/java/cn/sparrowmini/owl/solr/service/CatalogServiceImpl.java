@@ -143,9 +143,6 @@ public class CatalogServiceImpl implements CatalogService {
             QueryResponse response = solrClient.query("class", queryChild);
             List<SolrDocument> flatResults = response.getResults();
 
-            // 【调试日志】请务必观察控制台输出！
-            System.out.println("====== Solr 原始返回数量: " + flatResults.size() + " ======");
-
             // 1. 初始化：生成全局唯一的 ID -> ItemVo 映射
             Map<String, ItemVo> allVoMap = new HashMap<>();
             for (SolrDocument doc : flatResults) {
@@ -211,7 +208,6 @@ public class CatalogServiceImpl implements CatalogService {
                 }
             });
 
-            System.out.println("====== 最终组装出的第一层数量: " + rootNodes.size() + " ======");
             return rootNodes;
 
         } catch (SolrServerException | IOException e) {
@@ -219,31 +215,6 @@ public class CatalogServiceImpl implements CatalogService {
         }
     }
 
-//    @Override
-//    public List<ItemVo> getChildrenByClassId(String parentId) {
-//        String parentUri = getUri(parentId);
-//        String query = "*:*";
-//        if (parentId == null) {
-//            query = "doctype:class AND -parents:[* TO *]";
-//        } else {
-//            query = "doctype:class AND parents:\"" + parentUri + "\"";
-//        }
-//        Set<String> fields = Set.of("localName", "zh_label");
-//        SolrQuery queryChild = new SolrQuery(query);
-//        queryChild.setFields(fields.toArray(new String[0]));
-//        queryChild.setRows(1000);
-//        try {
-//            QueryResponse response = solrClient.query("class", queryChild);
-//            return response.getResults().stream().map(doc ->
-//                    ItemVo.builder()
-//                            .name(getObjectString(doc.get("localName")))
-//                            .label(getObjectString(doc.get("zh_label")))
-//                            .build()
-//            ).toList();
-//        } catch (SolrServerException | IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     private String getObjectString(Object object) {
         return object == null ? "" : object.toString();
@@ -447,8 +418,6 @@ public class CatalogServiceImpl implements CatalogService {
             QueryResponse queryResponse = solrClient.query("concepts", query);
             List<SolrDocument> flatResults = queryResponse.getResults();
 
-            System.out.println("====== [Concepts] Solr 原始返回数量: " + flatResults.size() + " ======");
-
             if (flatResults.isEmpty()) {
                 return new ArrayList<>();
             }
@@ -509,7 +478,6 @@ public class CatalogServiceImpl implements CatalogService {
                 }
             });
 
-            System.out.println("====== [Concepts] 最终组装出的第一层数量: " + rootNodes.size() + " ======");
             return rootNodes;
 
         } catch (SolrServerException | IOException e) {
