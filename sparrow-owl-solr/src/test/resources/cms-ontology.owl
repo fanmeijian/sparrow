@@ -2345,7 +2345,7 @@
         <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Collection"/>
         <skos:member rdf:resource="http://www.cn-plc.com/ontology/cms#CsgCollection"/>
         <skos:member rdf:resource="http://www.cn-plc.com/ontology/cms#SgccCollection"/>
-        <rdfs:label xml:lang="zh">电力公司</rdfs:label>
+        <rdfs:label xml:lang="zh">全国电网</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -2545,6 +2545,16 @@
     
 
 
+    <!-- http://www.cn-plc.com/ontology/cms#TS_012 -->
+
+    <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TS_012">
+        <rdf:type rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+        <skos:inScheme rdf:resource="http://www.cn-plc.com/ontology/cms#TenderStatusScheme"/>
+        <rdfs:label xml:lang="zh">方案分析</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://www.cn-plc.com/ontology/cms#TenderStatusScheme -->
 
     <owl:NamedIndividual rdf:about="http://www.cn-plc.com/ontology/cms#TenderStatusScheme">
@@ -2560,6 +2570,7 @@
         <skos:hasTopConcept rdf:resource="http://www.cn-plc.com/ontology/cms#TS_009"/>
         <skos:hasTopConcept rdf:resource="http://www.cn-plc.com/ontology/cms#TS_010"/>
         <skos:hasTopConcept rdf:resource="http://www.cn-plc.com/ontology/cms#TS_011"/>
+        <skos:hasTopConcept rdf:resource="http://www.cn-plc.com/ontology/cms#TS_012"/>
         <rdfs:label xml:lang="zh">招标状态</rdfs:label>
     </owl:NamedIndividual>
     

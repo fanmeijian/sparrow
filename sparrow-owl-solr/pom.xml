@@ -56,20 +56,20 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
             <version>10.0.0</version> <!-- Use the version matching your server -->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>io.swagger.core.v3</groupId>-->
-<!--                    <artifactId>swagger-annotations-jakarta</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>io.swagger.core.v3</groupId>-->
-<!--                    <artifactId>swagger-models-jakarta</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>io.swagger.v3</groupId>-->
-<!--                    <artifactId>swagger-annotations</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
+            <exclusions>
+                <exclusion>
+                    <groupId>io.swagger.core.v3</groupId>
+                    <artifactId>swagger-annotations-jakarta</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.swagger.core.v3</groupId>
+                    <artifactId>swagger-models-jakarta</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.swagger.v3</groupId>
+                    <artifactId>swagger-annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

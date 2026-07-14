@@ -6,7 +6,7 @@ services:
     ports:
       - "8983:8983"
     volumes:
-      - data:/var/solr
+      - solr_data:/var/solr
     # No more -c! Solr 10 defaults to Cloud mode.
     command:
       - solr-foreground
@@ -14,4 +14,5 @@ services:
       - SOLR_COLLECTION=gettingstarted
 
 volumes:
-  data:
+  solr_data:
+    external: true
