@@ -338,34 +338,50 @@ public class CatalogServiceImpl implements CatalogService {
     public List<ItemVo> getOptionsByProperty(String property, String restrictionId) {
         try {
             SolrDocument propertyDoc = solrClient.getById("props", getUri(property));
+            if (propertyDoc == null) {
+                return List.of();
+            }
+
             Collection<Object> ranges = propertyDoc.getFieldValues("range");
             if(ranges == null || ranges.isEmpty()) {
                 return List.of();
             }
-            if (ranges.stream().anyMatch(r -> r.equals(SKOS.Concept.getURI()))) {
-                if (!isNullString(restrictionId)) {
-                    SolrDocument restrictionDoc = solrClient.getById("props", restrictionId);
 
-                    String valueProperty = (String) restrictionDoc.getFieldValue("valueProperty");
-                    Collection<Object> values = restrictionDoc.getFieldValues("valueRange");
-                    String value = values.stream().findFirst().orElse("").toString();
+            // 显式 restriction 比属性继承得到的 range 更具体，应优先用于确定选项来源。
+            if (!isNullString(restrictionId)) {
+                SolrDocument restrictionDoc = solrClient.getById("props", restrictionId);
+                if (restrictionDoc != null) {
+                    String valueProperty = getObjectString(restrictionDoc.getFieldValue("valueProperty"));
+                    String value = Optional.ofNullable(restrictionDoc.getFieldValues("valueRange"))
+                            .flatMap(values -> values.stream().findFirst())
+                            .map(Objects::toString)
+                            .orElse("");
 
-                    if (valueProperty.equals(SKOS.broader.getURI())) {
+                    if (SKOS.broader.getURI().equals(valueProperty)) {
                         return this.getConceptsByScheme(null, value);
-                    } else if (valueProperty.equals(SKOS.member.getURI())) {
+                    } else if (SKOS.member.getURI().equals(valueProperty)) {
                         return this.getConceptsByCollection(value);
-                    } else if (valueProperty.equals(SKOS.topConceptOf.getURI())) {
+                    } else if (SKOS.topConceptOf.getURI().equals(valueProperty)) {
                         return this.getConceptsByScheme(value, null);
                     }
 
+                    // 普通 someValuesFrom，例如 hasSector -> SectorStandard。
+                    // 该属性可能因继承 hasCode 而同时带有 SKOS range，但 restriction
+                    // 中的命名类才是当前分类真正需要的选项范围。
+                    if (!isNullString(value)
+                            && solrClient.getById("class", value) != null) {
+                        return this.getChildrenByClassId(value);
+                    }
                 }
-            } else {
-                Object range = ranges.stream().findFirst().orElse(null);
-                if (range instanceof String r) {
-                    return this.getChildrenByClassId(r);
-                }
+            }
 
+            if (ranges.stream().anyMatch(r -> SKOS.Concept.getURI().equals(r))) {
+                return List.of();
+            }
 
+            Object range = ranges.stream().findFirst().orElse(null);
+            if (range instanceof String r) {
+                return this.getChildrenByClassId(r);
             }
 
         } catch (SolrServerException | IOException e) {
