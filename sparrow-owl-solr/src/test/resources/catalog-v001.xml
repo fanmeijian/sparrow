@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <group id="Folder Repository, directory=, recursive=true, Auto-Update=true, version=2" prefer="public" xml:base="">
+        <uri id="Automatically generated entry, Timestamp=1785679824366" name="http://cn.liyuan.chnplc/ontology/cms" uri="cms-ontology.owl"/>
+        <uri id="Automatically generated entry, Timestamp=1785679824366" name="http://www.semanticweb.org/ontologies/2013/4/Ontology1367568797694.owl" uri="FurnitureSectorTaxonomy-v2.5.1.owl"/>
+    </group>
+</catalog>
