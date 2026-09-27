@@ -11,7 +11,7 @@ import { LoadingDialogComponent } from './global/loading-dialog/loading-dialog.c
 import { ErrorDialogComponent } from './global/error-dialog/error-dialog.component';
 import { ProcessDesignComponent } from './process/process-design/process-design.component';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
-import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ProcessDesignListComponent } from './process/process-design-list/process-design-list.component';
 import { GlobalErrorHandlerService } from './service/global-error-handler.service';
 import { LoadingInterceptor } from 'src/interceptor/loading-interceptor';
@@ -41,77 +41,71 @@ import { SparrowBpmApiModule, BASE_PATH as BPM_BASE_PATH1, BPM_API_TOKEN } from 
 import { SparrowBpmApiImplJbpmModule, SparrowBpmApiImplJbpmService } from 'sparrow-bpm-api-impl-jbpm';
 import { VariablesDialogComponent } from './variables-dialog/variables-dialog.component';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    LoadingDialogComponent,
-    ErrorDialogComponent,
-    ProcessDesignComponent,
-    ProcessDesignListComponent,
-    FormDesignComponent,
-    FormDesignListComponent,
-    ProcessSelectionComponent,
-    TaskSelectionComponent,
-    ProcessInstanceListComponent,
-    ProcessInstanceComponent,
-    ProcessImageComponent,
-    ProcessContainerListComponent,
-    ProcessDeployedListComponent,
-    ProcessInstanceImageComponent,
-    JsonViewerComponent,
-    ProcessGlobalComponent,
-    ProcessVariableFormComponent,
-    UsersComponent,
-    VariablesDialogComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    KeycloakAngularModule,
-    AngularMaterialModule,
-    HttpClientModule,
-    FormlyModule.forRoot(),
-    FormlyMaterialModule,
-    ReactiveFormsModule,
-    JbpmApiModule,
-    CommonApiModule,
-    MonacoEditorModule.forRoot(),
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/', '.json'),
-        deps: [HttpClient]
-      }
-    }),
-    SparrowBpmApiModule,
-    SparrowBpmApiImplJbpmModule
-  ],
-  providers: [
-    [ProcessQueriesService, ProcessInstancesService, ProcessInstanceAdministrationService, CommonApiService],
-    { provide: BPM_BASE_PATH, useValue: environment.bpmApi + '/rest' },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeKeycloak,
-      multi: true,
-      deps: [KeycloakService],
-    },
-    { provide: LocationStrategy, useClass: HashLocationStrategy },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: LoadingInterceptor,
-      multi: true,
-    },
-    {
-      provide: ErrorHandler,
-      useClass: GlobalErrorHandlerService,
-    },
-    { provide: BASE_PATH, useValue: environment.bpmApi },
-    { provide: BPM_BASE_PATH1, useValue: environment.bpmApi },
-    { provide: BPM_API_TOKEN, useClass: SparrowBpmApiImplJbpmService }
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        LoadingDialogComponent,
+        ErrorDialogComponent,
+        ProcessDesignComponent,
+        ProcessDesignListComponent,
+        FormDesignComponent,
+        FormDesignListComponent,
+        ProcessSelectionComponent,
+        TaskSelectionComponent,
+        ProcessInstanceListComponent,
+        ProcessInstanceComponent,
+        ProcessImageComponent,
+        ProcessContainerListComponent,
+        ProcessDeployedListComponent,
+        ProcessInstanceImageComponent,
+        JsonViewerComponent,
+        ProcessGlobalComponent,
+        ProcessVariableFormComponent,
+        UsersComponent,
+        VariablesDialogComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        KeycloakAngularModule,
+        AngularMaterialModule,
+        FormlyModule.forRoot(),
+        FormlyMaterialModule,
+        ReactiveFormsModule,
+        JbpmApiModule,
+        CommonApiModule,
+        MonacoEditorModule.forRoot(),
+        TranslateModule.forRoot({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/', '.json'),
+                deps: [HttpClient]
+            }
+        }),
+        SparrowBpmApiModule,
+        SparrowBpmApiImplJbpmModule], providers: [
+        [ProcessQueriesService, ProcessInstancesService, ProcessInstanceAdministrationService, CommonApiService],
+        { provide: BPM_BASE_PATH, useValue: environment.bpmApi + '/rest' },
+        {
+            provide: APP_INITIALIZER,
+            useFactory: initializeKeycloak,
+            multi: true,
+            deps: [KeycloakService],
+        },
+        { provide: LocationStrategy, useClass: HashLocationStrategy },
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: LoadingInterceptor,
+            multi: true,
+        },
+        {
+            provide: ErrorHandler,
+            useClass: GlobalErrorHandlerService,
+        },
+        { provide: BASE_PATH, useValue: environment.bpmApi },
+        { provide: BPM_BASE_PATH1, useValue: environment.bpmApi },
+        { provide: BPM_API_TOKEN, useClass: SparrowBpmApiImplJbpmService },
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }
 
 
