@@ -7,9 +7,10 @@ import { MatRadioChange } from '@angular/material/radio';
 import { BPM_API_TOKEN, BpmApi } from '@sparrowmini/bpm-api';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    standalone: false
 })
 export class AppComponent {
   onchane($event: MatRadioChange) {

@@ -7,9 +7,10 @@ import { env } from 'process';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-design-list',
-  templateUrl: './process-design-list.component.html',
-  styleUrls: ['./process-design-list.component.css']
+    selector: 'app-process-design-list',
+    templateUrl: './process-design-list.component.html',
+    styleUrls: ['./process-design-list.component.css'],
+    standalone: false
 })
 export class ProcessDesignListComponent implements OnInit {
   containerId: any

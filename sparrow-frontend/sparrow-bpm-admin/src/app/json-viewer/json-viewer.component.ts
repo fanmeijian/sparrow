@@ -9,9 +9,10 @@ export interface Segment {
 }
 
 @Component({
-  selector: 'app-json-viewer',
-  templateUrl: './json-viewer.component.html',
-  styleUrls: ['./json-viewer.component.css']
+    selector: 'app-json-viewer',
+    templateUrl: './json-viewer.component.html',
+    styleUrls: ['./json-viewer.component.css'],
+    standalone: false
 })
 export class JsonViewerComponent implements OnChanges {
 

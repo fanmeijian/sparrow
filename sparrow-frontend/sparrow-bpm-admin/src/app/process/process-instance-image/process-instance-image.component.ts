@@ -4,9 +4,10 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-instance-image',
-  templateUrl: './process-instance-image.component.html',
-  styleUrls: ['./process-instance-image.component.css']
+    selector: 'app-process-instance-image',
+    templateUrl: './process-instance-image.component.html',
+    styleUrls: ['./process-instance-image.component.css'],
+    standalone: false
 })
 export class ProcessInstanceImageComponent implements OnInit, OnChanges {
 

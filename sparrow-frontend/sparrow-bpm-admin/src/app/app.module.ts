@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, ErrorHandler, NgModule } from '@angular/core';
+import { ErrorHandler, NgModule, inject, provideAppInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -85,12 +85,10 @@ import { VariablesDialogComponent } from './variables-dialog/variables-dialog.co
         SparrowBpmApiImplJbpmModule], providers: [
         [ProcessQueriesService, ProcessInstancesService, ProcessInstanceAdministrationService, CommonApiService],
         { provide: BPM_BASE_PATH, useValue: environment.bpmApi + '/rest' },
-        {
-            provide: APP_INITIALIZER,
-            useFactory: initializeKeycloak,
-            multi: true,
-            deps: [KeycloakService],
-        },
+        provideAppInitializer(() => {
+        const initializerFn = (initializeKeycloak)(inject(KeycloakService));
+        return initializerFn();
+      }),
         { provide: LocationStrategy, useClass: HashLocationStrategy },
         {
             provide: HTTP_INTERCEPTORS,

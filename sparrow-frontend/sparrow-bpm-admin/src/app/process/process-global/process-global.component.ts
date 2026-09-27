@@ -6,9 +6,10 @@ import { CommonApiService } from '@sparrowmini/common-api';
 export const GlobalVariableClass = 'cn.sparrowmini.bpm.server.process.model.GlobalVariable'
 
 @Component({
-  selector: 'app-process-global',
-  templateUrl: './process-global.component.html',
-  styleUrls: ['./process-global.component.css']
+    selector: 'app-process-global',
+    templateUrl: './process-global.component.html',
+    styleUrls: ['./process-global.component.css'],
+    standalone: false
 })
 export class ProcessGlobalComponent implements OnInit {
 

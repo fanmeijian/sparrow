@@ -6,9 +6,10 @@ import { MatTableDataSource } from '@angular/material/table';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-selection',
-  templateUrl: './process-selection.component.html',
-  styleUrls: ['./process-selection.component.css']
+    selector: 'app-process-selection',
+    templateUrl: './process-selection.component.html',
+    styleUrls: ['./process-selection.component.css'],
+    standalone: false
 })
 export class ProcessSelectionComponent implements OnInit {
   confirm() {

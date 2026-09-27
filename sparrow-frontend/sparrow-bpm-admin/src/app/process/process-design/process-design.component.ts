@@ -11,10 +11,10 @@ import { getProcessName } from 'src/app/util/xml.util';
 
 
 @Component({
-  selector: 'app-process-design',
-  templateUrl: './process-design.component.html',
-  styleUrls: ['./process-design.component.css'],
-
+    selector: 'app-process-design',
+    templateUrl: './process-design.component.html',
+    styleUrls: ['./process-design.component.css'],
+    standalone: false
 })
 export class ProcessDesignComponent implements OnInit, AfterViewInit {
   window = window;

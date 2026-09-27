@@ -3,9 +3,10 @@ import { Component, Inject, Input } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-process-variable-form',
-  templateUrl: './process-variable-form.component.html',
-  styleUrls: ['./process-variable-form.component.css']
+    selector: 'app-process-variable-form',
+    templateUrl: './process-variable-form.component.html',
+    styleUrls: ['./process-variable-form.component.css'],
+    standalone: false
 })
 export class ProcessVariableFormComponent {
   name!: string;

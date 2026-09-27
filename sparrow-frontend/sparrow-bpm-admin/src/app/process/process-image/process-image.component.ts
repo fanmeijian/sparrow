@@ -5,9 +5,10 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-image',
-  templateUrl: './process-image.component.html',
-  styleUrls: ['./process-image.component.css']
+    selector: 'app-process-image',
+    templateUrl: './process-image.component.html',
+    styleUrls: ['./process-image.component.css'],
+    standalone: false
 })
 export class ProcessImageComponent implements OnInit {
 

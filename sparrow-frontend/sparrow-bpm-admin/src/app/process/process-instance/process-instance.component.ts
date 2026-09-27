@@ -11,10 +11,11 @@ import { UsersComponent } from 'src/app/global/users/users.component';
 import { VariablesDialogComponent } from 'src/app/variables-dialog/variables-dialog.component';
 
 @Component({
-  selector: 'app-process-instance',
-  templateUrl: './process-instance.component.html',
-  styleUrls: ['./process-instance.component.css'],
-  providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService]
+    selector: 'app-process-instance',
+    templateUrl: './process-instance.component.html',
+    styleUrls: ['./process-instance.component.css'],
+    providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService],
+    standalone: false
 })
 export class ProcessInstanceComponent implements OnInit {
   updateTaskVariables(node: any) {

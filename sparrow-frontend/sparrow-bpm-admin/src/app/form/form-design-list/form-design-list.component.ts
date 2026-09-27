@@ -8,9 +8,10 @@ import { TaskSelectionComponent } from 'src/app/task/task-selection/task-selecti
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-form-design-list',
-  templateUrl: './form-design-list.component.html',
-  styleUrls: ['./form-design-list.component.css']
+    selector: 'app-form-design-list',
+    templateUrl: './form-design-list.component.html',
+    styleUrls: ['./form-design-list.component.css'],
+    standalone: false
 })
 export class FormDesignListComponent implements OnInit {
   linkTask(element: any) {

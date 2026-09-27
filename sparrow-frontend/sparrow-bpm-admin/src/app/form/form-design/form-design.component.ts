@@ -10,9 +10,10 @@ import { environment } from 'src/environments/environment';
 
 
 @Component({
-  selector: 'app-form-design',
-  templateUrl: './form-design.component.html',
-  styleUrls: ['./form-design.component.css']
+    selector: 'app-form-design',
+    templateUrl: './form-design.component.html',
+    styleUrls: ['./form-design.component.css'],
+    standalone: false
 })
 export class FormDesignComponent implements OnInit, AfterViewInit {
   saveForm() {

@@ -7,9 +7,10 @@ import { ProcessSelectionComponent } from 'src/app/process/process-selection/pro
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-task-selection',
-  templateUrl: './task-selection.component.html',
-  styleUrls: ['./task-selection.component.css']
+    selector: 'app-task-selection',
+    templateUrl: './task-selection.component.html',
+    styleUrls: ['./task-selection.component.css'],
+    standalone: false
 })
 export class TaskSelectionComponent implements OnInit {
   confirm() {

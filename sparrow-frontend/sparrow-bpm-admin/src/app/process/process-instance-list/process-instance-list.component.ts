@@ -7,9 +7,10 @@ import { ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQ
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-instance-list',
-  templateUrl: './process-instance-list.component.html',
-  styleUrls: ['./process-instance-list.component.css']
+    selector: 'app-process-instance-list',
+    templateUrl: './process-instance-list.component.html',
+    styleUrls: ['./process-instance-list.component.css'],
+    standalone: false
 })
 export class ProcessInstanceListComponent implements OnInit {
   delete(processInstance: any) {

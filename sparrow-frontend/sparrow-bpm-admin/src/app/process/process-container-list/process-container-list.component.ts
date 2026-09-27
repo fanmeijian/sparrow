@@ -6,9 +6,10 @@ import { ActivatedRoute } from '@angular/router';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-container-list',
-  templateUrl: './process-container-list.component.html',
-  styleUrls: ['./process-container-list.component.css']
+    selector: 'app-process-container-list',
+    templateUrl: './process-container-list.component.html',
+    styleUrls: ['./process-container-list.component.css'],
+    standalone: false
 })
 export class ProcessContainerListComponent implements OnInit {
   delete(element: any) {

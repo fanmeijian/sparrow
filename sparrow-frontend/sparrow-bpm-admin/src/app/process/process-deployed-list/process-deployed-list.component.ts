@@ -7,10 +7,11 @@ import { ProcessImageComponent } from '../process-image/process-image.component'
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-process-deployed-list',
-  templateUrl: './process-deployed-list.component.html',
-  styleUrls: ['./process-deployed-list.component.css'],
-  providers: [ProcessAndTaskDefinitionsService, KIEServerAndKIEContainersService]
+    selector: 'app-process-deployed-list',
+    templateUrl: './process-deployed-list.component.html',
+    styleUrls: ['./process-deployed-list.component.css'],
+    providers: [ProcessAndTaskDefinitionsService, KIEServerAndKIEContainersService],
+    standalone: false
 })
 export class ProcessDeployedListComponent implements OnInit {
   containers: any[] = []
