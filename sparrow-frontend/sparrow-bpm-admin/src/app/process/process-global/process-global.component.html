@@ -1,42 +1,48 @@
 <button mat-flat-button (click)="add()" color="primary">添加</button>
 <mat-table [dataSource]="dataSource">
 
-    <ng-container matColumnDef="containerId">
-        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
-        <mat-cell *matCellDef="let element">
-            {{element.containerId}}
-        </mat-cell>
-    </ng-container>
+  <ng-container matColumnDef="containerId">
+    <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      {{element.containerId}}
+    </mat-cell>
+  </ng-container>
 
-    <ng-container matColumnDef="code">
-        <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
-        <mat-cell *matCellDef="let element">
-            <input type="text"
-                class="w-full border-1 border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                [(ngModel)]="element.code" [disabled]="selected!=element" />
-        </mat-cell>
-    </ng-container>
+  <ng-container matColumnDef="code">
+    <mat-header-cell *matHeaderCellDef> 名称 </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <input type="text"
+        class="w-full border-1 border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [(ngModel)]="element.code" [disabled]="selected!=element" />
+    </mat-cell>
+  </ng-container>
 
-    <ng-container matColumnDef="value">
-        <mat-header-cell *matHeaderCellDef> 值 </mat-header-cell>
-        <mat-cell *matCellDef="let element">
-            <input type="text"
-                class="w-full border-1 border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                [(ngModel)]="element.value" [disabled]="selected!=element" />
-        </mat-cell>
-    </ng-container>
+  <ng-container matColumnDef="value">
+    <mat-header-cell *matHeaderCellDef> 值 </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <input type="text"
+        class="w-full border-1 border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [(ngModel)]="element.value" [disabled]="selected!=element" />
+    </mat-cell>
+  </ng-container>
 
 
-    <ng-container matColumnDef="action">
-        <mat-header-cell *matHeaderCellDef> </mat-header-cell>
-        <mat-cell *matCellDef="let element">
-            <button mat-button (click)="edit(element)" *ngIf="!selected" color="primary">编辑</button>
-            <button mat-button (click)="selected=undefined" *ngIf="selected" color="accent">取消</button>
-            <button mat-button (click)="save(element)" *ngIf="selected" color="primary">保存</button>
-            <button mat-button (click)="delete(element)" color="accent">删除</button>
-        </mat-cell>
-    </ng-container>
+  <ng-container matColumnDef="action">
+    <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      @if (!selected) {
+        <button mat-button (click)="edit(element)" color="primary">编辑</button>
+      }
+      @if (selected) {
+        <button mat-button (click)="selected=undefined" color="accent">取消</button>
+      }
+      @if (selected) {
+        <button mat-button (click)="save(element)" color="primary">保存</button>
+      }
+      <button mat-button (click)="delete(element)" color="accent">删除</button>
+    </mat-cell>
+  </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
 </mat-table>

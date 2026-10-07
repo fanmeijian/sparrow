@@ -1,12 +1,13 @@
 <div style="display: grid; grid-template-columns: 1fr 3fr;">
   <div>
-    <div *ngFor="let item of containers" class="s-row" style="align-items: center;">
-      <button mat-icon-button color="accent" (click)="disposeContainer(item['container-id'])">
-        <mat-icon>close</mat-icon>
-      </button>
-      <button mat-button color="primary" (click)="getProcesses(item['container-id'])">{{item['container-id']}}</button>
-
-    </div>
+    @for (item of containers; track item) {
+      <div class="s-row" style="align-items: center;">
+        <button mat-icon-button color="accent" (click)="disposeContainer(item['container-id'])">
+          <mat-icon>close</mat-icon>
+        </button>
+        <button mat-button color="primary" (click)="getProcesses(item['container-id'])">{{item['container-id']}}</button>
+      </div>
+    }
   </div>
   <mat-table [dataSource]="dataSource">
 

@@ -1,8 +1,10 @@
 <h3 mat-dialog-title><span style="color: red;">系统错误!</span></h3>
 <mat-dialog-content class="mat-typography">
-  <p *ngIf="data?.status">
-    <b>状态: {{ data?.status }}</b>
-  </p>
+  @if (data?.status) {
+    <p>
+      <b>状态: {{ data?.status }}</b>
+    </p>
+  }
   <p class="error-message">
     {{ data?.message }}
   </p>

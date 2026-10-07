@@ -12,9 +12,11 @@
     </span>
   </button>
   <mat-menu #beforeMenu="matMenu" xPosition="before">
-    <button mat-menu-item (click)="themeService.setThemeColor(season.code)"
-      *ngFor="let season of seasons"><mat-radio-button [checked]="themeService.theme==season.code"
-        [value]="season.code"></mat-radio-button>{{season.name}}</button>
+    @for (season of seasons; track season) {
+      <button mat-menu-item (click)="themeService.setThemeColor(season.code)"
+        ><mat-radio-button [checked]="themeService.theme==season.code"
+      [value]="season.code"></mat-radio-button>{{season.name}}</button>
+    }
   </mat-menu>
 
 
@@ -33,13 +35,13 @@
     <div class="menu-container">
       <mat-action-list style="width: 200px;">
         <button mat-list-item color="primary" [routerLink]="['/process-instance-list']"
-          routerLinkActive="router-link-active">流程管理</button>
+        routerLinkActive="router-link-active">流程管理</button>
         <button mat-list-item color="primary" [routerLink]="['/process-container-list']"
-          routerLinkActive="router-link-active">流程设计</button>
+        routerLinkActive="router-link-active">流程设计</button>
         <button mat-list-item color="primary" [routerLink]="['/form-design-list']"
-          routerLinkActive="router-link-active">表单设计</button>
+        routerLinkActive="router-link-active">表单设计</button>
         <button mat-list-item color="primary" [routerLink]="['/process-deployed-list']"
-          routerLinkActive="router-link-active">已部署应用</button>
+        routerLinkActive="router-link-active">已部署应用</button>
 
       </mat-action-list>
       <div class="user-info">

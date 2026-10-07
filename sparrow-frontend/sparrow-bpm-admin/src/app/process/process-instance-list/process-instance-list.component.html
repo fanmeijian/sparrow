@@ -1,7 +1,5 @@
-<ng-container *ngIf="!route.firstChild">
-
+@if (!route.firstChild) {
   <mat-table [dataSource]="dataSource">
-
     <ng-container matColumnDef="title">
       <mat-header-cell *matHeaderCellDef> 标题 </mat-header-cell>
       <mat-cell *matCellDef="let element">
@@ -10,7 +8,6 @@
         </a>
       </mat-cell>
     </ng-container>
-
     <ng-container matColumnDef="name">
       <mat-header-cell *matHeaderCellDef> 流程 </mat-header-cell>
       <mat-cell *matCellDef="let element">
@@ -19,37 +16,35 @@
         </a>
       </mat-cell>
     </ng-container>
-
     <ng-container matColumnDef="initiator">
       <mat-header-cell *matHeaderCellDef> 提交人 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         {{element.identity}} {{element.start|date: 'short'}}
       </mat-cell>
     </ng-container>
-
-
     <ng-container matColumnDef="state">
       <mat-header-cell *matHeaderCellDef> 状态 </mat-header-cell>
       <mat-cell *matCellDef="let element">
         <span [ngClass]="{'red':element.status===3, 'green': element.status==2, 'blue':element.status==1}">{{getStatusName(element.status)}}</span>
       </mat-cell>
     </ng-container>
-
     <ng-container matColumnDef="action">
       <mat-header-cell *matHeaderCellDef> </mat-header-cell>
       <mat-cell *matCellDef="let element">
-        <button mat-button *ngIf="element.status==1" color="accent" (click)="abort(element)">{{'abort'|translate}}</button>
-        <button mat-button *ngIf="[1,2,3].includes(element.status)" color="accent"
+        @if (element.status==1) {
+          <button mat-button color="accent" (click)="abort(element)">{{'abort'|translate}}</button>
+        }
+        @if ([1,2,3].includes(element.status)) {
+          <button mat-button color="accent"
           (click)="delete(element)">{{'delete'|translate}}</button>
+        }
       </mat-cell>
     </ng-container>
-
     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
   </mat-table>
   <mat-paginator [length]="pageable.length" [pageSize]="pageable.size" [pageSizeOptions]="[5, 10, 25, 100]"
     (page)="onPage($event)">
   </mat-paginator>
-
-</ng-container>
+}
 <router-outlet></router-outlet>
