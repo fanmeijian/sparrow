@@ -1,18 +1,22 @@
 package cn.sparrowmini.rbac.persistence.jpa;
 
 import cn.sparrowmini.rbac.core.*;
+import cn.sparrowmini.rbac.persistence.jpa.grant.JpaRoleGrantStore;
 import cn.sparrowmini.security.api.*;
 import jakarta.persistence.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProvider,RolePermissionManager,FunctionPermissionEvaluator {
+    @Override public boolean supportsRoleEvidence(){return true;}
     private final EntityManager em;
     private final String namespace;
     private final RbacManagementGuard guard;
     private final Set<PermissionRequest> registered;
+    private final JpaRoleGrantStore permissionStore;
     public JpaRoleProvider(EntityManager em,String namespace,RbacManagementGuard guard,Set<PermissionRequest> registered){
         this.em=Objects.requireNonNull(em);this.namespace=Objects.requireNonNull(namespace);this.guard=Objects.requireNonNull(guard);this.registered=Set.copyOf(registered);
+        this.permissionStore=new JpaRoleGrantStore(em,namespace,registered,this::requireRole,(n,op,id,permission,before,after)->guard.require(n,op,id));
         if(namespace.isBlank() || namespace.length()>100)throw new IllegalArgumentException("Invalid namespace");
     }
     public String code(){return "local";}
@@ -48,23 +52,9 @@ public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProv
         assignments(roleId,subject).forEach(em::remove);em.flush();
     }
     @Transactional
-    public void grant(String roleId,PermissionRequest request,Effect effect){
-        guard.require(namespace,"grant",roleId);transaction();Objects.requireNonNull(effect);
-        if(!registered.contains(request))throw new IllegalArgumentException("Unknown resource/scope");
-        var role=lock(roleId);var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var root=q.from(RolePermissionEntity.class);
-        q.select(root).where(cb.equal(root.get("namespace"),namespace),cb.equal(root.get("roleId"),roleId),cb.equal(root.get("resource"),request.resource()),cb.equal(root.get("scope"),request.scope()));
-        var matches=em.createQuery(q).getResultList();
-        var grant=matches.isEmpty()?new RolePermissionEntity():matches.get(0);
-        if(matches.isEmpty()){grant.id=UUID.randomUUID().toString();grant.roleId=role.id;grant.namespace=namespace;grant.resource=request.resource();grant.scope=request.scope();grant.effect=effect;em.persist(grant);}else grant.effect=effect;
-        em.flush();
-    }
+    public void grant(String roleId,PermissionRequest request,Effect effect){guard.require(namespace,"grant",roleId);transaction();lock(roleId);permissionStore.grant(roleId,request,effect);}
     @Transactional
-    public void revokePermission(String roleId,PermissionRequest request){
-        guard.require(namespace,"revoke-permission",roleId);transaction();lock(roleId);
-        var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var root=q.from(RolePermissionEntity.class);
-        q.select(root).where(cb.equal(root.get("namespace"),namespace),cb.equal(root.get("roleId"),roleId),cb.equal(root.get("resource"),request.resource()),cb.equal(root.get("scope"),request.scope()));
-        em.createQuery(q).getResultList().forEach(em::remove);em.flush();
-    }
+    public void revokePermission(String roleId,PermissionRequest request){guard.require(namespace,"revoke-permission",roleId);transaction();lock(roleId);permissionStore.revokePermission(roleId,request);}
     @Transactional(readOnly=true)
     public Set<String> rolesFor(Subject subject){
         validSubject(subject);var cb=em.getCriteriaBuilder();var q=cb.createQuery(String.class);var root=q.from(RoleAssignmentEntity.class);
@@ -77,18 +67,10 @@ public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProv
         for(String group:actor.groups())roles.addAll(rolesFor(new Subject(Subject.Kind.GROUP,group)));
         var current=new ActorContext(actor.subject(),roles,actor.groups());
         if(!registered.contains(request) || roles.isEmpty())return new FunctionDecision(current,request,false,Set.of());
-        var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var root=q.from(RolePermissionEntity.class);
-        q.select(root).where(root.get("roleId").in(roles),cb.equal(root.get("namespace"),namespace),cb.equal(root.get("resource"),request.resource()),cb.equal(root.get("scope"),request.scope()));
-        var grants=em.createQuery(q).getResultList().stream().map(g->new RoleGrant(g.roleId,request,g.effect)).toList();
-        return new RolePermissionEvaluator(registered,grants).evaluate(current,request);
+        return new RolePermissionEvaluator(registered,permissionStore.find(roles,request)).evaluate(current,request);
     }
     @Transactional(readOnly=true)
-    public List<RoleGrant> grants(String roleId){
-        guard.require(namespace,"read",roleId);requireRole(roleId);
-        var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var r=q.from(RolePermissionEntity.class);
-        q.select(r).where(cb.equal(r.get("namespace"),namespace),cb.equal(r.get("roleId"),roleId)).orderBy(cb.asc(r.get("resource")),cb.asc(r.get("scope")));
-        return em.createQuery(q).getResultList().stream().map(g->new RoleGrant(g.roleId,new PermissionRequest(g.resource,g.scope),g.effect)).toList();
-    }
+    public List<RoleGrant> grants(String roleId){return permissionStore.grants(roleId);}
     @Transactional(readOnly=true)
     public Set<Subject> members(String roleId){
         guard.require(namespace,"read",roleId);requireRole(roleId);

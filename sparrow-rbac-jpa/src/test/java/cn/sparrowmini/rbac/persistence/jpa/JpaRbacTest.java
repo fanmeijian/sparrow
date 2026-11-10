@@ -1,6 +1,7 @@
 package cn.sparrowmini.rbac.persistence.jpa;
 
 import cn.sparrowmini.rbac.core.*;
+import cn.sparrowmini.rbac.persistence.jpa.grant.RolePermissionEntity;
 import cn.sparrowmini.security.api.*;
 import jakarta.persistence.*;
 import org.junit.jupiter.api.*;

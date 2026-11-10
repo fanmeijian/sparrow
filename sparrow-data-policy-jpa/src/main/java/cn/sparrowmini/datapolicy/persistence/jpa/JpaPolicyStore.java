@@ -13,10 +13,13 @@ public class JpaPolicyStore {
     private final String namespace;
     private final Guard guard;
     private final Map<PermissionRequest,JpaResource<?>> schema;
+    private final boolean roleEvidence;
     private final PolicyJsonCodec codec=new PolicyJsonCodec();
-    public JpaPolicyStore(EntityManager em,String namespace,Guard guard,Map<PermissionRequest,JpaResource<?>> schema){
+    public JpaPolicyStore(EntityManager em,String namespace,Guard guard,Map<PermissionRequest,JpaResource<?>> schema,boolean roleEvidence){
         this.em=Objects.requireNonNull(em);this.namespace=Objects.requireNonNull(namespace);this.guard=Objects.requireNonNull(guard);
+        this.roleEvidence=roleEvidence;
         this.schema=Map.copyOf(schema);this.schema.forEach((request,resource)->{resource.validate(em);if(!request.resource().equals(resource.code()))throw new IllegalArgumentException("Resource schema mismatch");});
+        if(!roleEvidence){var cb=em.getCriteriaBuilder();var query=cb.createQuery(PolicyDocument.class);var r=query.from(PolicyDocument.class);query.select(r).where(cb.equal(r.get("namespace"),namespace),cb.isNotNull(r.get("activeJson")));var active=em.createQuery(query).setMaxResults(10001).getResultList();if(active.size()>10000)throw new IllegalStateException("Policy capacity exceeded");for(var policy:active)validateRoleEvidence(codec.decode(policy.activeJson));}
     }
     @Transactional public Snapshot saveDraft(PermissionRequest request,Long expectedVersion,List<DataRule> rules){
         guard.require(namespace,"update",request);transaction();validate(request,rules);var found=find(request,true);
@@ -41,7 +44,7 @@ public class JpaPolicyStore {
     @Transactional(readOnly=true) public Snapshot active(PermissionRequest request){
         var found=find(request,false);
         if(found.isEmpty())return new Snapshot(0,0,List.of());
-        var doc=found.get();return new Snapshot(doc.version,doc.activeRevision,doc.activeJson==null?List.of():codec.decode(doc.activeJson));
+        var doc=found.get();var rules=doc.activeJson==null?List.<DataRule>of():codec.decode(doc.activeJson);validate(request,rules);return new Snapshot(doc.version,doc.activeRevision,rules);
     }
     @Transactional(readOnly=true) public Snapshot draft(PermissionRequest request){
         guard.require(namespace,"read",request);var doc=find(request,false).orElseThrow();return new Snapshot(doc.version,doc.activeRevision,codec.decode(doc.draftJson));
@@ -55,9 +58,11 @@ public class JpaPolicyStore {
     private void validate(PermissionRequest request,List<DataRule> rules){
         var resource=schema.get(request);if(resource==null)throw new IllegalArgumentException("Unknown resource/scope");
         for(var rule:rules)if(!request.equals(rule.permission()) || !resource.fields().containsAll(rule.fields()) || !resource.fields().containsAll(Condition.fields(rule.condition())))throw new IllegalArgumentException("Invalid policy field or permission");
+        validateRoleEvidence(rules);
         rules.forEach(rule->validateCondition(resource,rule.condition()));
         codec.encode(rules);
     }
+    private void validateRoleEvidence(List<DataRule> rules){if(!roleEvidence&&rules.stream().anyMatch(rule->rule.subject().kind()==Subject.Kind.ROLE&&rule.effect()==Effect.ALLOW))throw new IllegalArgumentException("Functional provider cannot supply role eligibility evidence");}
     private <T> void validateCondition(JpaResource<T> resource,Condition condition){
         var cb=em.getCriteriaBuilder();var query=cb.createQuery(resource.entityType());var root=query.from(resource.entityType());
         JpaPredicateCompiler.compile(resource,root,cb,condition,0);

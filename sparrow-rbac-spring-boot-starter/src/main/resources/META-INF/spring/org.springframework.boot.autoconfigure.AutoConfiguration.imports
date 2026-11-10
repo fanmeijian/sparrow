@@ -1,0 +1,3 @@
+cn.sparrowmini.rbac.autoconfigure.LocalRbacAutoConfiguration
+cn.sparrowmini.rbac.autoconfigure.ExternalRoleGrantAutoConfiguration
+cn.sparrowmini.rbac.autoconfigure.RbacSelectionAutoConfiguration

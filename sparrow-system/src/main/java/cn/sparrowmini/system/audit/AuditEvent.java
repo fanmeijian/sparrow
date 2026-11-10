@@ -10,5 +10,8 @@ public class AuditEvent {
     @Column(nullable=false,length=500) String target;
     @Column(name="occurred_at",nullable=false) long occurredAt;
     @Column(nullable=false,length=30) String outcome;
+    @Column(name="request_id",nullable=false,length=36) String requestId;
+    @Column(name="policy_revision") Long policyRevision;
+    @Column(nullable=false,length=100) String reason;
     public AuditEvent() { }
 }

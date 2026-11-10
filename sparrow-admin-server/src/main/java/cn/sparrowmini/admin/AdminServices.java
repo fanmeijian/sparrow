@@ -61,11 +61,11 @@ public class AdminServices {
     @Bean IdentityManagementGuard identityGuard(AdminAccess access){return (namespace,scope,id)->access.require("admin.users",scope);}
     @Bean JpaRoleProvider roles(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,Set<PermissionRequest> registered){return new JpaRoleProvider(em,namespace,(n,op,id)->access.require("admin.roles",op),registered);}
     @Bean JpaGroupService groups(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){return new JpaGroupService(em,namespace,(op,before,after)->access.require("admin.groups",op));}
-    @Bean JpaPolicyStore policies(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){
+    @Bean JpaPolicyStore policies(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,JpaRoleProvider roles){
         var schema=new JpaResource<>("file.object",FileMetadata.class,"id",Set.of("id","name","size","sha256","namespace"));
         Map<PermissionRequest,JpaResource<?>> resources=new HashMap<>();
         for(String scope:List.of("read","download","update","delete"))resources.put(new PermissionRequest("file.object",scope),schema);
-        return new JpaPolicyStore(em,namespace,(n,op,p)->access.require("admin.policies",op),resources);
+        return new JpaPolicyStore(em,namespace,(n,op,p)->access.require("admin.policies",op),resources,roles.supportsRoleEvidence());
     }
     @Bean DictionaryService dictionaries(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){
         // This host has no business reference registry; deletion stays closed until a project supplies one.

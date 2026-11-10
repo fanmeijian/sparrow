@@ -3,6 +3,7 @@ import cn.sparrowmini.security.api.*;
 import java.util.*;
 /** Immutable grant snapshot. Caller resolves role/group inheritance before evaluation. */
 public final class RolePermissionEvaluator implements FunctionPermissionEvaluator {
+    @Override public boolean supportsRoleEvidence(){return true;}
  private final Set<PermissionRequest> registered;
  private final List<RoleGrant> grants;
  public RolePermissionEvaluator(Set<PermissionRequest> registered, List<RoleGrant> grants) {

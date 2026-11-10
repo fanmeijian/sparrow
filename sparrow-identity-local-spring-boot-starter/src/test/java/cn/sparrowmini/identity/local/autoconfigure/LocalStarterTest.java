@@ -53,7 +53,10 @@ class LocalStarterTest {
             public List<UserProfile> list(String p,int offset,int limit){return List.of();}
         };
         runner.withPropertyValues("sparrow.identity.provider=keycloak","sparrow.identity.authentication=external")
-            .withBean("external",UserDirectoryProvider.class,()->external).run(context->{
+            .withBean("external",UserDirectoryProvider.class,()->external)
+            .withBean(ExternalAuthenticationBridge.class,()->()->{})
+            .withBean(org.springframework.security.web.SecurityFilterChain.class,()->new org.springframework.security.web.DefaultSecurityFilterChain(request->true,(request,response,chain)->((jakarta.servlet.http.HttpServletResponse)response).sendError(401)))
+            .run(context->{
                 assertThat(context).hasNotFailed().doesNotHaveBean(LocalIdentityProvider.class).doesNotHaveBean(EntityManagerFactory.class).doesNotHaveBean(FilterChainProxy.class);
                 assertSame(external,context.getBean(IdentityProviderRegistry.class).select("keycloak"));
             });
@@ -61,4 +64,10 @@ class LocalStarterTest {
     @Test void missingExternalProviderFailsInsteadOfFallingBack(){
         runner.withPropertyValues("sparrow.identity.provider=keycloak").run(context->assertThat(context).hasFailed());
     }
+    @Test void externalDirectoryWithoutAuthenticationBridgeFails(){
+        UserDirectoryProvider external=new UserDirectoryProvider(){public String code(){return "external";}public UserProfile get(String id){throw new UnsupportedOperationException();}public List<UserProfile> list(String p,int o,int l){return List.of();}};
+        runner.withPropertyValues("sparrow.identity.provider=external").withBean(UserDirectoryProvider.class,()->external)
+            .run(context->assertThat(context).hasFailed());
+    }
+    @Test void unknownAuthenticationModeFails(){runner.withUserConfiguration(Database.class).withPropertyValues("sparrow.identity.authentication=unknown").run(context->assertThat(context).hasFailed());}
 }

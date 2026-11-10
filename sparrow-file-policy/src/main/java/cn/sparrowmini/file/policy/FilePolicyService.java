@@ -45,7 +45,7 @@ public class FilePolicyService {
     private DataAccessPlan plan(String scope){
         var request=new PermissionRequest(RESOURCE.code(),scope);var actor=actors.current();var decision=functions.evaluate(actor,request);
         if(!decision.allowed())throw new SecurityException("Function permission denied");
-        return new DataAccessPlan(decision,policies.active(request).rules()).restrict(new Condition.Equal("namespace",namespace))
+        var snapshot=policies.active(request);return new DataAccessPlan(decision,snapshot.rules(),snapshot.activeRevision()).restrict(new Condition.Equal("namespace",namespace))
             .restrict(Objects.requireNonNull(additional.restrict(decision.actor(),request),"Additional constraint required"));
     }
     private Map<String,Object> facts(String id){

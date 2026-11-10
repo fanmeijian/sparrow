@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.function.UnaryOperator;
 
-public class JpaGroupService {
+public class JpaGroupService implements cn.sparrowmini.security.api.GroupMembershipResolver {
     public record Snapshot(long revision,GroupGraph graph) { }
     private final EntityManager em;private final String namespace;private final GroupChangeGuard guard;
     public JpaGroupService(EntityManager em,String namespace,GroupChangeGuard guard){
@@ -21,6 +21,7 @@ public class JpaGroupService {
     @Transactional public Snapshot facts(){
         var root=locked(LockModeType.PESSIMISTIC_READ);return new Snapshot(root.revision,load());
     }
+    @Transactional public Set<String> groupsFor(String subject){return facts().graph().effectiveGroups(subject);}
     @Transactional public Snapshot inspect(){var snapshot=facts();guard.check("read",snapshot.graph(),snapshot.graph());return snapshot;}
     @Transactional public Snapshot create(long revision,String code,String name){
         if(!code.matches("[a-zA-Z0-9_.-]{1,100}") || name.length()>200)throw new IllegalArgumentException("Invalid group");

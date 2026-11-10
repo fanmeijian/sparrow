@@ -14,7 +14,7 @@ class PolicyLifecycleTest {
     static final JpaResource<OrderRecord> RESOURCE=new JpaResource<>("sales.order",OrderRecord.class,"id",Set.of("id","region","cost"));
     @BeforeAll static void open(){emf=Persistence.createEntityManagerFactory("policy-test");}
     @AfterAll static void close(){emf.close();}
-    @BeforeEach void setup(){em=emf.createEntityManager();store=new JpaPolicyStore(em,"tenant",(n,o,r)->{},Map.of(READ,RESOURCE));tx(()->{var cb=em.getCriteriaBuilder();var q=cb.createCriteriaDelete(PolicyDocument.class);q.from(PolicyDocument.class);em.createQuery(q).executeUpdate();return null;});}
+    @BeforeEach void setup(){em=emf.createEntityManager();store=new JpaPolicyStore(em,"tenant",(n,o,r)->{},Map.of(READ,RESOURCE),false);tx(()->{var cb=em.getCriteriaBuilder();var q=cb.createCriteriaDelete(PolicyDocument.class);q.from(PolicyDocument.class);em.createQuery(q).executeUpdate();return null;});}
     @AfterEach void cleanup(){em.close();}
     <T>T tx(Supplier<T> action){em.getTransaction().begin();try{T r=action.get();em.getTransaction().commit();em.clear();return r;}catch(RuntimeException e){if(em.getTransaction().isActive())em.getTransaction().rollback();em.clear();throw e;}}
     DataRule rule(Condition condition){return new DataRule(new Subject(Subject.Kind.USER,"tenant:alice"),READ,Effect.ALLOW,condition,DataRule.Target.ROW,Set.of());}
@@ -30,7 +30,7 @@ class PolicyLifecycleTest {
         var draft=tx(()->store.saveDraft(READ,null,List.of(rule(new Condition.All()))));
         tx(()->store.saveDraft(READ,draft.version(),List.of(rule(new Condition.None()))));
         assertThrows(OptimisticLockException.class,()->tx(()->store.publish(READ,draft.version())));
-        var denied=new JpaPolicyStore(em,"tenant",(n,o,r)->{throw new SecurityException();},Map.of(READ,RESOURCE));
+        var denied=new JpaPolicyStore(em,"tenant",(n,o,r)->{throw new SecurityException();},Map.of(READ,RESOURCE),false);
         assertThrows(SecurityException.class,()->tx(()->denied.publish(READ,store.draft(READ).version())));
         assertTrue(store.active(READ).rules().isEmpty());
     }
@@ -47,6 +47,19 @@ class PolicyLifecycleTest {
     }
     @Test void namespacesDoNotSharePolicyDocuments(){
         var d=tx(()->store.saveDraft(READ,null,List.of(rule(new Condition.All()))));tx(()->store.publish(READ,d.version()));
-        var other=new JpaPolicyStore(em,"other",(n,o,r)->{},Map.of(READ,RESOURCE));assertTrue(other.active(READ).rules().isEmpty());
+        var other=new JpaPolicyStore(em,"other",(n,o,r)->{},Map.of(READ,RESOURCE),false);assertTrue(other.active(READ).rules().isEmpty());
+    }
+
+    @Test void unsupportedRoleEvidenceCannotSilentlyPublishRoleAllows(){
+        var roleRule=new DataRule(new Subject(Subject.Kind.ROLE,"role"),READ,Effect.ALLOW,new Condition.All(),DataRule.Target.ROW,Set.of());
+        assertThrows(IllegalArgumentException.class,()->tx(()->store.saveDraft(READ,null,List.of(roleRule))));
+    }
+
+    @Test void replacingEvaluatorCannotSilentlyIgnorePublishedRoleAllows(){
+        var capable=new JpaPolicyStore(em,"tenant",(n,o,r)->{},Map.of(READ,RESOURCE),true);
+        var roleRule=new DataRule(new Subject(Subject.Kind.ROLE,"role"),READ,Effect.ALLOW,new Condition.All(),DataRule.Target.ROW,Set.of());
+        var draft=tx(()->capable.saveDraft(READ,null,List.of(roleRule)));var published=tx(()->capable.publish(READ,draft.version()));
+        assertThrows(IllegalArgumentException.class,()->new JpaPolicyStore(em,"tenant",(n,o,r)->{},Map.of(READ,RESOURCE),false));
+        tx(()->{capable.retire(READ,published.version());return null;});
     }
 }

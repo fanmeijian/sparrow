@@ -25,14 +25,14 @@ public class ManagementAuditAspect {
         if(!request.getRequestURI().startsWith("/api/admin/") || java.util.Set.of("GET","HEAD","OPTIONS").contains(method))return invocation.proceed();
         var authentication=SecurityContextHolder.getContext().getAuthentication();
         String subject=authentication!=null && authentication.getPrincipal() instanceof LocalPrincipal p?p.namespace()+":"+p.subjectId():"anonymous";
-        String target=request.getRequestURI();
+        String target=request.getRequestURI();String requestId=java.util.UUID.randomUUID().toString();if(servlet.getResponse()!=null)servlet.getResponse().setHeader("X-Request-Id",requestId);
         try{return command.execute(status->{
-            try{var result=invocation.proceed();audit.record(subject,method,target,"SUCCEEDED");return result;}
+            try{var result=invocation.proceed();audit.record(subject,method,target,"SUCCEEDED",requestId,result instanceof cn.sparrowmini.web.PolicyController.View policy?policy.activeRevision():null,"AUTHORIZED_COMMAND");return result;}
             catch(Throwable failure){throw new InvocationFailure(failure);}
         });}catch(RuntimeException wrapped){
             Throwable cause=wrapped instanceof InvocationFailure?wrapped.getCause():wrapped;
             String outcome=cause instanceof SecurityException?"DENIED":cause instanceof jakarta.persistence.OptimisticLockException?"CONFLICT":cause instanceof IllegalArgumentException?"INVALID":"FAILED";
-            try{failed.executeWithoutResult(status->audit.record(subject,method,target,outcome));}catch(RuntimeException auditFailure){cause.addSuppressed(auditFailure);}
+            try{failed.executeWithoutResult(status->audit.record(subject,method,target,outcome,requestId,null,outcome));}catch(RuntimeException auditFailure){cause.addSuppressed(auditFailure);}
             throw cause;
         }
     }

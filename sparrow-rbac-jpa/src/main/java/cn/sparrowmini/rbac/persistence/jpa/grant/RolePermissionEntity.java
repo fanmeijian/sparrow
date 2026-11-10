@@ -1,4 +1,4 @@
-package cn.sparrowmini.rbac.persistence.jpa;
+package cn.sparrowmini.rbac.persistence.jpa.grant;
 
 import jakarta.persistence.*;
 import cn.sparrowmini.security.api.Effect;

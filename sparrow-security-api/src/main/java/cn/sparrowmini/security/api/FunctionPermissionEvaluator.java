@@ -1,2 +1,7 @@
 package cn.sparrowmini.security.api;
-public interface FunctionPermissionEvaluator { FunctionDecision evaluate(ActorContext actor, PermissionRequest request); }
+
+@FunctionalInterface
+public interface FunctionPermissionEvaluator {
+    FunctionDecision evaluate(ActorContext actor,PermissionRequest request);
+    default boolean supportsRoleEvidence(){return false;}
+}

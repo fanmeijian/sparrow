@@ -6,26 +6,32 @@ import cn.sparrowmini.security.api.*;
 /** Trusted per-request plan. The host resolves current identity and policy snapshots. */
 public final class DataAccessPlan {
     private final FunctionDecision function;
+    private final long policyRevision;
     private final List<DataRule> rules;
     private final List<Condition> restrictions;
     private final Map<FieldOperation, List<Condition>> fieldRestrictions;
     private record FieldOperation(String field, DataRule.Target target) { }
 
     public DataAccessPlan(FunctionDecision function, List<DataRule> rules) {
-        this(function, rules, List.of(), Map.of());
+        this(function,rules,0);
+    }
+    public DataAccessPlan(FunctionDecision function,List<DataRule> rules,long policyRevision){
+        this(function, rules, List.of(), Map.of(),policyRevision);
     }
     private DataAccessPlan(FunctionDecision function, List<DataRule> rules, List<Condition> restrictions,
-                           Map<FieldOperation, List<Condition>> fieldRestrictions) {
+                           Map<FieldOperation, List<Condition>> fieldRestrictions,long policyRevision) {
+        if(policyRevision<0)throw new IllegalArgumentException("Invalid policy revision");this.policyRevision=policyRevision;
         this.function = Objects.requireNonNull(function);
         this.rules = List.copyOf(rules);
         this.restrictions = List.copyOf(restrictions);
         this.fieldRestrictions = Map.copyOf(fieldRestrictions);
     }
+    public long policyRevision(){return policyRevision;}
     public PermissionRequest permission() { return function.request(); }
     public DataAccessPlan restrict(Condition condition) {
         var next = new ArrayList<>(restrictions);
         next.add(Objects.requireNonNull(condition));
-        return new DataAccessPlan(function, rules, next, fieldRestrictions);
+        return new DataAccessPlan(function, rules, next, fieldRestrictions,policyRevision);
     }
     public DataAccessPlan restrictField(String field, DataRule.Target target, Condition condition) {
         Objects.requireNonNull(field); Objects.requireNonNull(target); Objects.requireNonNull(condition);
@@ -34,7 +40,7 @@ public final class DataAccessPlan {
         var next = new HashMap<>(fieldRestrictions);
         var terms = new ArrayList<>(next.getOrDefault(key, List.of()));
         terms.add(condition); next.put(key, List.copyOf(terms));
-        return new DataAccessPlan(function, rules, restrictions, next);
+        return new DataAccessPlan(function, rules, restrictions, next,policyRevision);
     }
     public Condition rowCondition() {
         if (!function.allowed()) return new Condition.None();
