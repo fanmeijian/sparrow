@@ -21,15 +21,19 @@ import java.io.IOException;
 
 @Configuration(proxyBeanMethods=false)
 @EnableTransactionManagement(proxyTargetClass=true)
+@EnableAspectJAutoProxy(proxyTargetClass=true)
 public class AdminServices {
     @Bean Set<PermissionRequest> registeredPermissions(){
         Set<PermissionRequest> result=new HashSet<>();
-        for(String resource:List.of("admin.users","admin.roles","admin.groups","admin.policies","admin.dictionaries","admin.files"))
+        for(String resource:List.of("admin.users","admin.roles","admin.groups","admin.policies","admin.dictionaries","admin.files","admin.audit"))
             for(String scope:List.of("read","manage"))result.add(new PermissionRequest(resource,scope));
         for(String scope:List.of("read","download","update","delete"))result.add(new PermissionRequest("file.object",scope));
         return Set.copyOf(result);
     }
     @Bean AdminAccess adminAccess(@Value("${sparrow.identity.namespace:default}")String namespace,ObjectProvider<JpaRoleProvider> roles,ObjectProvider<JpaGroupService> groups,ObjectProvider<LocalIdentityProvider> users){return new AdminAccess(namespace,roles,groups,users);}
+    @Bean cn.sparrowmini.system.audit.AuditService audit(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){
+        return new cn.sparrowmini.system.audit.AuditService(em,namespace,n->access.require("admin.audit","read"));
+    }
     @Bean IdentityManagementGuard identityGuard(AdminAccess access){return (namespace,scope,id)->access.require("admin.users",scope);}
     @Bean JpaRoleProvider roles(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,Set<PermissionRequest> registered){return new JpaRoleProvider(em,namespace,(n,op,id)->access.require("admin.roles",op),registered);}
     @Bean JpaGroupService groups(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){return new JpaGroupService(em,namespace,(op,before,after)->access.require("admin.groups",op));}

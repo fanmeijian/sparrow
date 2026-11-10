@@ -11,6 +11,8 @@ public class LocalAccount {
     @Column(name="password_hash",nullable=false,length=255) String passwordHash;
     @Column(nullable=false) boolean enabled;
     @Column(name="credential_version",nullable=false) long credentialVersion;
+    @Column(nullable=false) int failedAttempts;
+    @Column(nullable=false) long lockedUntil;
     @Version long version;
     public LocalAccount() { }
 }

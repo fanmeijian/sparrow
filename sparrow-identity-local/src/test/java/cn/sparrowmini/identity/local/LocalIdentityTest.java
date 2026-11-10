@@ -82,4 +82,19 @@ class LocalIdentityTest {
         assertThrows(IllegalArgumentException.class,()->users.list("",0,10000));
         assertEquals(0,users.list("",0,10).size());
     }
+
+    @Test void failedLoginLimitExpiresAndIsSharedThroughDatabase(){
+        tx(()->users.create("alice","Alice",password));
+        tx(()->{users.loginFailed("alice",2,1000,100);return null;});assertFalse(users.loginLocked("ALICE",100));
+        tx(()->{users.loginFailed("alice",2,1000,100);return null;});assertTrue(users.loginLocked("alice",1099));
+        assertFalse(users.loginLocked("alice",1100));
+        var other=provider("tenant",(n,s,id)->{});assertTrue(other.loginLocked("alice",100));
+        var principal=login("alice",password);assertFalse(tx(()->users.loginSucceeded(principal,100)));
+        assertTrue(tx(()->users.loginSucceeded(principal,1100)));assertFalse(users.loginLocked("alice",1100));
+    }
+    @Test void staleCredentialCannotCompleteConcurrentAuthentication(){
+        var user=tx(()->users.create("alice","Alice",password));var principal=login("alice",password);
+        tx(()->{users.resetPassword(user.id(),user.version(),"Changed-passphrase-456");return null;});
+        assertFalse(tx(()->users.loginSucceeded(principal,100)));
+    }
 }

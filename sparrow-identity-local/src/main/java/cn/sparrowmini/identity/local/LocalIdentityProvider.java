@@ -56,7 +56,7 @@ public class LocalIdentityProvider implements UserLifecycleProvider, UserDetails
     @Transactional
     public void resetPassword(String id,long expectedVersion,String password){
         guard.require(namespace,"reset-credential",id);requireTransaction();validatePassword(password);
-        var account=locked(id,expectedVersion);account.passwordHash=encoder.encode(password);account.credentialVersion++;em.flush();
+        var account=locked(id,expectedVersion);account.passwordHash=encoder.encode(password);account.credentialVersion++;account.failedAttempts=0;account.lockedUntil=0;em.flush();
     }
     @Transactional(readOnly=true)
     public UserDetails loadUserByUsername(String username){
@@ -72,6 +72,28 @@ public class LocalIdentityProvider implements UserLifecycleProvider, UserDetails
             .where(cb.equal(root.get("id"),principal.subjectId()),cb.equal(root.get("namespace"),namespace));
         var rows=em.createQuery(q).getResultList();
         return rows.size()==1 && Boolean.TRUE.equals(rows.get(0).get(0)) && Objects.equals(rows.get(0).get(1),principal.credentialVersion());
+    }
+    /** Authentication-only operations; counts are shared by every node using this database. */
+    @Transactional(readOnly=true)
+    public boolean loginLocked(String username,long now){return findLogin(normalize(username)).map(a->a.lockedUntil>now).orElse(false);}
+    @Transactional
+    public void loginFailed(String username,int maximum,long lockMillis,long now){
+        if(maximum<1 || lockMillis<1)throw new IllegalArgumentException("Invalid login limits");requireTransaction();
+        var found=findLogin(normalize(username));if(found.isEmpty())return;
+        var account=found.get();em.refresh(account,LockModeType.PESSIMISTIC_WRITE);
+        if(account.lockedUntil>now)return;
+        if(account.lockedUntil!=0){account.failedAttempts=0;account.lockedUntil=0;}
+        account.failedAttempts++;
+        if(account.failedAttempts>=maximum)account.lockedUntil=Math.addExact(now,lockMillis);
+        em.flush();
+    }
+    @Transactional
+    public boolean loginSucceeded(LocalPrincipal principal,long now){
+        requireTransaction();if(!namespace.equals(principal.namespace()))return false;
+        var account=em.find(LocalAccount.class,principal.subjectId(),LockModeType.PESSIMISTIC_WRITE);if(account==null)return false;
+        em.refresh(account);
+        if(!account.enabled || account.credentialVersion!=principal.credentialVersion() || account.lockedUntil>now)return false;
+        if(account.failedAttempts!=0 || account.lockedUntil!=0){account.failedAttempts=0;account.lockedUntil=0;em.flush();}return true;
     }
     private Optional<LocalAccount> findLogin(String login){
         var cb=em.getCriteriaBuilder();var q=cb.createQuery(LocalAccount.class);var root=q.from(LocalAccount.class);

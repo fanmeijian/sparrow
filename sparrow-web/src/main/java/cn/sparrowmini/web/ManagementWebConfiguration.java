@@ -53,6 +53,11 @@ public class ManagementWebConfiguration {
     @Import(FileReferenceController.class)
     static class FileReferenceEndpoints { }
     @Configuration(proxyBeanMethods=false)
+    @ConditionalOnClass(cn.sparrowmini.system.audit.AuditService.class)
+    @ConditionalOnBean(cn.sparrowmini.system.audit.AuditService.class)
+    @Import(AuditController.class)
+    static class AuditEndpoints { }
+    @Configuration(proxyBeanMethods=false)
     @ConditionalOnBean({CurrentActorProvider.class,FunctionPermissionEvaluator.class})
     @Import(SessionController.class)
     static class SessionEndpoint { }

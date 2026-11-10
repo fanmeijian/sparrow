@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 let session, active, generation = 0;
-const modules = [['users','用户'],['roles','角色与功能授权'],['groups','群组'],['policies','数据策略'],['dictionaries','字典'],['files','文件']];
+const modules = [['users','用户'],['roles','角色与功能授权'],['groups','群组'],['policies','数据策略'],['dictionaries','字典'],['files','文件'],['audit','管理审计']];
 const can = (module, scope) => session.permissions.some(p => p.resource === `admin.${module}` && p.scope === scope);
 const notice = (message, error = false) => { $('notice').textContent = message; $('notice').className = error ? 'error' : ''; };
 const node = (tag, text) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; return n; };
@@ -98,6 +98,9 @@ async function show(module, offset = 0) {
         card.append(form('添加条目',[['code','编码'],['label','名称'],['order','排序','number','0']],async v=>{await request(path,'POST',v);await reload();},manage));content.append(card);
       })]));
       content.append(form('创建字典',[['code','编码'],['name','名称']],async v=>{await request(base,'POST',v);await reload();},manage));pager(content,rows.length,offset,module);
+    } else if (module === 'audit') {
+      const rows=await request(`${base}?offset=${offset}&limit=50`);
+      content.append(table(rows.map(r=>({...r,occurredAt:new Date(r.occurredAt).toLocaleString()})),[['occurredAt','时间'],['subject','主体'],['operation','操作'],['target','目标'],['outcome','结果']]));pager(content,rows.length,offset,module);
     } else if (module === 'files') {
       const rows=await request(`${base}?offset=${offset}&limit=50`);
       content.append(table(rows,[['name','名称'],['size','字节数'],['state','状态'],['id','文件 ID']],r=>[

@@ -92,4 +92,31 @@ class AdminHttpTest {
         http.perform(get("/sparrow-admin/index.html").session(session)).andExpect(status().isOk());
         http.perform(get("/sparrow-admin/admin.js").session(session)).andExpect(status().isOk());
     }
+
+    @Test void lockedAccountCannotFallBackToAnotherAuthenticationProvider()throws Exception{
+        for(int i=0;i<5;i++)http.perform(formLogin().user(reader.username()).password("incorrect")).andExpect(redirectedUrl("/login?error"));
+        http.perform(formLogin().user(reader.username()).password(PASSWORD)).andExpect(redirectedUrl("/login?error"));
+        access.initialize(()->{var current=users.get(reader.id());users.resetPassword(reader.id(),current.version(),PASSWORD);});
+        assertNotNull(login(reader));
+    }
+
+    @Autowired cn.sparrowmini.web.IdentityController userCommands;
+    @Test void auditRecordsOutcomesWithoutPasswords()throws Exception{
+        var session=login(admin);
+        http.perform(put("/api/admin/users/"+reader.id()).session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":"+reader.version()+",\"displayName\":\"Audit update\"}")).andExpect(status().isOk());
+        var result=http.perform(get("/api/admin/audit").session(session)).andExpect(status().isOk()).andReturn();
+        String json=result.getResponse().getContentAsString();assertTrue(json.contains("SUCCEEDED"));assertFalse(json.contains(PASSWORD));assertFalse(json.contains("passwordHash"));assertFalse(json.contains("Audit update"));
+        http.perform(get("/api/admin/audit").session(login(reader))).andExpect(status().isForbidden());
+    }
+    @Test void auditFailureRollsBackBusinessMutation(){
+        var request=new org.springframework.mock.web.MockHttpServletRequest("POST","/api/admin/"+"x".repeat(600));
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(new org.springframework.web.context.request.ServletRequestAttributes(request));
+        var principal=users.loadUserByUsername(admin.username());
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(principal,null,List.of()));
+        String username="rollback-"+UUID.randomUUID();
+        try{assertThrows(IllegalArgumentException.class,()->userCommands.create(new cn.sparrowmini.web.IdentityController.Create(username,"Rollback",PASSWORD)));}
+        finally{org.springframework.security.core.context.SecurityContextHolder.clearContext();org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();}
+        access.initialize(()->assertTrue(users.list(username,0,50).isEmpty()));
+    }
 }

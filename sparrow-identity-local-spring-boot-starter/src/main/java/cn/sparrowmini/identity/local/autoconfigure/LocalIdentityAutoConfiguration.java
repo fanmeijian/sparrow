@@ -35,9 +35,12 @@ public class LocalIdentityAutoConfiguration {
     @EnableWebSecurity
     static class LocalWebSecurity {
         @Bean @ConditionalOnMissingBean(SecurityFilterChain.class)
-        SecurityFilterChain localSecurityFilterChain(HttpSecurity http,LocalIdentityProvider users,PasswordEncoder encoder) throws Exception {
+        SecurityFilterChain localSecurityFilterChain(HttpSecurity http,LocalIdentityProvider users,PasswordEncoder encoder,Environment env) throws Exception {
             var dao=new DaoAuthenticationProvider(users);dao.setPasswordEncoder(encoder);
-            http.authenticationProvider(dao)
+            var limited=new LimitedAuthenticationProvider(dao,users,
+                env.getProperty("sparrow.identity.login.max-failures",Integer.class,5),
+                env.getProperty("sparrow.identity.login.lock-millis",Long.class,900000L),java.time.Clock.systemUTC());
+            http.authenticationManager(new org.springframework.security.authentication.ProviderManager(limited))
                 .authorizeHttpRequests(authorize->authorize.anyRequest().authenticated())
                 .formLogin(form->form.permitAll())
                 .logout(logout->logout.permitAll())
