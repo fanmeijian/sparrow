@@ -13,9 +13,17 @@
     <module>../sparrow-security-api</module>
     <module>../sparrow-rbac-core</module>
     <module>../sparrow-data-policy-core</module>
+    <module>../sparrow-data-policy-jpa</module>
   </modules>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>3.5.5</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter</artifactId>

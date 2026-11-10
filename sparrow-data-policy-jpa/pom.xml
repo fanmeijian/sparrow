@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>cn.sparrowmini</groupId>
+    <artifactId>sparrow-platform</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+    <relativePath>../sparrow-platform/pom.xml</relativePath>
+  </parent>
+  <artifactId>sparrow-data-policy-jpa</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>cn.sparrowmini</groupId>
+      <artifactId>sparrow-data-policy-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>6.6.26.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

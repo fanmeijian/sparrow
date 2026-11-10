@@ -24,8 +24,8 @@ mvn -f sparrow-platform/pom.xml test
 
 ## 当前边界
 
-当前 DataAccessPlan 在可信内存记录上判断，不能用于“先分页再过滤”的数据库执行。条件目前支持 All、Equal、And；类型按 Java 值精确匹配，不隐式转换。不支持的值类型明确失败。
+DataAccessPlan 可对可信记录求值；data-policy-jpa 已提供数据库侧行过滤、分页、计数、逐行字段裁剪及受控 patch，禁止先分页再过滤。条件目前支持 All、None、Equal、In、And、Or、Not；类型按 Java 值精确匹配，不隐式转换。不支持的值类型明确失败。
 
-尚未实现：资源字段 schema 校验、更多条件/操作符、JPA Specification/Criteria 编译与受保护访问入口、数据策略持久化/发布版本、字段追加约束和脱敏、本地账号/角色数据库及 Spring Security 集成、群组管理和管理页面。已有旧模块未切换，不能将本切片视为已完成生产迁移。
+尚未实现：关联与复合主键的查询映射、更多条件/操作符、数据策略持久化/发布版本、脱敏、本地账号/角色数据库及 Spring Security 集成、群组管理和管理页面。已有旧模块未切换，不能将本切片视为已完成生产迁移。
 
 完整目标见 [架构设计](../docs/refactoring/architecture.md) 和 [迁移清单](../docs/refactoring/migration-checklist.md)。
