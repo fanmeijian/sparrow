@@ -1,5 +1,9 @@
 package cn.sparrowmini.admin;
 
+import cn.sparrowmini.data.jpa.query.JpaResource;
+
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.security.api.*;
 import cn.sparrowmini.identity.api.*;
 import cn.sparrowmini.identity.local.*;
@@ -82,7 +86,7 @@ public class AdminServices {
     }
     @Bean cn.sparrowmini.file.policy.FilePolicyService businessFiles(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,JpaRoleProvider roles,JpaPolicyStore policies,StorageRegistry storage,FileReferenceService references){
         return new cn.sparrowmini.file.policy.FilePolicyService(em,namespace,access,roles,policies,(actor,permission)->
-            new cn.sparrowmini.datapolicy.core.Condition.Not(new cn.sparrowmini.datapolicy.core.Condition.In("id",new ArrayList<>(references.referencedFileIds()))),storage,references);
+            new cn.sparrowmini.core.query.Condition.Not(new cn.sparrowmini.core.query.Condition.In("id",new ArrayList<>(references.referencedFileIds()))),storage,references);
     }
     @Bean FileService files(EntityManager em,StorageRegistry storage,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,FileReferenceService references){
         return new FileService(em,storage,namespace,(n,op,id,context)->{

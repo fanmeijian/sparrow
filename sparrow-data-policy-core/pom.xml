@@ -9,6 +9,7 @@
   </parent>
   <artifactId>sparrow-data-policy-core</artifactId>
   <dependencies>
+<dependency><groupId>cn.sparrowmini</groupId><artifactId>sparrow-core</artifactId><version>${project.version}</version></dependency>
     <dependency>
       <groupId>cn.sparrowmini</groupId>
       <artifactId>sparrow-security-api</artifactId>

@@ -1,4 +1,6 @@
 package cn.sparrowmini.datapolicy.core;
+
+import cn.sparrowmini.core.query.Condition;
 import java.util.*;
 import cn.sparrowmini.security.api.*;
 public record DataRule(Subject subject, PermissionRequest permission, Effect effect, Condition condition, Target target, Set<String> fields) {

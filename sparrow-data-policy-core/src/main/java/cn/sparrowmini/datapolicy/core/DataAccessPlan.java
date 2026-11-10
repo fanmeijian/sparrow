@@ -1,5 +1,7 @@
 package cn.sparrowmini.datapolicy.core;
 
+import cn.sparrowmini.core.query.Condition;
+
 import java.util.*;
 import cn.sparrowmini.security.api.*;
 

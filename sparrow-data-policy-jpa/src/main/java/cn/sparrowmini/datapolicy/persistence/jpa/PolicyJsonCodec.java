@@ -1,5 +1,7 @@
 package cn.sparrowmini.datapolicy.persistence.jpa;
 
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.datapolicy.core.*;
 import cn.sparrowmini.security.api.*;
 import com.fasterxml.jackson.databind.*;

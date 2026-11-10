@@ -91,7 +91,7 @@ ActorContext 归 security-api，避免 core 和安全模块分别定义身份模
 
 ### 4.3 查询与写入
 
-统一查询路径：请求校验 → 功能授权 → 数据约束（按资源接入方式由框架或宿主提供）→ 受限查询 → 分页/投影结果。用户过滤 AST 属于 data-jpa；权限条件 AST 属于 data-policy-core，由 data-policy-jpa 转为查询约束。首版不额外建立通用表达式平台，也不允许 data-policy-core 依赖 data-jpa。
+统一查询路径：请求校验 → 功能授权 → 数据约束（按资源接入方式由框架或宿主提供）→ 受限查询 → 分页/投影结果。类型化布尔条件 Condition 由通用查询与权限判定复用，归属无框架的 sparrow-core；data-jpa 提供 JpaResource 注册表与 Specification/Criteria 编译，data-policy-core 负责授权组合，data-policy-jpa 提供受控行/字段执行。通用查询不依赖授权模块，data-policy-core 不依赖 data-jpa，也不提供任意代码表达式平台。
 
 - 过滤字段白名单、类型检查、表达式深度/长度限制、完整输入消费和明确错误位置。
 - 使用 JPA Metamodel 解析继承字段、嵌入字段和关联，不依赖 getDeclaredField 单层查找。

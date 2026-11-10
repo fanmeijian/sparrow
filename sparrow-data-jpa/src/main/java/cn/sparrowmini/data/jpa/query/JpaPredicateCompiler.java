@@ -1,6 +1,6 @@
-package cn.sparrowmini.datapolicy.persistence.jpa;
+package cn.sparrowmini.data.jpa.query;
 
-import cn.sparrowmini.datapolicy.core.Condition;
+import cn.sparrowmini.core.query.Condition;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import java.util.*;
@@ -8,9 +8,10 @@ import java.util.*;
 public final class JpaPredicateCompiler {
     private JpaPredicateCompiler() { }
     public static <T> Specification<T> specification(JpaResource<T> resource, Condition condition) {
+        Condition.fields(condition).forEach(resource::requireField);
         return (root, query, cb) -> compile(resource, root, cb, condition, 0);
     }
-    static <T> Predicate compile(JpaResource<T> resource, Root<T> root, CriteriaBuilder cb, Condition c, int depth) {
+    public static <T> Predicate compile(JpaResource<T> resource, Root<T> root, CriteriaBuilder cb, Condition c, int depth) {
         if (depth > 64) throw new IllegalArgumentException("Expression nesting limit");
         if (c instanceof Condition.All) return cb.conjunction();
         if (c instanceof Condition.None) return cb.disjunction();

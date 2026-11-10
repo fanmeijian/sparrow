@@ -1,4 +1,4 @@
-package cn.sparrowmini.datapolicy.core;
+package cn.sparrowmini.core.query;
 
 import java.util.*;
 
@@ -37,12 +37,22 @@ public sealed interface Condition {
         public boolean matches(Map<String, Object> row) { return !term.matches(row); }
     }
     static Set<String> fields(Condition condition) {
+        record Entry(Condition condition, int depth) {}
         Set<String> result = new HashSet<>();
-        if (condition instanceof Equal c) result.add(c.field());
-        else if (condition instanceof In c) result.add(c.field());
-        else if (condition instanceof And c) c.terms().forEach(t -> result.addAll(fields(t)));
-        else if (condition instanceof Or c) c.terms().forEach(t -> result.addAll(fields(t)));
-        else if (condition instanceof Not c) result.addAll(fields(c.term()));
+        Deque<Entry> pending = new ArrayDeque<>();
+        pending.push(new Entry(Objects.requireNonNull(condition), 0));
+        int visited = 0;
+        while (!pending.isEmpty()) {
+            Entry entry = pending.pop();
+            if (entry.depth() > 64 || ++visited > 10000)
+                throw new IllegalArgumentException("Expression complexity limit");
+            Condition current = entry.condition();
+            if (current instanceof Equal c) result.add(c.field());
+            else if (current instanceof In c) result.add(c.field());
+            else if (current instanceof And c) c.terms().forEach(t -> pending.push(new Entry(t,entry.depth()+1)));
+            else if (current instanceof Or c) c.terms().forEach(t -> pending.push(new Entry(t,entry.depth()+1)));
+            else if (current instanceof Not c) pending.push(new Entry(c.term(),entry.depth()+1));
+        }
         return Set.copyOf(result);
     }
     private static boolean equalValue(Object left, Object right) {

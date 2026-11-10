@@ -11,7 +11,7 @@ parent = ET.parse(ROOT / 'sparrow-platform/pom.xml').getroot()
 modules = {Path(n.text).name: (ROOT / 'sparrow-platform' / n.text).resolve()
            for n in parent.findall('m:modules/m:module', NS)}
 errors, graph, types = [], {}, {}
-pure = {'sparrow-security-api', 'sparrow-identity-api', 'sparrow-rbac-core',
+pure = {'sparrow-core', 'sparrow-security-api', 'sparrow-identity-api', 'sparrow-rbac-core',
         'sparrow-data-policy-core', 'sparrow-group-core', 'sparrow-storage-api'}
 for name, directory in modules.items():
     pom = ET.parse(directory / 'pom.xml').getroot()
@@ -59,7 +59,7 @@ def visit(name):
     visited.add(name)
 for name in modules:
     visit(name)
-for name in ('sparrow-rbac-core', 'sparrow-rbac-jpa', 'sparrow-file-service', 'sparrow-system'):
+for name in ('sparrow-core', 'sparrow-data-jpa', 'sparrow-rbac-core', 'sparrow-rbac-jpa', 'sparrow-file-service', 'sparrow-system'):
     pending, seen = list(graph[name]), set()
     while pending:
         child = pending.pop()
@@ -68,6 +68,8 @@ for name in ('sparrow-rbac-core', 'sparrow-rbac-jpa', 'sparrow-file-service', 's
         seen.add(child)
         if child.startswith('sparrow-data-policy'):
             errors.append(f'{name}: forces optional data-policy through {child}')
+        if name in ('sparrow-core', 'sparrow-data-jpa') and child.startswith(('sparrow-rbac', 'sparrow-security', 'sparrow-identity')):
+            errors.append(f'{name}: generic query depends on authorization/identity through {child}')
         pending.extend(graph[child])
 if errors:
     print('\n'.join(errors), file=sys.stderr)

@@ -1,5 +1,11 @@
 package cn.sparrowmini.datapolicy.persistence.jpa;
 
+import cn.sparrowmini.data.jpa.query.JpaPredicateCompiler;
+
+import cn.sparrowmini.data.jpa.query.JpaResource;
+
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.datapolicy.core.*;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;

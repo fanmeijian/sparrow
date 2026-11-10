@@ -1,8 +1,10 @@
 package cn.sparrowmini.datapolicy.autoconfigure;
 
+import cn.sparrowmini.data.jpa.query.JpaResource;
+
 import cn.sparrowmini.datapolicy.persistence.jpa.*;
 import cn.sparrowmini.datapolicy.core.DataRule;
-import cn.sparrowmini.datapolicy.core.Condition;
+import cn.sparrowmini.core.query.Condition;
 import cn.sparrowmini.security.api.*;
 import jakarta.persistence.*;
 import org.junit.jupiter.api.Test;

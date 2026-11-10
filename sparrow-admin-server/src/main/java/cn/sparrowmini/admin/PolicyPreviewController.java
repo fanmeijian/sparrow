@@ -1,5 +1,7 @@
 package cn.sparrowmini.admin;
 
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.security.api.*;
 import cn.sparrowmini.identity.local.LocalIdentityProvider;
 import cn.sparrowmini.rbac.persistence.jpa.JpaRoleProvider;

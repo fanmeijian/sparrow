@@ -9,6 +9,7 @@
   </parent>
   <artifactId>sparrow-data-policy-jpa</artifactId>
   <dependencies>
+<dependency><groupId>cn.sparrowmini</groupId><artifactId>sparrow-data-jpa</artifactId><version>${project.version}</version></dependency>
     <dependency>
       <groupId>cn.sparrowmini</groupId>
       <artifactId>sparrow-data-policy-core</artifactId>

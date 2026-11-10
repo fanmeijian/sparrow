@@ -1,4 +1,4 @@
-package cn.sparrowmini.datapolicy.persistence.jpa;
+package cn.sparrowmini.data.jpa.query;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.Attribute;

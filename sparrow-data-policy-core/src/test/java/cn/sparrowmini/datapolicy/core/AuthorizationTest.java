@@ -1,5 +1,7 @@
 package cn.sparrowmini.datapolicy.core;
 
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.security.api.*;
 import cn.sparrowmini.rbac.core.*;
 import org.junit.jupiter.api.Test;

@@ -32,6 +32,8 @@
     <module>../sparrow-tree-jpa</module>
     <module>../sparrow-rbac-spring-boot-starter</module>
     <module>../sparrow-data-policy-spring-boot-starter</module>
+    <module>../sparrow-core</module>
+    <module>../sparrow-data-jpa</module>
   </modules>
   <dependencyManagement>
     <dependencies>

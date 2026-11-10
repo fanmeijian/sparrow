@@ -1,5 +1,9 @@
 package cn.sparrowmini.file.policy;
 
+import cn.sparrowmini.data.jpa.query.JpaResource;
+
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.file.*;
 import cn.sparrowmini.storage.api.StorageRegistry;
 import cn.sparrowmini.security.api.*;

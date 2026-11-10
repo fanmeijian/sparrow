@@ -1,5 +1,7 @@
 package cn.sparrowmini.datapolicy.persistence.jpa;
 
+import cn.sparrowmini.data.jpa.query.JpaResource;
+
 import cn.sparrowmini.security.api.PermissionRequest;
 import java.util.*;
 /** Every declared framework resource has a concrete JPA schema and its required project restrictions. */

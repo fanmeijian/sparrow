@@ -1,5 +1,7 @@
 package cn.sparrowmini.admin;
 
+import cn.sparrowmini.core.query.Condition;
+
 import cn.sparrowmini.identity.local.*;
 import cn.sparrowmini.rbac.persistence.jpa.*;
 import cn.sparrowmini.group.persistence.jpa.*;
@@ -139,12 +141,12 @@ class AdminHttpTest {
         try{version=policies.draft(permission).version();}catch(NoSuchElementException missing){version=null;}
         var saved=policies.saveDraft(permission,version,rules);policies.publish(permission,saved.version());
     });}
-    cn.sparrowmini.datapolicy.core.DataRule rule(String role,String scope,cn.sparrowmini.datapolicy.core.Condition condition,cn.sparrowmini.datapolicy.core.DataRule.Target target,Set<String> fields){
+    cn.sparrowmini.datapolicy.core.DataRule rule(String role,String scope,cn.sparrowmini.core.query.Condition condition,cn.sparrowmini.datapolicy.core.DataRule.Target target,Set<String> fields){
         return new cn.sparrowmini.datapolicy.core.DataRule(new Subject(Subject.Kind.ROLE,role),new PermissionRequest("file.object",scope),Effect.ALLOW,condition,target,fields);
     }
     @Test void fileRowsFieldsAndDirectDownloadsUseTheSamePolicy()throws Exception{
         var one=sampleFile("one.txt");var two=sampleFile("two.txt");String role=businessRole("read","download");
-        var condition=new cn.sparrowmini.datapolicy.core.Condition.Equal("id",one.id());
+        var condition=new cn.sparrowmini.core.query.Condition.Equal("id",one.id());
         publish("read",List.of(rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of()),rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.FIELD_READ,Set.of("id"))));
         publish("download",List.of(rule(role,"download",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of())));
         var session=login(reader);
@@ -158,13 +160,13 @@ class AdminHttpTest {
         http.perform(get("/api/files?size=1").session(session)).andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
     }
     @Test void fileRenameCannotEscapeItsOriginalRange()throws Exception{
-        var file=sampleFile("fixed.txt");String role=businessRole("update");var condition=new cn.sparrowmini.datapolicy.core.Condition.Equal("name","fixed.txt");
+        var file=sampleFile("fixed.txt");String role=businessRole("update");var condition=new cn.sparrowmini.core.query.Condition.Equal("name","fixed.txt");
         publish("update",List.of(rule(role,"update",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of()),rule(role,"update",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.FIELD_WRITE,Set.of("name"))));
         http.perform(put("/api/files/"+file.id()).session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"version\":"+file.version()+",\"name\":\"outside.txt\"}")).andExpect(status().isForbidden());
         access.initialize(()->assertEquals("fixed.txt",fileAdministration.get(file.id(),null).name()));
     }
     @Test void businessParentRestrictionFurtherNarrowsFilePolicy()throws Exception{
-        var file=sampleFile("attached.txt");String role=businessRole("read","download");var condition=new cn.sparrowmini.datapolicy.core.Condition.Equal("id",file.id());
+        var file=sampleFile("attached.txt");String role=businessRole("read","download");var condition=new cn.sparrowmini.core.query.Condition.Equal("id",file.id());
         publish("read",List.of(rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of()),rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.FIELD_READ,Set.of("id"))));
         publish("download",List.of(rule(role,"download",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of())));
         new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(status->new cn.sparrowmini.file.FileReferenceService(em,"default",(op,id,r,record)->{}).attach(file.id(),"invoice","private","receipt"));
