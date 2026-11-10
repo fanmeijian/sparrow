@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
-public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProvider,FunctionPermissionEvaluator {
+public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProvider,RolePermissionManager,FunctionPermissionEvaluator {
     private final EntityManager em;
     private final String namespace;
     private final RbacManagementGuard guard;
