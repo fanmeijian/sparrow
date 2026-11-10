@@ -17,6 +17,9 @@
     <module>../sparrow-identity-api</module>
     <module>../sparrow-identity-local</module>
     <module>../sparrow-identity-local-spring-boot-starter</module>
+    <module>../sparrow-rbac-jpa</module>
+    <module>../sparrow-group-core</module>
+    <module>../sparrow-group-jpa</module>
   </modules>
   <dependencyManagement>
     <dependencies>

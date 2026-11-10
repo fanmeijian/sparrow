@@ -2,6 +2,7 @@
   <persistence-unit name="policy-test" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
     <class>cn.sparrowmini.datapolicy.persistence.jpa.OrderRecord</class>
+    <class>cn.sparrowmini.datapolicy.persistence.jpa.PolicyDocument</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>

@@ -1,0 +1,15 @@
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0">
+  <persistence-unit name="group-test" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <class>cn.sparrowmini.group.persistence.jpa.GroupNamespace</class>
+<class>cn.sparrowmini.group.persistence.jpa.GroupNodeEntity</class>
+<class>cn.sparrowmini.group.persistence.jpa.GroupMemberEntity</class>
+<class>cn.sparrowmini.group.persistence.jpa.GroupEdgeEntity</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
+      <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:groups;DB_CLOSE_DELAY=-1"/>
+      <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
+    </properties>
+  </persistence-unit>
+</persistence>
