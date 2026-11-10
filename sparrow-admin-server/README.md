@@ -1,6 +1,6 @@
 # Sparrow 独立管理服务器
 
-Java 17 / Spring Boot 3.5.5。此宿主装配本地账号、角色、群组、文件存储、可选字典和数据策略管理；核心模块仍允许业务项目自行选择身份和角色 provider。此宿主自身采用本地身份，Keycloak 的实际适配留在后续项目实现。
+Java 17 / Spring Boot 3.5.5。此宿主装配本地账号、角色、群组、文件存储、可选字典和数据策略管理；核心模块仍允许业务项目自行选择身份和角色 provider。此宿主自身采用本地身份，Keycloak 项目可使用独立 keycloak-spring-boot-starter 装配，不能直接把此本地宿主当成已切换的 Keycloak 管理宿主。
 
 从仓库根目录构建：
 

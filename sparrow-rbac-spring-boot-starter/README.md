@@ -8,4 +8,4 @@
 
 AssignedRolePermissionEvaluator 每次读取当前成员角色，再组合注册的功能授权，不信任请求传入的旧角色集合。支持角色资格证据的 evaluator 必须显式声明 supportsRoleEvidence，并返回实际允许该功能的角色；数据权限据此绑定同一角色的行规则。
 
-本模块不提供 Keycloak 客户端；Keycloak 角色和认证适配器由项目后续实现。参考 src/test 下的外部目录、委派授权和即时撤权场景。
+本模块不内置 Keycloak 客户端；可组合 [rbac-keycloak](../sparrow-rbac-keycloak/README.md) 和 [Keycloak starter](../sparrow-keycloak-spring-boot-starter/README.md)。参考 src/test 下的外部目录、委派授权和即时撤权场景。

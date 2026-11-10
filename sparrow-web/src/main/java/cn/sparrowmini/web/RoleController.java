@@ -16,6 +16,7 @@ public class RoleController {
     public record State(long version,boolean enabled) { }
     public record Assignment(Subject.Kind kind,String subject) { }
     public record Grant(String resource,String scope,Effect effect) { }
+    @GetMapping("/capabilities") public java.util.Set<RoleCapability> capabilities(){return roles.capabilities();}
     @GetMapping public List<RoleProfile> list(@RequestParam(defaultValue="0")int offset,@RequestParam(defaultValue="50")int limit){return roles.list(offset,limit);}
     @GetMapping("/{id}/members") public java.util.Set<Subject> members(@PathVariable String id){return assignments.members(id);}
     @GetMapping("/{id}/permissions") public List<RoleGrant> grants(@PathVariable String id){return permissions.grants(id);}

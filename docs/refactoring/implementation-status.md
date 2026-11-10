@@ -116,3 +116,11 @@ Condition 移入无框架的 core；JpaResource 与 JpaPredicateCompiler 移入 
 本阶段同时补充根 README、独立模块接入示例并更新架构中的实际包归属。架构检查覆盖 23 个模块、115 个生产类型，新增通用层不得依赖身份/授权的约束。源码归属清单、薄审计基类、本地角色继承、复杂查询适配及其余设计与实现差异仍需后续闭合；浏览器视觉验收仍未完成。历史数据库迁移继续排除在本轮之外。
 
 完整离线 Maven package 成功，210 个 Java 测试与 4 个前端能力测试通过，零失败、错误或跳过；前端脚本语法检查通过。第十一阶段提交 cd7afd6，未推送。
+
+## 第十三阶段：Keycloak 平台适配与 shuita 接入
+
+应用户要求将通用 Keycloak 能力放回平台，新增 identity-keycloak、rbac-keycloak、keycloak-spring-boot-starter。包含稳定主体映射、固定 realm 的管理传输、用户生命周期、有效角色查询、成员分配和显式配置装配。RoleDirectoryProvider 新增能力声明，避免伪造 Keycloak 角色启停；外部用户更新以 version=-1 明示无乐观锁，不承诺跨系统事务。
+
+完整 reactor 构建通过，227 个 Java 测试通过；新增 17 个用例覆盖 JWT 主体、角色来源、管理授权前置、远端错误脱敏、密码操作、有效角色刷新、目录隔离、成员 REST 路径和装配失败。后续新增 createDisabled 与停用用户无有效角色的测试通过，当前共 229 个 Java 测试报告无失败；角色能力 HTTP 接口也通过所属模块测试。架构检查通过：26 个模块、122 个生产类型。
+
+真实 Keycloak 服务账号尚待配置，模拟 HTTP 测试不能替代部署联调。shuita 的代码接入、验证和运行配置在其 backend/README-sparrow.md 单独记录。此前记录的剩余框架能力未因此自动完成。

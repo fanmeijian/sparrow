@@ -8,8 +8,8 @@ Sparrow 是面向 Java 业务项目的可组合基础框架。3.0 重构将身�
 | --- | --- |
 | 通用基础 | core：类型化条件；data-jpa：字段注册与 Specification/Criteria 查询 |
 | 安全契约 | security-api：主体、功能决策；security-spring：方法授权适配 |
-| 身份 | identity-api：可替换接口；identity-local 及 starter：本地密码、登录锁定、会话失效 |
-| 功能授权 | rbac-core/jpa 及 starter：角色、成员、资源/scope 授权，可替换角色目录 |
+| 身份 | identity-api：可替换接口；identity-local：本地密码与会话；identity-keycloak 及 starter：外部身份与管理 |
+| 功能授权 | rbac-core/jpa 及 starter：角色、成员、资源/scope 授权，可替换角色目录；rbac-keycloak：外部角色适配 |
 | 可选数据权限 | data-policy-core/jpa 及 starter：发布规则、行范围、逐行字段读写、追加约束 |
 | 群组与层级 | group-core/jpa：嵌套群组；tree-jpa：独立 TREE/DAG 节点关系 |
 | 文件 | storage-api/local、file-service：存储及引用；file-policy：可选数据权限 |
@@ -39,4 +39,4 @@ node --test sparrow-admin-server/test/ui-capabilities.test.mjs
 - [通用查询](sparrow-data-jpa/README.md)
 - [原 common 分析](sparrow-common/README.md)与[原 common-service 分析](sparrow-common-service/README.md)
 
-历史 common/common-service 及旧业务模块保留用于源码归属核对，未纳入 3.0 reactor；旧调用方尚未全部切换。历史数据库迁移按约定留待用户单独处理，Keycloak 实际适配器由后续项目实现。实施记录中的剩余项仍需继续完成，架构设计不等于全部已经交付。
+历史 common/common-service 及旧业务模块保留用于源码归属核对，未纳入 3.0 reactor；旧调用方尚未全部切换。历史数据库迁移按约定留待用户单独处理，Keycloak 适配器已提供，真实部署联调尚未完成。实施记录中的剩余项仍需继续完成，架构设计不等于全部已经交付。

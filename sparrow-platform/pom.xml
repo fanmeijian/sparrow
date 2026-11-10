@@ -34,6 +34,9 @@
     <module>../sparrow-data-policy-spring-boot-starter</module>
     <module>../sparrow-core</module>
     <module>../sparrow-data-jpa</module>
+    <module>../sparrow-identity-keycloak</module>
+    <module>../sparrow-rbac-keycloak</module>
+    <module>../sparrow-keycloak-spring-boot-starter</module>
   </modules>
   <dependencyManagement>
     <dependencies>
