@@ -20,6 +20,10 @@
     <module>../sparrow-rbac-jpa</module>
     <module>../sparrow-group-core</module>
     <module>../sparrow-group-jpa</module>
+    <module>../sparrow-system</module>
+    <module>../sparrow-storage-api</module>
+    <module>../sparrow-storage-local</module>
+    <module>../sparrow-file-service</module>
   </modules>
   <dependencyManagement>
     <dependencies>
