@@ -14,8 +14,8 @@ public class NavigationService {
     public record VisibleItem(String code,String parent,String title,String href,String sortOrder) { }
     public record Snapshot(Long version,List<Item> items){public Snapshot{items=List.copyOf(items);}}
     @FunctionalInterface public interface Guard{void require(String operation);}
-    private final EntityManager em;private final String namespace;private final Guard guard;private final FunctionPermissionEvaluator evaluator;private final Set<PermissionRequest> registered;private final ObjectMapper json=new ObjectMapper();
-    public NavigationService(EntityManager em,String namespace,Guard guard,FunctionPermissionEvaluator evaluator,Set<PermissionRequest> registered){this.em=Objects.requireNonNull(em);this.namespace=Objects.requireNonNull(namespace);this.guard=Objects.requireNonNull(guard);this.evaluator=Objects.requireNonNull(evaluator);this.registered=Set.copyOf(registered);}
+    private final EntityManager em;private final String namespace;private final Guard guard;private final FunctionPermissionEvaluator evaluator;private final PermissionCatalog registered;private final ObjectMapper json=new ObjectMapper();
+        public NavigationService(EntityManager em,String namespace,Guard guard,FunctionPermissionEvaluator evaluator,PermissionCatalog registered){this.em=Objects.requireNonNull(em);this.namespace=Objects.requireNonNull(namespace);this.guard=Objects.requireNonNull(guard);this.evaluator=Objects.requireNonNull(evaluator);this.registered=Objects.requireNonNull(registered);}
     @Transactional(readOnly=true) public Snapshot get(){guard.require("read");return snapshot();}
     @Transactional public Snapshot save(Long version,List<Item> items){
         guard.require("manage");if(!em.isJoinedToTransaction())throw new IllegalStateException("Active transaction required");validate(items);String document=encode(items);
@@ -39,7 +39,7 @@ public class NavigationService {
         for(var item:items){
             if(item.code()==null||!item.code().matches("[a-zA-Z0-9_.-]{1,100}")||map.put(item.code(),item)!=null)throw new IllegalArgumentException("Invalid navigation code");
             if(item.title()==null||item.title().isBlank()||item.title().length()>200)throw new IllegalArgumentException("Invalid navigation title");
-            if(item.publicVisible()==(item.permission()!=null)||item.permission()!=null&&!registered.contains(item.permission()))throw new IllegalArgumentException("Invalid visibility binding");
+            if(item.publicVisible()==(item.permission()!=null)||item.permission()!=null&&!registered.isEnabled(item.permission()))throw new IllegalArgumentException("Invalid visibility binding");
             try{var uri=new URI(item.href());if(uri.isAbsolute()||uri.getRawAuthority()!=null||!item.href().startsWith("/")||item.href().startsWith("//"))throw new IllegalArgumentException("Only application-relative paths are allowed");}catch(java.net.URISyntaxException|NullPointerException e){throw new IllegalArgumentException("Invalid navigation target",e);}
             try{var order=new BigDecimal(item.sortOrder());if(order.precision()>28||Math.abs((long)order.scale())>8)throw new IllegalArgumentException("Sort precision limit");}catch(NumberFormatException|NullPointerException e){throw new IllegalArgumentException("Invalid sort value",e);}
         }

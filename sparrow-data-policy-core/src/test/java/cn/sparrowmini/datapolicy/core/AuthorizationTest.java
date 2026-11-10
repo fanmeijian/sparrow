@@ -20,7 +20,7 @@ class AuthorizationTest {
  static DataRule rule(String role,Effect effect,Condition condition,DataRule.Target target,String... fields){
   return new DataRule(new Subject(Subject.Kind.ROLE,role),READ,effect,condition,target,Set.of(fields));
  }
- static FunctionDecision decision(List<RoleGrant> grants){return new RolePermissionEvaluator(Set.of(READ),grants).evaluate(ACTOR,READ);}
+ static FunctionDecision decision(List<RoleGrant> grants){return new RolePermissionEvaluator(catalog(Set.of(READ)),grants).evaluate(ACTOR,READ);}
  static FunctionDecision both(){return decision(List.of(new RoleGrant("east",READ,Effect.ALLOW),new RoleGrant("south",READ,Effect.ALLOW)));}
  @ParameterizedTest @MethodSource("combinations")
  void allRoleAndRowGrantCombinations(int n){
@@ -62,8 +62,8 @@ class AuthorizationTest {
  }
  @Test void unrelatedSubjectResourceAndScopeDoNotGrant(){
   var other=new PermissionRequest("sales.order","export");
-  assertFalse(new RolePermissionEvaluator(Set.of(READ),List.of()).evaluate(ACTOR,other).allowed());
-  assertThrows(IllegalArgumentException.class,()->new RolePermissionEvaluator(Set.of(READ),List.of(new RoleGrant("east",other,Effect.ALLOW))));
+  assertFalse(new RolePermissionEvaluator(catalog(Set.of(READ)),List.of()).evaluate(ACTOR,other).allowed());
+  assertThrows(IllegalArgumentException.class,()->new RolePermissionEvaluator(catalog(Set.of(READ)),List.of(new RoleGrant("east",other,Effect.ALLOW))));
   var r=new DataRule(new Subject(Subject.Kind.USER,"another:user"),READ,Effect.ALLOW,new Condition.All(),DataRule.Target.ROW,Set.of());
   assertFalse(new DataAccessPlan(both(),List.of(r)).canAccess(EAST));
  }
@@ -85,4 +85,9 @@ class AuthorizationTest {
   assertThrows(IllegalArgumentException.class,()->new Condition.Equal("owner",new Object()));
   assertThrows(NullPointerException.class,()->new DataAccessPlan(both(),List.of()).restrict(null));
  }
+ static PermissionCatalog catalog(Set<PermissionRequest> values){return new PermissionCatalog(){
+ public Set<PermissionRequest> permissions(){return values;}
+ public boolean exists(PermissionRequest p){return values.contains(p);}
+ public boolean isEnabled(PermissionRequest p){return values.contains(p);}
+ };}
 }

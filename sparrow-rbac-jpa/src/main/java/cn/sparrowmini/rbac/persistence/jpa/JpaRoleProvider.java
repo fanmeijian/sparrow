@@ -12,10 +12,10 @@ public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProv
     private final EntityManager em;
     private final String namespace;
     private final RbacManagementGuard guard;
-    private final Set<PermissionRequest> registered;
+    private final PermissionCatalog registered;
     private final JpaRoleGrantStore permissionStore;
-    public JpaRoleProvider(EntityManager em,String namespace,RbacManagementGuard guard,Set<PermissionRequest> registered){
-        this.em=Objects.requireNonNull(em);this.namespace=Objects.requireNonNull(namespace);this.guard=Objects.requireNonNull(guard);this.registered=Set.copyOf(registered);
+        public JpaRoleProvider(EntityManager em,String namespace,RbacManagementGuard guard,PermissionCatalog registered){
+        this.em=Objects.requireNonNull(em);this.namespace=Objects.requireNonNull(namespace);this.guard=Objects.requireNonNull(guard);this.registered=Objects.requireNonNull(registered);
         this.permissionStore=new JpaRoleGrantStore(em,namespace,registered,this::requireRole,(n,op,id,permission,before,after)->guard.require(n,op,id));
         if(namespace.isBlank() || namespace.length()>100)throw new IllegalArgumentException("Invalid namespace");
     }
@@ -66,7 +66,7 @@ public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProv
         Set<String> roles=new HashSet<>(rolesFor(new Subject(Subject.Kind.USER,actor.subject())));
         for(String group:actor.groups())roles.addAll(rolesFor(new Subject(Subject.Kind.GROUP,group)));
         var current=new ActorContext(actor.subject(),roles,actor.groups());
-        if(!registered.contains(request) || roles.isEmpty())return new FunctionDecision(current,request,false,Set.of());
+        if(!registered.isEnabled(request) || roles.isEmpty())return new FunctionDecision(current,request,false,Set.of());
         return new RolePermissionEvaluator(registered,permissionStore.find(roles,request)).evaluate(current,request);
     }
     @Transactional(readOnly=true)

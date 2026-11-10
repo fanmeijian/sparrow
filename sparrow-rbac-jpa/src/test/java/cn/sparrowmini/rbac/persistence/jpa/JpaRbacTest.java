@@ -17,7 +17,7 @@ class JpaRbacTest {
     @BeforeAll static void open(){emf=Persistence.createEntityManagerFactory("rbac-test");}
     @AfterAll static void close(){emf.close();}
     @BeforeEach void setup(){
-        em=emf.createEntityManager();roles=new JpaRoleProvider(em,"tenant",(n,o,r)->{},Set.of(READ,EXPORT));
+        em=emf.createEntityManager();roles=new JpaRoleProvider(em,"tenant",(n,o,r)->{},catalog(Set.of(READ,EXPORT)));
         tx(()->{for(var type:List.of(RolePermissionEntity.class,RoleAssignmentEntity.class,RoleEntity.class)){
             deleteAll(type);
         }return null;});
@@ -51,14 +51,19 @@ class JpaRbacTest {
     @Test void assignmentIsIdempotentAndNamespaceIsolated(){
         var r=role("reader",ALICE,READ,Effect.ALLOW);
         tx(()->{roles.assign(r.id(),ALICE);return null;});assertEquals(Set.of(r.id()),roles.rolesFor(ALICE));
-        var other=new JpaRoleProvider(em,"other",(n,o,id)->{},Set.of(READ));assertFalse(other.evaluate(ACTOR,READ).allowed());
+        var other=new JpaRoleProvider(em,"other",(n,o,id)->{},catalog(Set.of(READ)));assertFalse(other.evaluate(ACTOR,READ).allowed());
         assertThrows(IllegalArgumentException.class,()->tx(()->{other.assign(r.id(),ALICE);return null;}));
     }
     @Test void guardsAndRegistrationPreventUnauthorizedChanges(){
         var r=role("reader",ALICE,READ,Effect.ALLOW);
-        var denied=new JpaRoleProvider(em,"tenant",(n,o,id)->{throw new SecurityException();},Set.of(READ));
+        var denied=new JpaRoleProvider(em,"tenant",(n,o,id)->{throw new SecurityException();},catalog(Set.of(READ)));
         assertThrows(SecurityException.class,()->tx(()->{denied.assign(r.id(),new Subject(Subject.Kind.USER,"tenant:bob"));return null;}));
         assertThrows(IllegalArgumentException.class,()->tx(()->{roles.grant(r.id(),new PermissionRequest("unknown","read"),Effect.ALLOW);return null;}));
         assertTrue(roles.rolesFor(new Subject(Subject.Kind.USER,"tenant:bob")).isEmpty());
     }
+ static PermissionCatalog catalog(Set<PermissionRequest> values){return new PermissionCatalog(){
+ public Set<PermissionRequest> permissions(){return values;}
+ public boolean exists(PermissionRequest p){return values.contains(p);}
+ public boolean isEnabled(PermissionRequest p){return values.contains(p);}
+ };}
 }

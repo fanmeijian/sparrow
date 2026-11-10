@@ -33,6 +33,6 @@ public final class AdminAccess implements CurrentActorProvider {
         String scope=operation.equals("read")?"read":"manage";
         if(!roles.getObject().evaluate(current(),new PermissionRequest(resource,scope)).allowed())throw new SecurityException("Management permission denied");
     }
-    // Package-private; only the offline bootstrap runner uses this bounded transaction scope.
+    // Package-private; only built-in catalog seeding and offline bootstrap use this bounded scope.
     void initialize(Runnable work){if(initializing.get())throw new IllegalStateException("Nested bootstrap");initializing.set(true);try{work.run();}finally{initializing.remove();}}
 }

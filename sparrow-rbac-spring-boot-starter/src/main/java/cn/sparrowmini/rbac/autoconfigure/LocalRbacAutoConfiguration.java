@@ -2,7 +2,7 @@ package cn.sparrowmini.rbac.autoconfigure;
 
 import cn.sparrowmini.rbac.core.*;
 import cn.sparrowmini.rbac.persistence.jpa.JpaRoleProvider;
-import cn.sparrowmini.security.api.PermissionRequest;
+import cn.sparrowmini.security.api.PermissionCatalog;
 import jakarta.persistence.EntityManager;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.boot.autoconfigure.condition.*;
@@ -18,5 +18,5 @@ import java.util.Set;
 @EnableTransactionManagement(proxyTargetClass=true)
 public class LocalRbacAutoConfiguration {
     @Bean @ConditionalOnMissingBean(RoleDirectoryProvider.class)
-    JpaRoleProvider localRoles(EntityManager em,RbacManagementGuard guard,Set<PermissionRequest> registered,Environment env){return new JpaRoleProvider(em,env.getProperty("sparrow.rbac.namespace",env.getProperty("sparrow.identity.namespace","default")),guard,registered);}
+    JpaRoleProvider localRoles(EntityManager em,RbacManagementGuard guard,PermissionCatalog registered,Environment env){return new JpaRoleProvider(em,env.getProperty("sparrow.rbac.namespace",env.getProperty("sparrow.identity.namespace","default")),guard,registered);}
 }

@@ -11,7 +11,7 @@ class NavigationServiceTest {
     final PermissionRequest read=new PermissionRequest("invoice","read");
     @BeforeAll static void open(){factory=Persistence.createEntityManagerFactory("system-test");}
     @AfterAll static void close(){factory.close();}
-    @BeforeEach void setup(){em=factory.createEntityManager();service=new NavigationService(em,UUID.randomUUID().toString(),op->{},(a,p)->new FunctionDecision(a,p,a.roles().contains("reader"),a.roles().contains("reader")?Set.of("reader"):Set.of()),Set.of(read));}
+    @BeforeEach void setup(){em=factory.createEntityManager();service=new NavigationService(em,UUID.randomUUID().toString(),op->{},(a,p)->new FunctionDecision(a,p,a.roles().contains("reader"),a.roles().contains("reader")?Set.of("reader"):Set.of()),catalog(Set.of(read)));}
     @AfterEach void cleanup(){em.close();}
     <T>T tx(Supplier<T> action){em.getTransaction().begin();try{T value=action.get();em.getTransaction().commit();em.clear();return value;}catch(RuntimeException e){em.getTransaction().rollback();em.clear();throw e;}}
     NavigationService.Item item(String code,String parent,boolean visible,String url){return new NavigationService.Item(code,parent,code,url,"0.125",true,visible,visible?null:read);}
@@ -31,4 +31,9 @@ class NavigationServiceTest {
         assertThrows(OptimisticLockException.class,()->tx(()->service.save(null,List.of())));
         assertTrue(tx(()->service.save(saved.version(),List.of())).items().isEmpty());
     }
+ static PermissionCatalog catalog(Set<PermissionRequest> values){return new PermissionCatalog(){
+ public Set<PermissionRequest> permissions(){return values;}
+ public boolean exists(PermissionRequest p){return values.contains(p);}
+ public boolean isEnabled(PermissionRequest p){return values.contains(p);}
+ };}
 }

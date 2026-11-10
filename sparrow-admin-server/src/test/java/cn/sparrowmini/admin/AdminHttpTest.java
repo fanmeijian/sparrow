@@ -33,7 +33,7 @@ class AdminHttpTest {
     @Autowired LocalIdentityProvider users;
     @Autowired JpaRoleProvider roles;
     @Autowired JpaGroupService groups;
-    @Autowired Set<PermissionRequest> registered;
+    @Autowired PermissionCatalog registered;
     UserProfile admin,reader;String adminRole;
     static final String PASSWORD="Valid-passphrase-123";
     @BeforeEach void seed(){access.initialize(()->{
@@ -41,7 +41,7 @@ class AdminHttpTest {
         admin=users.create("admin-"+suffix,"Admin",PASSWORD);reader=users.create("reader-"+suffix,"Reader",PASSWORD);
         var role=roles.create("admin-"+suffix,"Admin");adminRole=role.id();
         roles.assign(adminRole,new Subject(Subject.Kind.USER,"default:"+admin.id()));
-        registered.stream().filter(p->p.resource().startsWith("admin.")).forEach(p->roles.grant(adminRole,p,Effect.ALLOW));
+        registered.permissions().stream().filter(p->p.resource().startsWith("admin.")).forEach(p->roles.grant(adminRole,p,Effect.ALLOW));
     });}
     MockHttpSession login(UserProfile user)throws Exception{
         var result=http.perform(formLogin().user(user.username()).password(PASSWORD)).andExpect(status().is3xxRedirection()).andReturn();

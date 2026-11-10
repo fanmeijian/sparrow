@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AdminBootstrapTest {
     @Test void bootstrapRequiresAnExplicitOfflineProcess(){
         var env=new MockEnvironment().withProperty("spring.main.web-application-type","servlet");
-        assertThrows(IllegalStateException.class,()->new AdminBootstrap().initializeAdmin(env,null,null,null,null,null,null,Set.of(),null));
+        assertThrows(IllegalStateException.class,()->new AdminBootstrap().initializeAdmin(env,null,null,null,null,null,null,null,null));
     }
     @Test void offlineBootstrapIsAuditedAndCannotBeRepeated(){
         String database="bootstrap-"+UUID.randomUUID();

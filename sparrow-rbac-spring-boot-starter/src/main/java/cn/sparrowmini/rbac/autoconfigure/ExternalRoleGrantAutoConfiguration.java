@@ -16,10 +16,10 @@ import java.util.Set;
 @Conditional(ExternalRoleCondition.class)
 @ConditionalOnBean({EntityManager.class,RoleReferenceValidator.class,GrantManagementGuard.class})
 @ConditionalOnMissingBean(RolePermissionManager.class)
-@EntityScan(basePackageClasses=RolePermissionEntity.class)
+@EntityScan(basePackageClasses={RolePermissionEntity.class,cn.sparrowmini.rbac.persistence.jpa.catalog.PermissionResourceEntity.class})
 @EnableTransactionManagement(proxyTargetClass=true)
 public class ExternalRoleGrantAutoConfiguration {
-    @Bean JpaRoleGrantStore externalRoleGrants(EntityManager em,RoleReferenceValidator roles,GrantManagementGuard guard,Set<PermissionRequest> registered,Environment env){return new JpaRoleGrantStore(em,env.getProperty("sparrow.rbac.namespace",env.getProperty("sparrow.identity.namespace","default")),registered,roles,guard);}
+    @Bean JpaRoleGrantStore externalRoleGrants(EntityManager em,RoleReferenceValidator roles,GrantManagementGuard guard,PermissionCatalog registered,Environment env){return new JpaRoleGrantStore(em,env.getProperty("sparrow.rbac.namespace",env.getProperty("sparrow.identity.namespace","default")),registered,roles,guard);}
     @Bean @ConditionalOnMissingBean(FunctionPermissionEvaluator.class)
-    FunctionPermissionEvaluator externalRoleEvaluator(RoleAssignmentProvider roles,RoleGrantSource grants,Set<PermissionRequest> registered){return new AssignedRolePermissionEvaluator(roles,grants,registered);}
+    FunctionPermissionEvaluator externalRoleEvaluator(RoleAssignmentProvider roles,RoleGrantSource grants,PermissionCatalog registered){return new AssignedRolePermissionEvaluator(roles,grants,registered);}
 }

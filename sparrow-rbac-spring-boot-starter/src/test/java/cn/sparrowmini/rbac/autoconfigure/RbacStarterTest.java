@@ -21,7 +21,7 @@ class RbacStarterTest {
         @Bean(destroyMethod="close") EntityManagerFactory entityManagerFactory(){return Persistence.createEntityManagerFactory("starter-rbac-test");}
         @Bean EntityManager entityManager(EntityManagerFactory factory){return SharedEntityManagerCreator.createSharedEntityManager(factory);}
         @Bean PlatformTransactionManager transactionManager(EntityManagerFactory factory){return new JpaTransactionManager(factory);}
-        @Bean Set<PermissionRequest> permissions(){return Set.of(READ,EXPORT);}
+        @Bean PermissionCatalog permissions(){return catalog(Set.of(READ,EXPORT));}
         @Bean RbacManagementGuard guard(){return (n,op,id)->{};}
     }
     static class ExternalRoles implements RoleDirectoryProvider,RoleAssignmentProvider {
@@ -39,7 +39,7 @@ class RbacStarterTest {
         @Bean(destroyMethod="close") EntityManagerFactory entityManagerFactory(){return Persistence.createEntityManagerFactory("starter-external-role-test");}
         @Bean EntityManager entityManager(EntityManagerFactory factory){return SharedEntityManagerCreator.createSharedEntityManager(factory);}
         @Bean PlatformTransactionManager transactionManager(EntityManagerFactory factory){return new JpaTransactionManager(factory);}
-        @Bean Set<PermissionRequest> permissions(){return Set.of(READ,EXPORT);}
+        @Bean PermissionCatalog permissions(){return catalog(Set.of(READ,EXPORT));}
         @Bean ExternalRoles roles(){return new ExternalRoles();}
         @Bean RoleReferenceValidator references(){return id->{if(!id.equals("realm:reader"))throw new IllegalArgumentException("Unknown external role");};}
         @Bean GrantManagementGuard guard(){return (n,op,role,permission,before,after)->{if(EXPORT.equals(permission)||before==Effect.DENY&&after==null)throw new SecurityException("Outside delegated boundary");};}
@@ -57,4 +57,9 @@ class RbacStarterTest {
         store.grant("realm:reader",READ,Effect.DENY);assertThrows(SecurityException.class,()->store.revokePermission("realm:reader",READ));assertFalse(evaluator.evaluate(actor,READ).allowed());
     });}
     @Test void missingExternalProviderFailsWithoutLocalFallback(){runner.withPropertyValues("sparrow.rbac.provider=external").run(c->assertThat(c).hasFailed());}
+ static PermissionCatalog catalog(Set<PermissionRequest> values){return new PermissionCatalog(){
+ public Set<PermissionRequest> permissions(){return values;}
+ public boolean exists(PermissionRequest p){return values.contains(p);}
+ public boolean isEnabled(PermissionRequest p){return values.contains(p);}
+ };}
 }
