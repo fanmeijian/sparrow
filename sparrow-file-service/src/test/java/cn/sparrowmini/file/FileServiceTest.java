@@ -38,4 +38,21 @@ class FileServiceTest {
         var f=upload();var denied=new FileService(em,new StorageRegistry(List.of(local)),"any",(n,s,id,c)->{throw new SecurityException("Parent object unavailable");},id->true);
         var out=new ByteArrayOutputStream();assertThrows(SecurityException.class,()->denied.download(f.id(),"forged-context",out));assertEquals(0,out.size());
     }
+
+    @Test void attachmentsBlockDeletionAndDetachUsesVersion(){
+        String namespace=UUID.randomUUID().toString();var refs=new FileReferenceService(em,namespace,(op,id,r,record)->{});
+        service=new FileService(em,new StorageRegistry(List.of(local)),namespace,(n,s,id,c)->{},refs);
+        var f=upload();var reference=tx(()->refs.attach(f.id(),"invoice","one","receipt"));
+        assertEquals(reference.id(),tx(()->refs.attach(f.id(),"invoice","one","receipt")).id());
+        assertFalse(refs.isUnreferenced(f.id()));
+        assertThrows(IllegalStateException.class,()->tx(()->service.requestDelete(f.id(),f.version(),null)));
+        assertThrows(OptimisticLockException.class,()->tx(()->{refs.detach(f.id(),reference.id(),99);return null;}));
+        tx(()->{refs.detach(f.id(),reference.id(),reference.version());return null;});
+        assertTrue(refs.isUnreferenced(f.id()));tx(()->service.requestDelete(f.id(),f.version(),null));
+        assertThrows(IllegalStateException.class,()->tx(()->refs.attach(f.id(),"invoice","two","receipt")));
+    }
+    @Test void attachmentParentGuardCannotBeBypassed(){
+        var f=upload();var refs=new FileReferenceService(em,"other",(op,id,r,record)->{throw new SecurityException();});
+        assertThrows(SecurityException.class,()->tx(()->refs.attach(f.id(),"invoice","forged","receipt")));
+    }
 }

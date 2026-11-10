@@ -9,8 +9,8 @@ public class PolicyController {
     public PolicyController(JpaPolicyStore store){this.store=store;}
     public record Draft(Long version,String document) { }
     public record Version(long version) { }
-    public record View(long version,long activeRevision,String document) { }
-    @GetMapping public View get(@RequestParam String resource,@RequestParam String scope){return view(store.draft(new PermissionRequest(resource,scope)));}
+    public record View(Long version,long activeRevision,String document) { }
+    @GetMapping public View get(@RequestParam String resource,@RequestParam String scope){try{return view(store.draft(new PermissionRequest(resource,scope)));}catch(java.util.NoSuchElementException missing){return new View(null,0,"[]");}}
     @PutMapping public View draft(@RequestParam String resource,@RequestParam String scope,@RequestBody Draft input){return view(store.saveDraft(new PermissionRequest(resource,scope),input.version(),codec.decode(input.document())));}
     @PostMapping("/publish")public View publish(@RequestParam String resource,@RequestParam String scope,@RequestBody Version input){return view(store.publish(new PermissionRequest(resource,scope),input.version()));}
     @PostMapping("/retire")public void retire(@RequestParam String resource,@RequestParam String scope,@RequestBody Version input){store.retire(new PermissionRequest(resource,scope),input.version());}

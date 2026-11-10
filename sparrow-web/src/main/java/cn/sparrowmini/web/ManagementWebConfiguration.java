@@ -48,6 +48,11 @@ public class ManagementWebConfiguration {
     @Import(FileController.class)
     static class FileEndpoints { }
     @Configuration(proxyBeanMethods=false)
+    @ConditionalOnClass(cn.sparrowmini.file.FileReferenceService.class)
+    @ConditionalOnBean(cn.sparrowmini.file.FileReferenceService.class)
+    @Import(FileReferenceController.class)
+    static class FileReferenceEndpoints { }
+    @Configuration(proxyBeanMethods=false)
     @ConditionalOnBean({CurrentActorProvider.class,FunctionPermissionEvaluator.class})
     @Import(SessionController.class)
     static class SessionEndpoint { }
