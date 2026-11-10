@@ -23,7 +23,10 @@ public final class AdminAccess implements CurrentActorProvider {
         if(authentication==null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof LocalPrincipal principal)
             || !namespace.equals(principal.namespace()) || !users.getObject().isCurrent(principal))throw new SecurityException("Current local identity required");
         String subject=namespace+":"+principal.subjectId();
-        return new ActorContext(subject,Set.of(),groups.getObject().facts().graph().effectiveGroups(subject));
+        var membership=groups.getObject().facts().graph().effectiveGroups(subject);
+        var currentRoles=new java.util.HashSet<>(roles.getObject().rolesFor(new Subject(Subject.Kind.USER,subject)));
+        for(String group:membership)currentRoles.addAll(roles.getObject().rolesFor(new Subject(Subject.Kind.GROUP,group)));
+        return new ActorContext(subject,currentRoles,membership);
     }
     public void require(String resource,String operation){
         if(initializing.get())return;

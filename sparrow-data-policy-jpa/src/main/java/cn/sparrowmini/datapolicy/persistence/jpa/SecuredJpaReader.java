@@ -10,8 +10,10 @@ import java.util.*;
 public final class SecuredJpaReader<T> {
     private final EntityManager em;
     private final JpaResource<T> resource;
-    public SecuredJpaReader(EntityManager em, JpaResource<T> resource) {
-        this.em = Objects.requireNonNull(em); this.resource = Objects.requireNonNull(resource); resource.validate(em);
+    private final org.springframework.data.jpa.domain.Specification<T> mandatory;
+    public SecuredJpaReader(EntityManager em, JpaResource<T> resource) {this(em,resource,(root,query,cb)->cb.conjunction());}
+    public SecuredJpaReader(EntityManager em, JpaResource<T> resource,org.springframework.data.jpa.domain.Specification<T> mandatory) {
+        this.em = Objects.requireNonNull(em); this.resource = Objects.requireNonNull(resource); resource.validate(em);this.mandatory=Objects.requireNonNull(mandatory);
     }
     public Page<Map<String, Object>> read(DataAccessPlan plan, Condition filter, Pageable pageable, Set<String> requested) {
         if (!resource.code().equals(plan.permission().resource())) throw new SecurityException("Resource mismatch");
@@ -28,7 +30,7 @@ public final class SecuredJpaReader<T> {
         columns.add(resource.id()); columns.forEach(resource::requireField);
         query.multiselect(columns.stream().map(f -> root.get(f).alias(f)).toArray(Selection<?>[]::new));
         Condition combined = new Condition.And(List.of(plan.rowCondition(), filter));
-        query.where(JpaPredicateCompiler.specification(resource, combined).toPredicate(root, query, cb));
+        query.where(cb.and(JpaPredicateCompiler.specification(resource, combined).toPredicate(root, query, cb),required(root,query,cb)));
         var orders = new ArrayList<Order>();
         pageable.getSort().forEach(o -> orders.add(o.isAscending() ? cb.asc(root.get(o.getProperty())) : cb.desc(root.get(o.getProperty()))));
         orders.add(cb.asc(root.get(resource.id()))); query.orderBy(orders);
@@ -41,8 +43,11 @@ public final class SecuredJpaReader<T> {
             output.add(Collections.unmodifiableMap(visible));
         }
         var count = cb.createQuery(Long.class); var countRoot = count.from(resource.entityType());
-        count.select(cb.count(countRoot)).where(JpaPredicateCompiler.specification(resource, combined).toPredicate(countRoot, count, cb));
+        count.select(cb.count(countRoot)).where(cb.and(JpaPredicateCompiler.specification(resource, combined).toPredicate(countRoot, count, cb),required(countRoot,count,cb)));
         return new PageImpl<>(output, pageable, em.createQuery(count).getSingleResult());
+    }
+    private Predicate required(Root<T> root,CriteriaQuery<?> query,CriteriaBuilder cb){
+        return Objects.requireNonNull(mandatory.toPredicate(root,query,cb),"Mandatory predicate must not be null");
     }
     private void requireQueryable(DataAccessPlan plan, String field) {
         resource.requireField(field);

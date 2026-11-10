@@ -22,4 +22,6 @@ sparrow.management.enabled=true
 
 `/api/session` 的功能列表只用于页面呈现，不替代逐请求、逐记录的授权。密码不会出现在用户响应中。拒绝访问返回 403，版本冲突返回 409，非法 JSON 返回 400；响应不暴露内部异常文本。
 
-当前交付为 HTTP 适配器，还没有完整管理 UI 或独立管理服务器。下游应显式配置数据源、实体扫描、事务、资源 schema 和业务引用检查。不要将测试中简化的提供方或 guard 作为生产配置。
+本模块交付 HTTP 适配器；`sparrow-admin-server` 提供独立本地身份宿主及管理页面。下游应显式配置数据源、实体扫描、事务、资源 schema 和业务引用检查。不要将测试中简化的提供方或 guard 作为生产配置。
+
+新增可选入口：`/api/admin/audit`、`/api/admin/configurations`、`/api/admin/navigation`、`/api/admin/ui-pages`；面向当前用户的 `/api/configuration`、`/api/navigation`、`/api/ui/capabilities` 使用各自的可见性和后端能力计算。身份 provider 通过 `/api/admin/users/capabilities` 声明实际支持的管理操作。

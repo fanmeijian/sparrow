@@ -119,4 +119,84 @@ class AdminHttpTest {
         finally{org.springframework.security.core.context.SecurityContextHolder.clearContext();org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();}
         access.initialize(()->assertTrue(users.list(username,0,50).isEmpty()));
     }
+
+    @Autowired cn.sparrowmini.file.FileService fileAdministration;
+    @Autowired cn.sparrowmini.datapolicy.persistence.jpa.JpaPolicyStore policies;
+    @Autowired jakarta.persistence.EntityManager em;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
+    cn.sparrowmini.file.FileService.Info sampleFile(String name){
+        var result=new java.util.concurrent.atomic.AtomicReference<cn.sparrowmini.file.FileService.Info>();
+        access.initialize(()->{try{result.set(fileAdministration.upload("local",name,new java.io.ByteArrayInputStream("content".getBytes()),null));}catch(java.io.IOException e){throw new java.io.UncheckedIOException(e);}});return result.get();
+    }
+    String businessRole(String... scopes){
+        var result=new java.util.concurrent.atomic.AtomicReference<String>();access.initialize(()->{
+            var role=roles.create("file-"+UUID.randomUUID(),"File access");result.set(role.id());roles.assign(role.id(),new Subject(Subject.Kind.USER,"default:"+reader.id()));
+            for(String scope:scopes)roles.grant(role.id(),new PermissionRequest("file.object",scope),Effect.ALLOW);
+        });return result.get();
+    }
+    void publish(String scope,List<cn.sparrowmini.datapolicy.core.DataRule> rules){access.initialize(()->{
+        var permission=new PermissionRequest("file.object",scope);Long version;
+        try{version=policies.draft(permission).version();}catch(NoSuchElementException missing){version=null;}
+        var saved=policies.saveDraft(permission,version,rules);policies.publish(permission,saved.version());
+    });}
+    cn.sparrowmini.datapolicy.core.DataRule rule(String role,String scope,cn.sparrowmini.datapolicy.core.Condition condition,cn.sparrowmini.datapolicy.core.DataRule.Target target,Set<String> fields){
+        return new cn.sparrowmini.datapolicy.core.DataRule(new Subject(Subject.Kind.ROLE,role),new PermissionRequest("file.object",scope),Effect.ALLOW,condition,target,fields);
+    }
+    @Test void fileRowsFieldsAndDirectDownloadsUseTheSamePolicy()throws Exception{
+        var one=sampleFile("one.txt");var two=sampleFile("two.txt");String role=businessRole("read","download");
+        var condition=new cn.sparrowmini.datapolicy.core.Condition.Equal("id",one.id());
+        publish("read",List.of(rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of()),rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.FIELD_READ,Set.of("id"))));
+        publish("download",List.of(rule(role,"download",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of())));
+        var session=login(reader);
+        http.perform(get("/api/files?size=1").session(session)).andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(1)).andExpect(jsonPath("$.content[0].id").value(one.id())).andExpect(jsonPath("$.content[0].name").doesNotExist());
+        http.perform(get("/api/files/"+one.id()+"/content").session(session)).andExpect(status().isOk()).andExpect(content().string("content"));
+        http.perform(get("/api/files/"+two.id()+"/content").session(session)).andExpect(status().isForbidden());
+        http.perform(post("/api/admin/policies/preview").session(login(admin)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"subject\":\"default:"+reader.id()+"\",\"scope\":\"read\",\"recordId\":\""+one.id()+"\"}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.recordAllowed").value(true)).andExpect(jsonPath("$.fields.id.readable").value(true)).andExpect(jsonPath("$.fields.name.readable").value(false));
+        access.initialize(()->fileAdministration.requestDelete(one.id(),one.version(),null));
+        http.perform(get("/api/files?size=1").session(session)).andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
+    }
+    @Test void fileRenameCannotEscapeItsOriginalRange()throws Exception{
+        var file=sampleFile("fixed.txt");String role=businessRole("update");var condition=new cn.sparrowmini.datapolicy.core.Condition.Equal("name","fixed.txt");
+        publish("update",List.of(rule(role,"update",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of()),rule(role,"update",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.FIELD_WRITE,Set.of("name"))));
+        http.perform(put("/api/files/"+file.id()).session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"version\":"+file.version()+",\"name\":\"outside.txt\"}")).andExpect(status().isForbidden());
+        access.initialize(()->assertEquals("fixed.txt",fileAdministration.get(file.id(),null).name()));
+    }
+    @Test void businessParentRestrictionFurtherNarrowsFilePolicy()throws Exception{
+        var file=sampleFile("attached.txt");String role=businessRole("read","download");var condition=new cn.sparrowmini.datapolicy.core.Condition.Equal("id",file.id());
+        publish("read",List.of(rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of()),rule(role,"read",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.FIELD_READ,Set.of("id"))));
+        publish("download",List.of(rule(role,"download",condition,cn.sparrowmini.datapolicy.core.DataRule.Target.ROW,Set.of())));
+        new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(status->new cn.sparrowmini.file.FileReferenceService(em,"default",(op,id,r,record)->{}).attach(file.id(),"invoice","private","receipt"));
+        var session=login(reader);http.perform(get("/api/files").session(session)).andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
+        http.perform(get("/api/files/"+file.id()+"/content").session(session)).andExpect(status().isForbidden());
+    }
+
+    @Autowired cn.sparrowmini.system.presentation.UiPageService uiPages;
+    @Test void persistedUiRulesUseCurrentRolesAndNeverGrantBackendPermission()throws Exception{
+        String page="page-"+UUID.randomUUID();
+        var element=new cn.sparrowmini.system.presentation.UiCapabilityService.Element("save",null,cn.sparrowmini.system.presentation.UiCapabilityService.Kind.BUTTON,false,new PermissionRequest("admin.users","read"),new PermissionRequest("admin.users","manage"),null,cn.sparrowmini.system.presentation.UiCapabilityService.Mode.RESTRICTED,false);
+        var policy=new cn.sparrowmini.system.presentation.UiCapabilityService.Policy("save",new Subject(Subject.Kind.ROLE,adminRole),cn.sparrowmini.system.presentation.UiCapabilityService.Operation.VIEW,Effect.ALLOW);
+        var interact=new cn.sparrowmini.system.presentation.UiCapabilityService.Policy("save",new Subject(Subject.Kind.ROLE,adminRole),cn.sparrowmini.system.presentation.UiCapabilityService.Operation.INTERACT,Effect.ALLOW);
+        access.initialize(()->uiPages.save(page,null,new cn.sparrowmini.system.presentation.UiPageService.Definition(List.of(element),List.of(policy,interact))));
+        String body="{\"page\":\""+page+"\",\"elements\":[\"save\"]}";
+        http.perform(post("/api/ui/capabilities").session(login(admin)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk()).andExpect(jsonPath("$.save.enabled").value(true));
+        http.perform(post("/api/ui/capabilities").session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk()).andExpect(jsonPath("$.save.visible").value(false));
+        access.initialize(()->assertThrows(jakarta.persistence.OptimisticLockException.class,()->uiPages.save(page,null,new cn.sparrowmini.system.presentation.UiPageService.Definition(List.of(element),List.of()))));
+    }
+    @Test void unknownUiPagesFailClosed()throws Exception{
+        http.perform(post("/api/ui/capabilities").session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"page\":\"missing\",\"elements\":[\"save\"]}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.save.visible").value(false));
+    }
+
+    @Test void clientConfigurationReflectsVersionedAdminChanges()throws Exception{
+        var session=login(admin);
+        http.perform(put("/api/admin/configurations/ui.brand").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":null,\"value\":\"Project administration\"}"))
+            .andExpect(status().isOk());
+        http.perform(get("/api/configuration").session(login(reader))).andExpect(status().isOk()).andExpect(jsonPath("$['ui.brand']").value("Project administration"));
+        http.perform(put("/api/admin/configurations/ui.brand").session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":0,\"value\":\"forged\"}")).andExpect(status().isForbidden());
+    }
 }

@@ -31,7 +31,7 @@ public final class UiCapabilityService {
     public UiCapabilityService(Collection<Element> elements,List<Policy> policies,Resolver resolver){
         var map=new HashMap<String,Element>();for(var e:elements)if(map.put(e.code(),e)!=null)throw new IllegalArgumentException("Duplicate element");
         this.elements=Map.copyOf(map);this.policies=List.copyOf(policies);this.resolver=Objects.requireNonNull(resolver);
-        for(var e:elements){Set<String> path=new HashSet<>();Element n=e;while(n!=null){if(!path.add(n.code()))throw new IllegalArgumentException("Element parent cycle");if(n.parent()==null)break;n=map.get(n.parent());if(n==null)throw new IllegalArgumentException("Unknown parent");}}
+        for(var e:elements){Set<String> path=new HashSet<>();Element n=e;while(n!=null){if(path.size()>=64)throw new IllegalArgumentException("Element depth limit");if(!path.add(n.code()))throw new IllegalArgumentException("Element parent cycle");if(n.parent()==null)break;n=map.get(n.parent());if(n==null)throw new IllegalArgumentException("Unknown parent");}}
         for(var p:policies)if(!map.containsKey(p.element()))throw new IllegalArgumentException("Unknown element policy");
     }
     public Decision decide(ActorContext actor,String code,String recordId){

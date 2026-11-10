@@ -58,6 +58,21 @@ public class ManagementWebConfiguration {
     @Import(AuditController.class)
     static class AuditEndpoints { }
     @Configuration(proxyBeanMethods=false)
+    @ConditionalOnClass(cn.sparrowmini.system.presentation.UiPageService.class)
+    @ConditionalOnBean({cn.sparrowmini.system.presentation.UiPageService.class,CurrentActorProvider.class})
+    @Import(UiPageController.class)
+    static class UiPageEndpoints { }
+    @Configuration(proxyBeanMethods=false)
+    @ConditionalOnClass(cn.sparrowmini.system.configuration.ConfigurationService.class)
+    @ConditionalOnBean(cn.sparrowmini.system.configuration.ConfigurationService.class)
+    @Import(ConfigurationController.class)
+    static class ConfigurationEndpoints { }
+    @Configuration(proxyBeanMethods=false)
+    @ConditionalOnClass(cn.sparrowmini.system.navigation.NavigationService.class)
+    @ConditionalOnBean({cn.sparrowmini.system.navigation.NavigationService.class,CurrentActorProvider.class})
+    @Import(NavigationController.class)
+    static class NavigationEndpoints { }
+    @Configuration(proxyBeanMethods=false)
     @ConditionalOnBean({CurrentActorProvider.class,FunctionPermissionEvaluator.class})
     @Import(SessionController.class)
     static class SessionEndpoint { }

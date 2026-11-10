@@ -11,6 +11,11 @@
   <dependencies>
     <dependency>
       <groupId>cn.sparrowmini</groupId>
+      <artifactId>sparrow-file-policy</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>cn.sparrowmini</groupId>
       <artifactId>sparrow-web</artifactId>
       <version>${project.version}</version>
     </dependency>

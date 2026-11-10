@@ -22,7 +22,7 @@ public class ManagementAuditAspect {
         var attributes=RequestContextHolder.getRequestAttributes();
         if(!(attributes instanceof ServletRequestAttributes servlet))return invocation.proceed();
         var request=servlet.getRequest();String method=request.getMethod();
-        if(java.util.Set.of("GET","HEAD","OPTIONS").contains(method))return invocation.proceed();
+        if(!request.getRequestURI().startsWith("/api/admin/") || java.util.Set.of("GET","HEAD","OPTIONS").contains(method))return invocation.proceed();
         var authentication=SecurityContextHolder.getContext().getAuthentication();
         String subject=authentication!=null && authentication.getPrincipal() instanceof LocalPrincipal p?p.namespace()+":"+p.subjectId():"anonymous";
         String target=request.getRequestURI();

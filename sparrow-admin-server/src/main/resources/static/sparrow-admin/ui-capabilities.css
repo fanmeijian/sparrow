@@ -1,0 +1,4 @@
+/* Include before first paint to avoid an authorization-loading flash. */
+[data-sparrow-element]{visibility:hidden}
+[data-sparrow-element][hidden]{display:none!important}
+[data-sparrow-element][aria-disabled=true]{cursor:not-allowed}

@@ -82,6 +82,21 @@ public class JpaRoleProvider implements RoleDirectoryProvider,RoleAssignmentProv
         var grants=em.createQuery(q).getResultList().stream().map(g->new RoleGrant(g.roleId,request,g.effect)).toList();
         return new RolePermissionEvaluator(registered,grants).evaluate(current,request);
     }
+    @Transactional(readOnly=true)
+    public List<RoleGrant> grants(String roleId){
+        guard.require(namespace,"read",roleId);requireRole(roleId);
+        var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var r=q.from(RolePermissionEntity.class);
+        q.select(r).where(cb.equal(r.get("namespace"),namespace),cb.equal(r.get("roleId"),roleId)).orderBy(cb.asc(r.get("resource")),cb.asc(r.get("scope")));
+        return em.createQuery(q).getResultList().stream().map(g->new RoleGrant(g.roleId,new PermissionRequest(g.resource,g.scope),g.effect)).toList();
+    }
+    @Transactional(readOnly=true)
+    public Set<Subject> members(String roleId){
+        guard.require(namespace,"read",roleId);requireRole(roleId);
+        var cb=em.getCriteriaBuilder();var q=cb.createQuery(RoleAssignmentEntity.class);var r=q.from(RoleAssignmentEntity.class);
+        q.select(r).where(cb.equal(r.get("role").get("id"),roleId));
+        Set<Subject> result=new HashSet<>();em.createQuery(q).getResultList().forEach(a->result.add(new Subject(a.kind,a.subjectId)));return Set.copyOf(result);
+    }
+    private void requireRole(String id){var role=em.find(RoleEntity.class,id);if(role==null||!namespace.equals(role.namespace))throw new IllegalArgumentException("Role not found");}
     private List<RoleAssignmentEntity> assignments(String roleId,Subject subject){
         var cb=em.getCriteriaBuilder();var q=cb.createQuery(RoleAssignmentEntity.class);var root=q.from(RoleAssignmentEntity.class);
         q.select(root).where(cb.equal(root.get("role").get("id"),roleId),cb.equal(root.get("kind"),subject.kind()),cb.equal(root.get("subjectId"),subject.id()));

@@ -28,6 +28,12 @@ public class FileReferenceService implements FileService.ReferenceCheck {
         var cb=em.getCriteriaBuilder();var q=cb.createQuery(Long.class);var r=q.from(AttachmentReference.class);
         q.select(cb.count(r)).where(cb.equal(r.get("namespace"),namespace),cb.equal(r.get("fileId"),fileId));return em.createQuery(q).getSingleResult()==0;
     }
+    /** Internal fact port for hosts that exclude every referenced file until a parent adapter is installed. */
+    @Transactional(readOnly=true) public Set<String> referencedFileIds(){
+        var cb=em.getCriteriaBuilder();var q=cb.createQuery(String.class);var r=q.from(AttachmentReference.class);
+        q.select(r.get("fileId")).distinct(true).where(cb.equal(r.get("namespace"),namespace));
+        var ids=em.createQuery(q).setMaxResults(10001).getResultList();if(ids.size()>10000)throw new IllegalStateException("Install a bounded parent-access query adapter");return Set.copyOf(ids);
+    }
     private List<AttachmentReference> rows(String id){var cb=em.getCriteriaBuilder();var q=cb.createQuery(AttachmentReference.class);var r=q.from(AttachmentReference.class);q.select(r).where(cb.equal(r.get("namespace"),namespace),cb.equal(r.get("fileId"),id)).orderBy(cb.asc(r.get("id")));return em.createQuery(q).getResultList();}
     private FileMetadata lock(String id){if(!em.isJoinedToTransaction())throw new IllegalStateException("Active transaction required");var f=em.find(FileMetadata.class,id,LockModeType.PESSIMISTIC_WRITE);if(f==null||!namespace.equals(f.namespace))throw new IllegalArgumentException("File not found");em.refresh(f);return f;}
     private Reference view(AttachmentReference r){return new Reference(r.id,r.fileId,r.resource,r.recordId,r.slot,r.version);}

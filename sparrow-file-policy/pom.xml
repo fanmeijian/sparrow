@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>cn.sparrowmini</groupId>
+    <artifactId>sparrow-platform</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+    <relativePath>../sparrow-platform/pom.xml</relativePath>
+  </parent>
+  <artifactId>sparrow-file-policy</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>cn.sparrowmini</groupId>
+      <artifactId>sparrow-file-service</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>cn.sparrowmini</groupId>
+      <artifactId>sparrow-data-policy-jpa</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

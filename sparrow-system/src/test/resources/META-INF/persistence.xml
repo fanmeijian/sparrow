@@ -3,6 +3,8 @@
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
     <class>cn.sparrowmini.system.dictionary.DictionaryDefinition</class>
 <class>cn.sparrowmini.system.dictionary.DictionaryEntry</class>
+    <class>cn.sparrowmini.system.configuration.ConfigurationItem</class>
+    <class>cn.sparrowmini.system.navigation.NavigationDocument</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>

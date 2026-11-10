@@ -25,7 +25,7 @@ import java.io.IOException;
 public class AdminServices {
     @Bean Set<PermissionRequest> registeredPermissions(){
         Set<PermissionRequest> result=new HashSet<>();
-        for(String resource:List.of("admin.users","admin.roles","admin.groups","admin.policies","admin.dictionaries","admin.files","admin.audit"))
+        for(String resource:List.of("admin.users","admin.roles","admin.groups","admin.policies","admin.dictionaries","admin.files","admin.audit","admin.ui-pages","admin.configurations","admin.navigation"))
             for(String scope:List.of("read","manage"))result.add(new PermissionRequest(resource,scope));
         for(String scope:List.of("read","download","update","delete"))result.add(new PermissionRequest("file.object",scope));
         return Set.copyOf(result);
@@ -33,6 +33,24 @@ public class AdminServices {
     @Bean AdminAccess adminAccess(@Value("${sparrow.identity.namespace:default}")String namespace,ObjectProvider<JpaRoleProvider> roles,ObjectProvider<JpaGroupService> groups,ObjectProvider<LocalIdentityProvider> users){return new AdminAccess(namespace,roles,groups,users);}
     @Bean cn.sparrowmini.system.audit.AuditService audit(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){
         return new cn.sparrowmini.system.audit.AuditService(em,namespace,n->access.require("admin.audit","read"));
+    }
+    @Bean cn.sparrowmini.system.presentation.UiPageService uiPages(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,Set<PermissionRequest> registered,JpaRoleProvider roles,cn.sparrowmini.file.policy.FilePolicyService files){
+        return new cn.sparrowmini.system.presentation.UiPageService(em,namespace,(op,page)->access.require("admin.ui-pages",op),element->{
+            for(var permission:java.util.stream.Stream.of(element.view(),element.action()).filter(Objects::nonNull).toList()){
+                if(!registered.contains(permission))throw new IllegalArgumentException("Unknown element permission");
+                if(element.field()!=null){if(!permission.resource().equals("file.object"))throw new IllegalArgumentException("No field adapter for resource");cn.sparrowmini.file.policy.FilePolicyService.RESOURCE.requireField(element.field());}
+            }
+        },(actor,permission,record,field,operation)->{
+            if(permission.resource().equals("file.object"))return files.capability(permission.scope(),record,field,operation==cn.sparrowmini.system.presentation.UiCapabilityService.Operation.INTERACT);
+            return record==null&&field==null&&roles.evaluate(actor,permission).allowed();
+        });
+    }
+    @Bean cn.sparrowmini.system.configuration.ConfigurationService configurations(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){
+        return new cn.sparrowmini.system.configuration.ConfigurationService(em,namespace,(op,code)->access.require("admin.configurations",op),List.of(
+            new cn.sparrowmini.system.configuration.ConfigurationService.Definition("ui.brand",cn.sparrowmini.system.configuration.ConfigurationService.Kind.STRING,"Sparrow 管理",true)));
+    }
+    @Bean cn.sparrowmini.system.navigation.NavigationService navigation(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,JpaRoleProvider roles,Set<PermissionRequest> registered){
+        return new cn.sparrowmini.system.navigation.NavigationService(em,namespace,op->access.require("admin.navigation",op),roles,registered);
     }
     @Bean IdentityManagementGuard identityGuard(AdminAccess access){return (namespace,scope,id)->access.require("admin.users",scope);}
     @Bean JpaRoleProvider roles(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,Set<PermissionRequest> registered){return new JpaRoleProvider(em,namespace,(n,op,id)->access.require("admin.roles",op),registered);}
@@ -55,6 +73,10 @@ public class AdminServices {
             access.require("admin.files",operation);
             if(!operation.equals("read"))throw new IllegalStateException("Install a business parent authorization adapter before binding attachments");
         });
+    }
+    @Bean cn.sparrowmini.file.policy.FilePolicyService businessFiles(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,JpaRoleProvider roles,JpaPolicyStore policies,StorageRegistry storage,FileReferenceService references){
+        return new cn.sparrowmini.file.policy.FilePolicyService(em,namespace,access,roles,policies,(actor,permission)->
+            new cn.sparrowmini.datapolicy.core.Condition.Not(new cn.sparrowmini.datapolicy.core.Condition.In("id",new ArrayList<>(references.referencedFileIds()))),storage,references);
     }
     @Bean FileService files(EntityManager em,StorageRegistry storage,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,FileReferenceService references){
         return new FileService(em,storage,namespace,(n,op,id,context)->{

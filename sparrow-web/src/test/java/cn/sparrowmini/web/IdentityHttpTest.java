@@ -23,6 +23,9 @@ class IdentityHttpTest {
         http(new Directory()).perform(get("/api/admin/users")).andExpect(status().isOk())
             .andExpect(jsonPath("$[0].provider").value("external")).andExpect(jsonPath("$[0].password").doesNotExist());
     }
+    @Test void providerCapabilitiesAreExplicit()throws Exception{
+        http(new Directory()).perform(get("/api/admin/users/capabilities")).andExpect(status().isOk()).andExpect(content().json("[\"QUERY\"]"));
+    }
     @Test void readOnlyDirectoryRejectsMutation()throws Exception{
         http(new Directory()).perform(post("/api/admin/users").contentType(MediaType.APPLICATION_JSON)
             .content("{\"username\":\"alice\",\"displayName\":\"Alice\",\"password\":\"secret\"}"))

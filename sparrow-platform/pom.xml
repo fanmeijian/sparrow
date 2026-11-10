@@ -28,6 +28,7 @@
     <module>../sparrow-security-spring</module>
     <module>../sparrow-web</module>
     <module>../sparrow-admin-server</module>
+    <module>../sparrow-file-policy</module>
   </modules>
   <dependencyManagement>
     <dependencies>

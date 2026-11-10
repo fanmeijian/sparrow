@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RoleHttpTest {
     static class ExternalRoles implements RoleDirectoryProvider,RoleAssignmentProvider,RolePermissionManager {
         String assigned;PermissionRequest granted;
+        public Set<Subject> members(String id){return Set.of(new Subject(Subject.Kind.USER,"realm:u1"));}
+        public List<RoleGrant> grants(String id){return List.of(new RoleGrant(id,new PermissionRequest("invoice","read"),Effect.ALLOW));}
         public String code(){return "external";}
         public List<RoleProfile> list(int offset,int limit){return List.of(new RoleProfile("realm:editor","editor","Editor",true,1));}
         public RoleProfile create(String code,String name){throw new UnsupportedOperationException();}
@@ -29,6 +31,8 @@ class RoleHttpTest {
         http.perform(post("/api/admin/roles/realm:editor/members").contentType(MediaType.APPLICATION_JSON)
             .content("{\"kind\":\"USER\",\"subject\":\"realm:u1\"}")).andExpect(status().isOk());
         assertEquals("realm:editor/realm:u1",roles.assigned);
+        http.perform(get("/api/admin/roles/realm:editor/members")).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value("realm:u1"));
+        http.perform(get("/api/admin/roles/realm:editor/permissions")).andExpect(status().isOk()).andExpect(jsonPath("$[0].permission.scope").value("read"));
     }
     @Test void functionalGrantPassesExactScopeToIndependentManager()throws Exception{
         var roles=new ExternalRoles();var http=MockMvcBuilders.standaloneSetup(new RoleController(roles,roles,roles)).setControllerAdvice(new ApiErrors()).build();

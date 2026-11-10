@@ -50,6 +50,7 @@
 | sparrow-tree-jpa | `cn.sparrowmini.tree` | 层级、关系、排序与查询；依赖 data-jpa |
 | sparrow-storage-api | `cn.sparrowmini.storage.api` | 对象存储 SPI、locator 和流契约；不依赖 JPA/Web |
 | sparrow-file-service | `cn.sparrowmini.file` | 文件元数据、附件和业务操作；依赖 data-jpa/storage-api/security-api |
+| sparrow-file-policy | `cn.sparrowmini.file.policy` | 可选文件行/字段执行适配；依赖 file-service/data-policy-jpa。基础文件服务不反向依赖数据策略 |
 | sparrow-storage-local / sparrow-storage-txcos | `cn.sparrowmini.storage.local` / `.txcos` | 存储 SPI 实现，不反向依赖文件服务 |
 | sparrow-system | `cn.sparrowmini.system` | 用户管理编排、字典、配置、导航与页面配置；各功能按需装配。字典为可选功能包，不独立拆 Maven 模块；使用 security-api，不强制依赖 RBAC/data-policy 实现 |
 | sparrow-web | `cn.sparrowmini.web` | API、DTO、错误响应与受控动态入口；调用应用服务 |

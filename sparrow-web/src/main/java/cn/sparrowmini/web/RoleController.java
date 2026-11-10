@@ -17,6 +17,8 @@ public class RoleController {
     public record Assignment(Subject.Kind kind,String subject) { }
     public record Grant(String resource,String scope,Effect effect) { }
     @GetMapping public List<RoleProfile> list(@RequestParam(defaultValue="0")int offset,@RequestParam(defaultValue="50")int limit){return roles.list(offset,limit);}
+    @GetMapping("/{id}/members") public java.util.Set<Subject> members(@PathVariable String id){return assignments.members(id);}
+    @GetMapping("/{id}/permissions") public List<RoleGrant> grants(@PathVariable String id){return permissions.grants(id);}
     @PostMapping public RoleProfile create(@RequestBody Create input){return roles.create(input.code(),input.name());}
     @PutMapping("/{id}/enabled")public RoleProfile enabled(@PathVariable String id,@RequestBody State input){return roles.setEnabled(id,input.version(),input.enabled());}
     @PostMapping("/{id}/members")public void assign(@PathVariable String id,@RequestBody Assignment input){assignments.assign(id,new Subject(input.kind(),input.subject()));}
