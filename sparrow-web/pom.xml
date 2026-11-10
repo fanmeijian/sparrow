@@ -10,6 +10,12 @@
   <artifactId>sparrow-web</artifactId>
   <dependencies>
     <dependency>
+      <groupId>cn.sparrowmini</groupId>
+      <artifactId>sparrow-tree-jpa</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
     </dependency>

@@ -73,6 +73,11 @@ public class ManagementWebConfiguration {
     @Import(NavigationController.class)
     static class NavigationEndpoints { }
     @Configuration(proxyBeanMethods=false)
+    @ConditionalOnClass(cn.sparrowmini.tree.HierarchyService.class)
+    @ConditionalOnBean(cn.sparrowmini.tree.HierarchyService.class)
+    @Import(HierarchyController.class)
+    static class HierarchyEndpoints { }
+    @Configuration(proxyBeanMethods=false)
     @ConditionalOnBean({CurrentActorProvider.class,FunctionPermissionEvaluator.class})
     @Import(SessionController.class)
     static class SessionEndpoint { }

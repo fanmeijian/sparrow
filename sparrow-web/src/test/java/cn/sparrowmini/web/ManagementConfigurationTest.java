@@ -18,7 +18,7 @@ class ManagementConfigurationTest {
     }
     @Test void identityOnlyHostDoesNotRequireOptionalFeatureClasses(){
         runner.withPropertyValues("sparrow.management.enabled=true")
-            .withClassLoader(new FilteredClassLoader("cn.sparrowmini.datapolicy","cn.sparrowmini.group","cn.sparrowmini.system","cn.sparrowmini.file","cn.sparrowmini.rbac","org.hibernate","org.springframework.data.jpa"))
+            .withClassLoader(new FilteredClassLoader("cn.sparrowmini.datapolicy","cn.sparrowmini.group","cn.sparrowmini.system","cn.sparrowmini.file","cn.sparrowmini.rbac","cn.sparrowmini.tree","org.hibernate","org.springframework.data.jpa"))
             .withBean(UserDirectoryProvider.class,IdentityHttpTest.Directory::new)
             .run(c->{assertThat(c).hasNotFailed();assertThat(c).hasSingleBean(IdentityController.class);});
     }

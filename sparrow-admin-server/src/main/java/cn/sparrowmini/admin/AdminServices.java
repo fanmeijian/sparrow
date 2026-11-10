@@ -25,7 +25,7 @@ import java.io.IOException;
 public class AdminServices {
     @Bean Set<PermissionRequest> registeredPermissions(){
         Set<PermissionRequest> result=new HashSet<>();
-        for(String resource:List.of("admin.users","admin.roles","admin.groups","admin.policies","admin.dictionaries","admin.files","admin.audit","admin.ui-pages","admin.configurations","admin.navigation"))
+        for(String resource:List.of("admin.users","admin.roles","admin.groups","admin.policies","admin.dictionaries","admin.files","admin.audit","admin.ui-pages","admin.configurations","admin.navigation","admin.trees"))
             for(String scope:List.of("read","manage"))result.add(new PermissionRequest(resource,scope));
         for(String scope:List.of("read","download","update","delete"))result.add(new PermissionRequest("file.object",scope));
         return Set.copyOf(result);
@@ -51,6 +51,12 @@ public class AdminServices {
     }
     @Bean cn.sparrowmini.system.navigation.NavigationService navigation(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,JpaRoleProvider roles,Set<PermissionRequest> registered){
         return new cn.sparrowmini.system.navigation.NavigationService(em,namespace,op->access.require("admin.navigation",op),roles,registered);
+    }
+    @Bean cn.sparrowmini.tree.HierarchyService trees(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access){
+        return new cn.sparrowmini.tree.HierarchyService(em,namespace,(op,id,before,after)->{
+            access.require("admin.trees",op);
+            if(after!=null&&after.nodes().values().stream().anyMatch(n->n.resource()!=null))throw new IllegalStateException("Install a business binding adapter for bound hierarchy nodes");
+        },node->node.resource()==null);
     }
     @Bean IdentityManagementGuard identityGuard(AdminAccess access){return (namespace,scope,id)->access.require("admin.users",scope);}
     @Bean JpaRoleProvider roles(EntityManager em,@Value("${sparrow.identity.namespace:default}")String namespace,AdminAccess access,Set<PermissionRequest> registered){return new JpaRoleProvider(em,namespace,(n,op,id)->access.require("admin.roles",op),registered);}

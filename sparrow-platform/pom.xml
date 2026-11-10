@@ -29,6 +29,7 @@
     <module>../sparrow-web</module>
     <module>../sparrow-admin-server</module>
     <module>../sparrow-file-policy</module>
+    <module>../sparrow-tree-jpa</module>
   </modules>
   <dependencyManagement>
     <dependencies>

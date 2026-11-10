@@ -199,4 +199,13 @@ class AdminHttpTest {
         http.perform(put("/api/admin/configurations/ui.brand").session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content("{\"version\":0,\"value\":\"forged\"}")).andExpect(status().isForbidden());
     }
+
+    @Test void hierarchyManagementRequiresPermissionAndPreservesVersion()throws Exception{
+        http.perform(post("/api/admin/trees").session(login(reader)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Forbidden\",\"mode\":\"TREE\"}")).andExpect(status().isForbidden());
+        var session=login(admin);var created=http.perform(post("/api/admin/trees").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Categories\",\"mode\":\"DAG\"}")).andExpect(status().isOk()).andReturn();
+        String id=new com.fasterxml.jackson.databind.ObjectMapper().readTree(created.getResponse().getContentAsString()).get("id").asText();
+        String body="{\"revision\":0,\"order\":\"0.125\"}";
+        http.perform(post("/api/admin/trees/"+id+"/nodes").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk()).andExpect(jsonPath("$.revision").value(1));
+        http.perform(post("/api/admin/trees/"+id+"/nodes").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isConflict());
+    }
 }

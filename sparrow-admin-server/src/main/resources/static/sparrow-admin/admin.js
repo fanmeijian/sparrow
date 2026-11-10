@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 let session, active, generation = 0;
-const modules = [['users','用户'],['roles','角色与功能授权'],['groups','群组'],['policies','数据策略'],['dictionaries','字典'],['files','文件'],['audit','管理审计'],['ui-pages','页面元素'],['configurations','配置'],['navigation','导航']];
+const modules = [['users','用户'],['roles','角色与功能授权'],['groups','群组'],['policies','数据策略'],['dictionaries','字典'],['files','文件'],['audit','管理审计'],['ui-pages','页面元素'],['configurations','配置'],['navigation','导航'],['trees','层级结构']];
 const can = (module, scope) => session.permissions.some(p => p.resource === `admin.${module}` && p.scope === scope);
 const notice = (message, error = false) => { $('notice').textContent = message; $('notice').className = error ? 'error' : ''; };
 const node = (tag, text) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; return n; };
@@ -113,6 +113,19 @@ async function show(module, offset = 0) {
         card.append(form('添加条目',[['code','编码'],['label','名称'],['order','排序','number','0']],async v=>{await request(path,'POST',v);await reload();},manage));content.append(card);
       })]));
       content.append(form('创建字典',[['code','编码'],['name','名称']],async v=>{await request(base,'POST',v);await reload();},manage));pager(content,rows.length,offset,module);
+    } else if (module === 'trees') {
+      const rows=await request(`${base}?offset=${offset}&limit=50`);
+      content.append(table(rows,[['name','名称'],['mode','模式'],['id','层级 ID'],['revision','版本']],r=>[button('管理节点',async()=>{
+        const path=`${base}/${id(r.id)}`,snapshot=await request(path),revision=snapshot.revision,panel=node('section');panel.className='card';panel.append(node('h2',r.name));
+        panel.append(table(Object.values(snapshot.graph.nodes),[['id','节点 ID'],['rootOrder','根排序']],n=>[
+          button('删除节点',async()=>{await request(`${path}/nodes/${id(n.id)}?revision=${revision}`,'DELETE');await reload();},manage),
+          button('删除子树',async()=>{if(!confirm('将删除该节点及符合删除规则的全部后代，是否继续？'))return;await request(`${path}/subtrees/${id(n.id)}?revision=${revision}`,'DELETE');await reload();},manage)]));
+        panel.append(table(snapshot.graph.edges,[['parent','父节点'],['child','子节点'],['sortOrder','排序']]));
+        panel.append(form('添加根节点',[['order','排序','text','0']],async v=>{await request(`${path}/nodes`,'POST',{revision,resource:null,recordId:null,order:v.order});await reload();},manage));
+        panel.append(form('关联或解除关联',[['parent','父节点 ID'],['child','子节点 ID'],['order','排序','text','0'],['operation','操作','select','link',['link','detach']]],async v=>{await request(`${path}/edges`,v.operation==='link'?'POST':'DELETE',{revision,parent:v.parent,child:v.child,order:v.order});await reload();},manage));
+        panel.append(form('原子移动',[['oldParent','原父 ID（根填 -）','text','-'],['newParent','新父 ID（根填 -）','text','-'],['child','节点 ID'],['order','排序','text','0']],async v=>{await request(`${path}/move`,'PUT',{revision,oldParent:v.oldParent==='-'?null:v.oldParent,newParent:v.newParent==='-'?null:v.newParent,child:v.child,order:v.order});await reload();},manage));content.append(panel);
+      })]));
+      content.append(form('创建层级',[['name','名称'],['mode','模式','select','TREE',['TREE','DAG']]],async v=>{await request(base,'POST',v);await reload();},manage));pager(content,rows.length,offset,module);
     } else if (module === 'navigation') {
       const snapshot=await request(base);const save=async items=>{await request(base,'PUT',{version:snapshot.version,items});await refreshNavigation();await reload();};
       content.append(table(snapshot.items,[['code','编码'],['parent','父项'],['title','名称'],['href','地址'],['enabled','启用']],r=>[
