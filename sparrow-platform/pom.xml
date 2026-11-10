@@ -14,6 +14,9 @@
     <module>../sparrow-rbac-core</module>
     <module>../sparrow-data-policy-core</module>
     <module>../sparrow-data-policy-jpa</module>
+    <module>../sparrow-identity-api</module>
+    <module>../sparrow-identity-local</module>
+    <module>../sparrow-identity-local-spring-boot-starter</module>
   </modules>
   <dependencyManagement>
     <dependencies>

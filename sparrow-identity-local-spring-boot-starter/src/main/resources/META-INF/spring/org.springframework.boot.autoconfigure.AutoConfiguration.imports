@@ -1,0 +1,2 @@
+cn.sparrowmini.identity.local.autoconfigure.LocalIdentityAutoConfiguration
+cn.sparrowmini.identity.local.autoconfigure.IdentitySelectionAutoConfiguration

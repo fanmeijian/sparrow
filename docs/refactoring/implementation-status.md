@@ -26,3 +26,11 @@
 受控 patch 要求事务和 update scope，检查可写字段、旧记录/新状态、业务 guard 和版本；所有授权检查先于实体变更。当前适配器只支持显式注册的标量字段和单主键，不支持的关联/类型明确失败。
 
 H2 真实数据库集成测试覆盖分页计数、混合行字段隔离、SQL/内存空值一致性、敏感字段过滤拒绝、范围转移拒绝、过期版本、业务冻结与事务回滚。完整 reactor 共 97 个测试通过（88 核心 + 9 JPA）。H2 不替代生产数据库方言验收。
+
+## 第三阶段：本地身份与可选装配
+
+新增 identity-api、identity-local、identity-local-spring-boot-starter。默认使用 Spring Security DaoAuthenticationProvider/PasswordEncoder 和 JPA 账号存储；主体稳定 ID 与用户名分离，管理操作要求宿主提供管理授权 guard，密码专用命令与资料修改分离。
+
+已验证真实数据库登录、密码哈希、启停、重置、旧会话失效、命名空间隔离、版本冲突、provider 缺失/重复；HTTP 测试覆盖会话登录和凭据重置后的 401。外部 provider 模式不装配本地数据库/登录链，无实现时启动失败。
+
+完整 reactor 108 个测试通过（新增 8 个本地身份、3 个 Spring/HTTP 装配测试）。角色 provider、管理 REST/UI、登录失败限制、生产迁移脚本和外部认证桥接仍在后续阶段，不能仅凭这些测试视为完整身份交付。
