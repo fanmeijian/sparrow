@@ -13,8 +13,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 class KeycloakRoleProviderTest {
     final String issuer="https://identity.test/realms/demo";
-    final RestTemplate http=new RestTemplate();final MockRestServiceServer server=MockRestServiceServer.bindTo(http).build();
-    final KeycloakAdminClient client=new KeycloakAdminClient(http,URI.create("https://identity.test"),"demo","management","test-secret");
+    final TestServer server = new TestServer();
+    final KeycloakAdminClient client = new KeycloakAdminClient(server.base(), "demo", "management", "test-secret");
+    @AfterEach void close() {
+        try { client.close(); } finally { server.close(); }
+    }
     final KeycloakRoleProvider roles=new KeycloakRoleProvider(client,issuer,"demo",null,(n,s,id)->{});
     final Subject user=new Subject(Subject.Kind.USER,KeycloakActorProvider.subject(issuer,"user-1"));
     void token(){server.expect(r->assertEquals("/realms/demo/protocol/openid-connect/token",r.getURI().getPath())).andRespond(withSuccess("{\"access_token\":\"test-token\",\"expires_in\":300}",MediaType.APPLICATION_JSON));}
@@ -38,4 +41,48 @@ class KeycloakRoleProviderTest {
     }
     @Test void disabledUserHasNoEffectiveRoles(){token();server.expect(r->{}).andRespond(withSuccess("{\"enabled\":false}",MediaType.APPLICATION_JSON));assertTrue(roles.rolesFor(user).isEmpty());server.verify();}
 
+
+    // Run the SDK against a local HTTP server while retaining the ordered request expectations.
+    static final class TestServer implements AutoCloseable {
+        private final MockRestServiceServer expectations;
+        private final com.sun.net.httpserver.HttpServer http;
+        private volatile Throwable failure;
+        TestServer() {
+            var transport = new RestTemplate();
+            expectations = MockRestServiceServer.bindTo(transport).build();
+            try {
+                http = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+            } catch (java.io.IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+            http.createContext("/", exchange -> {
+                try {
+                    var request = transport.getRequestFactory().createRequest(base().resolve(exchange.getRequestURI()), HttpMethod.valueOf(exchange.getRequestMethod()));
+                    exchange.getRequestHeaders().forEach((key, values) -> request.getHeaders().put(key, new ArrayList<>(values)));
+                    exchange.getRequestBody().transferTo(request.getBody());
+                    try (var response = request.execute()) {
+                        byte[] body = response.getBody().readAllBytes();
+                        response.getHeaders().forEach((key, values) -> exchange.getResponseHeaders().put(key, new ArrayList<>(values)));
+                        exchange.sendResponseHeaders(response.getStatusCode().value(), body.length == 0 ? -1 : body.length);
+                        exchange.getResponseBody().write(body);
+                    }
+                } catch (Exception | AssertionError error) {
+                    failure = error;
+                    exchange.sendResponseHeaders(500, -1);
+                } finally {
+                    exchange.close();
+                }
+            });
+            http.start();
+        }
+        URI base() { return URI.create("http://127.0.0.1:" + http.getAddress().getPort()); }
+        org.springframework.test.web.client.ResponseActions expect(org.springframework.test.web.client.RequestMatcher matcher) {
+            return expectations.expect(matcher);
+        }
+        void verify() {
+            if (failure != null) throw new AssertionError(failure);
+            expectations.verify();
+        }
+        @Override public void close() { http.stop(0); }
+    }
 }

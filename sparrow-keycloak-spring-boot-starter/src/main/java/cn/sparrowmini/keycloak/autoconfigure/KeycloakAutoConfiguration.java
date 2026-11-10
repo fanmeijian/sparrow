@@ -36,7 +36,7 @@ public class KeycloakAutoConfiguration {
         KeycloakAdminClient keycloakAdmin(KeycloakProperties p){
             String expected=UriComponentsBuilder.fromUriString(p.getServerUrl()).pathSegment("realms",p.getRealm()).build().encode().toUriString();
             if(!expected.equals(p.getIssuer()))throw new IllegalArgumentException("Management realm must match authentication issuer");
-            return new KeycloakAdminClient(http(),URI.create(p.getServerUrl()),p.getRealm(),p.getManagementClientId(),p.getManagementClientSecret());
+            return new KeycloakAdminClient(URI.create(p.getServerUrl()),p.getRealm(),p.getManagementClientId(),p.getManagementClientSecret());
         }
         @Bean @ConditionalOnMissingBean(UserDirectoryProvider.class)
         KeycloakUserProvider keycloakUsers(KeycloakAdminClient client,KeycloakProperties p,IdentityManagementGuard guard){return new KeycloakUserProvider(client,p.getIssuer(),p.getNamespace(),guard);}

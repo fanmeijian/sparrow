@@ -20,7 +20,8 @@ public class JpaRoleGrantStore implements RolePermissionManager,RoleGrantSource 
         transaction();if(!registered.exists(permission))throw new IllegalArgumentException("Unknown resource/scope");roles.require(role);var existing=lookup(role,permission,true);guard.require(namespace,"revoke-permission",role,permission,existing.map(g->g.effect).orElse(null),null);existing.ifPresent(em::remove);em.flush();
     }
     @Transactional(readOnly=true) public List<RoleGrant> grants(String role){
-        guard.require(namespace,"read",role,null,null,null);roles.require(role);var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var r=q.from(RolePermissionEntity.class);
+        // Stored grants remain readable even when the external role directory is unavailable.
+        guard.require(namespace,"read",role,null,null,null);var cb=em.getCriteriaBuilder();var q=cb.createQuery(RolePermissionEntity.class);var r=q.from(RolePermissionEntity.class);
         q.select(r).where(cb.equal(r.get("namespace"),namespace),cb.equal(r.get("roleId"),role)).orderBy(cb.asc(r.get("resource")),cb.asc(r.get("scope")));return em.createQuery(q).getResultList().stream().map(this::view).toList();
     }
     @Transactional(readOnly=true) public List<RoleGrant> find(Set<String> roles,PermissionRequest permission){

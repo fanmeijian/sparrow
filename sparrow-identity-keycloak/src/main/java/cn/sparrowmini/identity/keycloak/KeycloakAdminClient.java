@@ -1,46 +1,74 @@
 package cn.sparrowmini.identity.keycloak;
 
-import org.springframework.web.client.RestOperations;
-import org.springframework.web.client.RestClientException;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.spi.ResteasyClientClassicProvider;
 import java.net.URI;
-import java.time.*;
-import java.util.*;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-/** Fixed-realm Admin REST transport. Credentials and upstream bodies never appear in errors. */
-public final class KeycloakAdminClient {
-    private final RestOperations http;
-    private final URI base;
-    private final String realm, clientId, secret;
-    private String token;
-    private Instant expires=Instant.EPOCH;
-    public KeycloakAdminClient(RestOperations http,URI base,String realm,String clientId,String secret){
-        this.http=Objects.requireNonNull(http);this.base=Objects.requireNonNull(base);
-        this.realm=required(realm);this.clientId=required(clientId);this.secret=required(secret);
-        if(!Set.of("http","https").contains(base.getScheme()) || base.getHost()==null || base.getUserInfo()!=null || base.getQuery()!=null || base.getFragment()!=null)
+/** Fixed-realm adapter around the official Admin Client. */
+public final class KeycloakAdminClient implements AutoCloseable {
+    public static final class UpstreamException extends IllegalStateException {
+        private UpstreamException(String detail) {
+            super("Keycloak management request failed (" + detail + ")");
+        }
+    }
+
+    private final Keycloak client;
+    private final String realm;
+
+    public KeycloakAdminClient(URI base, String realm, String clientId, String secret) {
+        if (!Set.of("http", "https").contains(base.getScheme()) || base.getHost() == null
+                || base.getUserInfo() != null || base.getQuery() != null || base.getFragment() != null) {
             throw new IllegalArgumentException("Invalid Keycloak base URI");
+        }
+        this.realm = required(realm);
+        client = KeycloakBuilder.builder().serverUrl(base.toString()).realm(this.realm)
+                .grantType("client_credentials").clientId(required(clientId)).clientSecret(required(secret))
+                .resteasyClient(ResteasyClientClassicProvider.createClientBuilder()
+                        .connectTimeout(5, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS)
+                        .build().register(org.keycloak.admin.client.JacksonProvider.class, 100))
+                .build();
     }
-    private static String required(String value){if(value==null||value.isBlank())throw new IllegalArgumentException("Required Keycloak configuration missing");return value;}
-    private synchronized String token(){
-        if(token!=null && Instant.now().isBefore(expires))return token;
-        var body=new LinkedMultiValueMap<String,String>();body.add("grant_type","client_credentials");body.add("client_id",clientId);body.add("client_secret",secret);
-        var headers=new HttpHeaders();headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+    private static String required(String value) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException("Required Keycloak configuration missing");
+        return value;
+    }
+
+    public <T> T read(Function<RealmResource, T> action) {
         try {
-            var uri=UriComponentsBuilder.fromUri(base).pathSegment("realms",realm,"protocol","openid-connect","token").build().encode().toUri();
-            Map<?,?> response=http.exchange(uri,HttpMethod.POST,new HttpEntity<>(body,headers),Map.class).getBody();
-            if(response==null || !(response.get("access_token") instanceof String value) || value.isBlank() || !(response.get("expires_in") instanceof Number ttl) || ttl.longValue()<=0)
-                throw new IllegalStateException("Invalid Keycloak token response");
-            token=value;expires=Instant.now().plusSeconds(Math.max(0,ttl.longValue()-30));return token;
-        }catch(RestClientException error){throw new IllegalStateException("Keycloak service authentication failed");}
+            return action.apply(client.realm(realm));
+        } catch (WebApplicationException | ProcessingException error) {
+            for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+                if (cause instanceof WebApplicationException responseError && responseError.getResponse() != null) {
+                    try (var response = responseError.getResponse()) {
+                        throw new UpstreamException("HTTP " + response.getStatus());
+                    }
+                }
+            }
+            throw new UpstreamException(error.getClass().getSimpleName());
+        }
     }
-    public <T> ResponseEntity<T> request(HttpMethod method,List<String> path,Map<String,?> query,Object body,Class<T> type){
-        var builder=UriComponentsBuilder.fromUri(base).pathSegment("admin","realms",realm);
-        path.forEach(p->{if(p==null||p.isBlank()||p.equals(".")||p.equals(".."))throw new IllegalArgumentException("Invalid path segment");builder.pathSegment(p);});
-        query.forEach(builder::queryParam);
-        var headers=new HttpHeaders();headers.setBearerAuth(token());headers.setContentType(MediaType.APPLICATION_JSON);
-        try{return http.exchange(builder.build().encode().toUri(),method,new HttpEntity<>(body,headers),type);}
-        catch(RestClientException error){throw new IllegalStateException("Keycloak management request failed");}
+
+    public void write(Consumer<RealmResource> action) {
+        read(realm -> { action.accept(realm); return null; });
+    }
+
+    public static void requireSuccess(Response response) {
+        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+            throw new UpstreamException("HTTP " + response.getStatus());
+        }
+    }
+
+    @Override public void close() {
+        client.close();
     }
 }
