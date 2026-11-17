@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProcessAndTaskDefinitionsService, ProcessInstanceAdministrationService, ProcessInstancesService, ProcessQueriesService, TaskInstanceAdministrationService, TaskInstancesService } from '../../../lib';
 import { combineLatest, map, ObservableInput, of, switchMap } from 'rxjs';
@@ -14,6 +14,7 @@ import { VariablesDialogComponent } from 'src/app/variables-dialog/variables-dia
     selector: 'app-process-instance',
     templateUrl: './process-instance.component.html',
     styleUrls: ['./process-instance.component.css'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [ProcessAndTaskDefinitionsService, TaskInstancesService, TaskInstanceAdministrationService, ProcessInstanceAdministrationService],
     standalone: false
 })
@@ -205,6 +206,7 @@ export class ProcessInstanceComponent implements OnInit {
     private taskInstanceService: TaskInstancesService,
     private taskInstanceAdminService: TaskInstanceAdministrationService,
     private dialog: MatDialog,
+    private changeDetectorRef: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -214,6 +216,7 @@ export class ProcessInstanceComponent implements OnInit {
 
     this.http.get(`${environment.bpmApi}/process-instances/${processInstanceId}`).subscribe((process: any) => {
       this.process = process
+      this.changeDetectorRef.markForCheck()
       const containerId = process.externalId
       this.http.get(`${environment.bpmApi}/jbpm-ext/process-variables`, {
         params: {
@@ -223,6 +226,7 @@ export class ProcessInstanceComponent implements OnInit {
         }
       }).subscribe((res) => {
         this.processVariables = res
+        this.changeDetectorRef.markForCheck()
       })
       // this.processInstancesAdminService.getNodes(process.externalId, process.processInstanceId).subscribe((res: any) => {
       //   this.processNodes = res['process-node']
@@ -232,6 +236,7 @@ export class ProcessInstanceComponent implements OnInit {
       this.processDefinitionService.getProcessDefinition(containerId, process.processId).subscribe((res: any) => {
         this.processNodes = res['nodes']
         this.processDefinition = res
+        this.changeDetectorRef.markForCheck()
         // const $varaibleRequest = Object.keys(this.processDefinition.processVariables).map(m => this.processService.getVariableHistory1(processInstanceId, m).pipe(
         //   map((v: any) => v['variable-instance'])
         // ))
@@ -243,6 +248,7 @@ export class ProcessInstanceComponent implements OnInit {
 
       this.processInstancesAdminService.getActiveNodeInstances(containerId, processInstanceId).subscribe((res: any) => {
         this.activeNodes = res['node-instance']
+        this.changeDetectorRef.markForCheck()
         this.activeNodes.forEach(n => {
           const containerId = this.process.externalId
           this.processService.getTaskByWorkItemId(n['work-item-id']).subscribe((res: any) => {
@@ -251,11 +257,13 @@ export class ProcessInstanceComponent implements OnInit {
 
             this.taskInstanceService.getTask(containerId, taskId, false, false, true).subscribe(task => {
               this.activeTasksByWorkItemId[n['work-item-id']] = task
+              this.changeDetectorRef.markForCheck()
             })
 
             //初始化各项任务的可分配人列表
             this.taskInstanceAdminService.getTaskReassignments(containerId, taskId).subscribe((res: any) => {
               this.taskAssignments[n['work-item-id']] = res['task-reassignment']
+              this.changeDetectorRef.markForCheck()
             })
 
 
@@ -280,6 +288,7 @@ export class ProcessInstanceComponent implements OnInit {
           }
         })
         this.nodeInstances = nodeInstances
+        this.changeDetectorRef.markForCheck()
         console.log('nodeInstances', nodeInstances)
         //获取output变量
         nodeInstances.forEach((node: any) => {
@@ -287,9 +296,11 @@ export class ProcessInstanceComponent implements OnInit {
             this.processService.getTaskByWorkItemId(node.workItemId).subscribe((res: any) => {
               const taskId = res['task-id']
               node.taskId = taskId
+              this.changeDetectorRef.markForCheck()
               this.taskInstanceService.getTaskOutputContentByTaskId(containerId, taskId).subscribe(res => {
                 console.log('task output content', res)
                 this.taskOutputs[node.workItemId] = res
+                this.changeDetectorRef.markForCheck()
               })
             })
           }

@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 // 只有 SCSS 才能识别这种语法来动态注入样式
 // 1. 必须放在文件第一行！
+@use 'sass:map';
 @use '@angular/material' as mat;
 @include mat.elevation-classes();
 @include mat.app-background();
@@ -25,15 +26,15 @@ $themes: (
 
 // --- 3. 生成 CSS 类 ---
 // 默认样式
-@include mat.all-component-themes(map-get(map-get($themes, "theme-indigo"), light));
+@include mat.all-component-themes(map.get(map.get($themes, "theme-indigo"), light));
 
 // 循环生成：例如 .theme-pink 且没有 .dark-mode 时，应用粉色亮色
 @each $name, $modes in $themes {
   .#{$name} {
-    @include mat.all-component-colors(map-get($modes, light));
+    @include mat.all-component-colors(map.get($modes, light));
     
     &.dark-mode {
-      @include mat.all-component-colors(map-get($modes, dark));
+      @include mat.all-component-colors(map.get($modes, dark));
     }
   }
 }

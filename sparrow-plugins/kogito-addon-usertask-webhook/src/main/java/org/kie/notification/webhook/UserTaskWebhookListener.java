@@ -1,20 +1,18 @@
 package org.kie.notification.webhook;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.kie.kogito.event.usertask.UserTaskInstanceDeadlineDataEvent;
+import java.util.Map;
+
 import org.kie.kogito.usertask.UserTaskEventListener;
 import org.kie.kogito.usertask.events.UserTaskAssignmentEvent;
 
-import java.util.Map;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class UserTaskWebhookListener implements UserTaskEventListener {
 
     @Inject
     WebhookNotificationSender webhookSender;
-
 
     @Override
     public void onUserTaskAssignment(UserTaskAssignmentEvent event) {

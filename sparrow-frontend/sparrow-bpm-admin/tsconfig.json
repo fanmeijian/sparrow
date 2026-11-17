@@ -2,7 +2,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
@@ -18,13 +17,12 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "es2020",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
     "paths": {
+      "src/*": [
+        "./src/*"
+      ],
       "bpmn-editor": [
-        "src/types/index.d.ts"
+        "./src/types/index.d.ts"
       ]
     },
     "skipLibCheck": true,

@@ -1,12 +1,12 @@
 <h3 mat-dialog-title><span style="color: red;">系统错误!</span></h3>
 <mat-dialog-content class="mat-typography">
-  @if (data?.status) {
+  @if (data.status) {
     <p>
-      <b>状态: {{ data?.status }}</b>
+      <b>状态: {{ data.status }}</b>
     </p>
   }
   <p class="error-message">
-    {{ data?.message }}
+    {{ data.message }}
   </p>
 </mat-dialog-content>
 <mat-dialog-actions>

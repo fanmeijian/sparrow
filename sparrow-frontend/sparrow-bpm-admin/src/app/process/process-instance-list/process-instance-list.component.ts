@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
@@ -10,6 +10,7 @@ import { environment } from 'src/environments/environment';
     selector: 'app-process-instance-list',
     templateUrl: './process-instance-list.component.html',
     styleUrls: ['./process-instance-list.component.css'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: false
 })
 export class ProcessInstanceListComponent implements OnInit {
@@ -24,6 +25,7 @@ export class ProcessInstanceListComponent implements OnInit {
     this.http.get(`${environment.bpmApi}/process-instances`, { params: httpParams }).subscribe((res: any) => {
       this.dataSource = new MatTableDataSource(res.content)
       this.pageable.length = res.totalElements
+      this.changeDetectorRef.markForCheck()
     });
   }
   pageable = { page: 0, size: 10, length: 0, sort: ['start,desc'] }
@@ -33,6 +35,7 @@ export class ProcessInstanceListComponent implements OnInit {
     const processInstanceId = process.processInstanceId
     this.http.get(`${environment.bpmApi}/process-instances/${processInstanceId}/node-instances`, { params: httpParams }).subscribe((res: any) => {
       this.processNodes[processInstanceId] = res.content
+      this.changeDetectorRef.markForCheck()
     })
     // this.processAdminService.getActiveNodeInstances(process['container-id'], process['process-instance-id']).subscribe((res: any) => {
     //   this.processNodes[process['process-instance-id']] = res['node-instance']
@@ -51,6 +54,7 @@ export class ProcessInstanceListComponent implements OnInit {
     private processInstanceService: ProcessInstancesService,
     private processAdminService: ProcessInstanceAdministrationService,
     private http: HttpClient,
+    private changeDetectorRef: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {

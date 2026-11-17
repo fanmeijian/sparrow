@@ -1,7 +1,7 @@
 <mat-tab-group>
   <mat-tab label="基本信息">
     {{process.status}} {{process.processInstanceId}} {{process.processName}} {{process.start|date: 'short'}}
-    <app-process-instance-image [processInstanceId]="process?.processInstanceId"></app-process-instance-image>
+    <app-process-instance-image [processInstanceId]="process?.processInstanceId" [containerId]="process?.externalId"></app-process-instance-image>
 
     <h4>当前节点</h4>
     <mat-table [dataSource]="activeNodes">
