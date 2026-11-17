@@ -1,0 +1,4 @@
+cn/sparrowmini/server/config/CurrentUserFilter.class
+cn/sparrowmini/server/SparrowServerSecurity.class
+cn/sparrowmini/server/config/DefaultWebSecurityConfig.class
+cn/sparrowmini/server/config/EntityConfig.class
